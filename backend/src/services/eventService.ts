@@ -8,12 +8,51 @@ export const createEvent = async (userData: Prisma.EventCreateInput) => {
   return prisma.event.create({ data: userData });
 };
 
-export const getEvents = async () => {
-  return prisma.event.findMany();
+export const getEvents = async (fetchCategories: boolean) => {
+  return prisma.event.findMany({
+    include: {
+      categories: fetchCategories,
+    },
+  });
 };
 
-export const getEventById = async (id: string) => {
-  return prisma.event.findUnique({ where: { id } });
+export const getEventById = async (id: string, fetchCategories: boolean) => {
+  return prisma.event.findUnique(
+    {
+      where: { id },
+      include: {
+        categories: fetchCategories,
+      },
+    },
+
+  );
+};
+
+export const getEventsPaginated = async (
+  cursor?: string,
+  limit: number = 20, 
+  fetchCategories: boolean = true
+) => {
+  return prisma.event.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    ...(cursor && {
+      skip: 1,
+      cursor: { id: cursor },
+    }),
+    include: {
+      categories: fetchCategories,
+      creator: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    },
+    },
+  });
 };
 
 export const updateEvent = async (id: string, userUpdateData: Prisma.EventUpdateInput) => {

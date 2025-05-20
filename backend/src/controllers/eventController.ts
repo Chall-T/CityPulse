@@ -44,17 +44,36 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
 });
 
 export const getEvents = catchAsync(async (req: Request, res: Response) => {
-    const events = await eventService.getEvents();
+    const events = await eventService.getEvents(true);
     res.json(events);
 });
 
 export const getEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const event = await eventService.getEventById(req.params.eventId);
+    const event = await eventService.getEventById(req.params.eventId, true);
     if (!event) {
         return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
     }
     res.json(event);
 });
+
+export const getPaginatedEvents = catchAsync(async (req: Request, res: Response) => {
+  const { cursor, limit } = req.query;
+  let userLimit = 20;
+
+  if (limit) {
+    userLimit = parseInt(limit as string);
+  }
+
+  const events = await eventService.getEventsPaginated(cursor as string, userLimit);
+
+  res.json({
+    data: events,
+    nextCursor: events.length === userLimit ? events[events.length - 1].id : null,
+  });
+});
+
+
+
 
 export const updateEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryId } = req.body;

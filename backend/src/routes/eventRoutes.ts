@@ -323,4 +323,46 @@ router.get('/:eventId/rsvps', authenticate, rsvpController.getRSVPsOfEvent);
  */
 router.delete('/:eventId/rsvps', authenticate, rsvpController.deleteRSVPByEvent);
 
+/**
+ * @swagger
+ * /events:
+ *   get:
+ *     summary: Get a list of events (paginated)
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: cursor
+ *         required: false
+ *         schema:
+ *           type: string
+ *           description: ID of the last event received (for pagination)
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           description: Number of events to return
+ *     responses:
+ *       200:
+ *         description: List of events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Event'
+ *                 nextCursor:
+ *                   type: string
+ *                   nullable: true
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/', authenticate, eventController.getPaginatedEvents);
+
 export default router;

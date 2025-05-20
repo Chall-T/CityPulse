@@ -14,7 +14,7 @@ export const createRSVP = catchAsync(async (req: AuthRequest, res: Response, nex
 
     if (!eventId) return next(new AppError('Event ID is required', 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
 
-    const event = await eventService.getEventById(eventId);
+    const event = await eventService.getEventById(eventId, true);
     if (!event) return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
 
     const existingRSVP = await rsvpService.getRSVPByUserAndEvent(userId, eventId);
@@ -69,7 +69,7 @@ export const deleteRSVPByEvent = catchAsync(async (req: AuthRequest, res: Respon
 
     if (!eventId) return next(new AppError('Event ID is required', 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
 
-    const event = await eventService.getEventById(eventId);
+    const event = await eventService.getEventById(eventId, true);
     if (!event) return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
 
     const existingRSVP = await rsvpService.getRSVPByUserAndEvent(userId, eventId);
