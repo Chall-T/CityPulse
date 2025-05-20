@@ -1,0 +1,6 @@
+
+const config = {
+    apiUrl: (import.meta.env.VITE_API_URL as string) || 'http://localhost:1000/api',
+  };
+
+export default config;

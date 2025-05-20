@@ -1,0 +1,123 @@
+import { Request, Response, NextFunction } from 'express';
+import * as eventService from '../services/eventService';
+import * as messageService from '../services/messageService';
+import * as rsvpService from '../services/rsvpService';
+import { catchAsync, AppError, ErrorCodes } from '../utils/errorHandler';
+import { Prisma } from '@prisma/client';
+
+interface AuthRequest extends Request {
+    userId: string;
+}
+
+export const createEvent = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryIds } = req.body;
+    if (!title) return next(new AppError("Title is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!description) return next(new AppError("Description is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!dateTime) return next(new AppError("Date and time are required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!location) return next(new AppError("Location is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
+        return next(new AppError("At least one category ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    }
+    const newEvent: Prisma.EventCreateInput = {
+        title,
+        description,
+        dateTime,
+        location,
+        categories: { connect: categoryIds.map((id: string) => ({ id })), },
+        creator: { connect: { id: req.userId } },
+    };
+    if (imageUrl) newEvent.imageUrl = imageUrl;
+    if (lat) newEvent.lat = lat;
+    if (lng) newEvent.lng = lng;
+    if (capacity) newEvent.capacity = capacity;
+
+
+    const event = await eventService.createEvent(newEvent);
+
+    if (event){
+        rsvpService.createRSVP({
+            user: { connect: { id: req.userId } },
+            event: { connect: { id: event.id } },
+        });
+    }
+    res.status(201).json(event);
+});
+
+export const getEvents = catchAsync(async (req: Request, res: Response) => {
+    const events = await eventService.getEvents();
+    res.json(events);
+});
+
+export const getEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const event = await eventService.getEventById(req.params.eventId);
+    if (!event) {
+        return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
+    }
+    res.json(event);
+});
+
+export const updateEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryId } = req.body;
+
+    const updates: Prisma.EventUpdateInput = {
+    };
+    if (imageUrl) updates.imageUrl = imageUrl;
+    if (lat) updates.lat = lat;
+    if (lng) updates.lng = lng;
+    if (capacity) updates.capacity = capacity;
+    if (title) updates.title = title;
+    if (description) updates.description = description;
+    if (dateTime) updates.dateTime = dateTime;
+    if (location) updates.location = location;
+
+    if (Object.keys(updates).length === 0) {
+        return next(new AppError('No valid fields provided to update', 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    }
+
+    const event = await eventService.updateEvent(req.params.eventId, updates);
+    if (!event) {
+        return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
+    }
+    res.json(event);
+});
+
+export const deleteEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const event = await eventService.deleteEvent(req.params.eventId);
+    if (!event) {
+        return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
+    }
+    res.status(204).send();
+});
+
+export const sendMessageInEvent = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const eventId = req.params.eventId
+    const { message } = req.body;
+    if (!message) return next(new AppError("Message is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!eventId) return next(new AppError("Event ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    const newMessage = {
+        content: message,
+        event: { connect: { id: eventId } },
+        user: { connect: { id: req.userId } },
+    }
+    const msg = await messageService.createMessage(newMessage);
+    res.json(msg);
+});
+
+export const getPaginatedMessages = catchAsync(async (req: Request, res: Response) => {
+    const { eventId } = req.params;
+    const { cursor, limit } = req.query;
+    var userLimit = 20;
+    if (limit){
+        userLimit = parseInt(limit as string);
+    }
+    const messages = await messageService.getMessagesByEventIdSection(
+        eventId,
+        cursor as string,
+        userLimit,
+    );
+
+    res.json({
+        data: messages,
+        nextCursor: messages.length > userLimit ? messages[messages.length - 1].id : null,
+    });
+});
