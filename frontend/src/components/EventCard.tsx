@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Event } from '../store/eventStore';
+import type { Event } from '../types';
 import { CalendarDays, MapPin } from 'lucide-react';
 
 export const EventCard: React.FC<{ event: Event }> = ({ event }) => {

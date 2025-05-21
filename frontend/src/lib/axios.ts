@@ -38,7 +38,7 @@ api.interceptors.response.use(
       errorCode === ErrorCodes.AUTH_TOKEN_EXPIRED &&
       !originalRequest._retry &&
       !originalRequest?.url?.includes('/auth/logout') &&
-      authStore.hasRefreshToken
+      authStore.hasRefreshToken || authStore.firstAuthCheck
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { RegistrationPage } from './pages/RegisterPage';
-import Home from './pages/Events';
+import EventPage from './pages/EventsPage';
 import { PublicOnlyRoute } from './providers/AuthProvider';
 import Layout from './components/Layout';
 const App = () => {
@@ -18,7 +18,7 @@ const App = () => {
             <PublicOnlyRoute>
               <RegistrationPage />
             </PublicOnlyRoute>} />
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<EventPage />} />
         </Routes>
       </Layout>
     </div>

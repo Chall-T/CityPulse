@@ -2,23 +2,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api } from '../lib/axios';
 import { ErrorCodes } from '../constants/errorCodes';
-
-type User = {
-  id: string;
-  email: string;
-  name: string;
-  username: string;
-  avatarUrl: string | null;
-  bio: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+import type { User } from '../types';
 
 type AuthStore = {
   user: User | null;
   token: string | null;
   error: string | null;
   hasRefreshToken: boolean;
+  firstAuthCheck: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   setToken: (token: string) => void;
@@ -33,6 +24,7 @@ export const useAuthStore = create<AuthStore>()(
       token: null,
       error: null,
       hasRefreshToken: false,
+      firstAuthCheck: true,
 
       login: async (email, password) => {
         try {
@@ -55,7 +47,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: async () => {
-        set({ user: null, token: null, error: null, hasRefreshToken: false });
+        set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false });
         delete api.defaults.headers.common['Authorization'];
 
         try {
@@ -69,7 +61,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       setToken: (token: string) => {
-        set((state) => ({ ...state, token }));
+        set((state) => ({ ...state, token, firstAuthCheck: false }));
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       },
 

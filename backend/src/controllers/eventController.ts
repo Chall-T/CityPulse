@@ -34,7 +34,7 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
 
     const event = await eventService.createEvent(newEvent);
 
-    if (event){
+    if (event) {
         rsvpService.createRSVP({
             user: { connect: { id: req.userId } },
             event: { connect: { id: event.id } },
@@ -57,14 +57,45 @@ export const getEvent = catchAsync(async (req: Request, res: Response, next: Nex
 });
 
 export const getPaginatedEvents = catchAsync(async (req: Request, res: Response) => {
-  const { cursor, limit } = req.query;
+    const { cursor, limit } = req.query;
+    let userLimit = 20;
+
+    if (limit) {
+        userLimit = parseInt(limit as string);
+    }
+
+    const events = await eventService.getEventsPaginated(cursor as string, userLimit);
+
+    res.json({
+        data: events,
+        nextCursor: events.length === userLimit ? events[events.length - 1].id : null,
+    });
+});
+
+export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
+  const { cursor, limit, categories, search } = req.query;
   let userLimit = 20;
 
   if (limit) {
     userLimit = parseInt(limit as string);
   }
 
-  const events = await eventService.getEventsPaginated(cursor as string, userLimit);
+  const categoryArray: string[] = categories
+  ? Array.isArray(categories)
+    ? (categories as string[]).map((c) => c.trim())
+    : String(categories).split(',').map((c) => c.trim())
+  : [];
+
+
+  const searchTerm = typeof search === 'string' ? search.trim() : '';
+
+  const events = await eventService.getEventsPaginatedWithFilters(
+    cursor ? String(cursor) : undefined,
+    userLimit,  
+    true,
+    categoryArray,
+    searchTerm
+  );
 
   res.json({
     data: events,
@@ -75,8 +106,9 @@ export const getPaginatedEvents = catchAsync(async (req: Request, res: Response)
 
 
 
+
 export const updateEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryId } = req.body;
+    const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryIds } = req.body;
 
     const updates: Prisma.EventUpdateInput = {
     };
@@ -88,6 +120,9 @@ export const updateEvent = catchAsync(async (req: Request, res: Response, next: 
     if (description) updates.description = description;
     if (dateTime) updates.dateTime = dateTime;
     if (location) updates.location = location;
+    if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
+        return next(new AppError("At least one category ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    }
 
     if (Object.keys(updates).length === 0) {
         return next(new AppError('No valid fields provided to update', 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
@@ -126,7 +161,7 @@ export const getPaginatedMessages = catchAsync(async (req: Request, res: Respons
     const { eventId } = req.params;
     const { cursor, limit } = req.query;
     var userLimit = 20;
-    if (limit){
+    if (limit) {
         userLimit = parseInt(limit as string);
     }
     const messages = await messageService.getMessagesByEventIdSection(

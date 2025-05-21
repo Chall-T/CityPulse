@@ -363,6 +363,6 @@ router.delete('/:eventId/rsvps', authenticate, rsvpController.deleteRSVPByEvent)
  *       401:
  *         description: Unauthorized
  */
-router.get('/', authenticate, eventController.getPaginatedEvents);
+router.get('/', authenticate, eventController.getPaginatedEventsWithFilters);
 
 export default router;

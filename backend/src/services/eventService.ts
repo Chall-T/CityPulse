@@ -30,7 +30,7 @@ export const getEventById = async (id: string, fetchCategories: boolean) => {
 
 export const getEventsPaginated = async (
   cursor?: string,
-  limit: number = 20, 
+  limit: number = 20,
   fetchCategories: boolean = true
 ) => {
   return prisma.event.findMany({
@@ -43,14 +43,70 @@ export const getEventsPaginated = async (
     include: {
       categories: fetchCategories,
       creator: {
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        username: true,
-        avatarUrl: true,
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatarUrl: true,
+        },
       },
     },
+  });
+};
+
+export const getEventsPaginatedWithFilters = async (
+  cursor?: string,
+  limit: number = 20,
+  fetchCategories: boolean = true,
+  categoryFilter: string[] = [],
+  search: string = '',
+) => {
+  const where: Prisma.EventWhereInput = {
+    AND: [
+      ...(categoryFilter.length > 0
+        ? [{
+          categories: {
+            some: { id: { in: categoryFilter } },
+          },
+        }]
+        : []),
+      ...(search.trim()
+        ? [{
+          OR: [
+            { title: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { description: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { location: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            {
+              categories: {
+                some: { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              },
+            },
+          ],
+        }]
+        : []),
+    ],
+  };
+
+
+  return prisma.event.findMany({
+
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    ...(cursor && {
+      skip: 1,
+      cursor: { id: cursor },
+    }),
+    where,
+    include: {
+      categories: fetchCategories,
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatarUrl: true,
+        },
+      },
     },
   });
 };
