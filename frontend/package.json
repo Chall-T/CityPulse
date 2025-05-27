@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hookform/devtools": "^4.4.0",
+    "@reduxjs/toolkit": "^2.8.2",
     "@tanstack/react-query": "^5.75.6",
     "axios": "^1.9.0",
     "lucide-react": "^0.511.0",
@@ -18,6 +19,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.3",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.0",
     "socket.io-client": "^4.8.1",
     "vanilla-calendar-pro": "^3.0.4",
@@ -29,6 +31,7 @@
     "@types/node": "^22.15.17",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@types/react-redux": "^7.1.34",
     "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.25.0",

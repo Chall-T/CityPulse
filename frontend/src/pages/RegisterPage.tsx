@@ -61,7 +61,7 @@ export const RegistrationPage = () => {
       const res = await api.post('/auth/register', {
         email: formData.email,
         password: formData.password,
-      });
+      }, { authRequired: true});
 
       login(res.data.user, res.data.token);
       navigate('/');

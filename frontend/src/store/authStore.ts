@@ -2,10 +2,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api } from '../lib/axios';
 import { ErrorCodes } from '../constants/errorCodes';
-import type { User } from '../types';
+import type { SafeUser } from '../types';
+import { apiClient } from '../lib/ApiClient';
 
 type AuthStore = {
-  user: User | null;
+  user: SafeUser | null;
   token: string | null;
   error: string | null;
   hasRefreshToken: boolean;
@@ -28,10 +29,18 @@ export const useAuthStore = create<AuthStore>()(
 
       login: async (email, password) => {
         try {
-          const response = await api.post('/auth/login', { email, password });
+          const response = await apiClient.login(email, password);
           const { user, token } = response.data;
-
-          set({ user, token, error: null, hasRefreshToken: true });
+          const safeUser: SafeUser = {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            avatarUrl: user.avatarUrl,
+            bio: user.bio,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+          };
+          set({ user: safeUser, token, error: null, hasRefreshToken: true });
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         } catch (err: any) {
           const errorCode = err?.response?.data?.error?.errorCode;
@@ -51,7 +60,7 @@ export const useAuthStore = create<AuthStore>()(
         delete api.defaults.headers.common['Authorization'];
 
         try {
-          const logoutResponse = await api.post('/auth/logout', null, { withCredentials: true });
+          const logoutResponse = await apiClient.logout();
           if (logoutResponse.status === 200) {
             console.log('Logout success');
           }
@@ -74,7 +83,7 @@ export const useAuthStore = create<AuthStore>()(
         console.log(user, token);
         if (!token) {
           try {
-            const refreshResponse = await api.post('/auth/refresh', null, { withCredentials: true });
+            const refreshResponse = await apiClient.refreshToken();
             const newToken = refreshResponse.data.token;
             setToken(newToken);
             set({ hasRefreshToken: true });
@@ -89,7 +98,7 @@ export const useAuthStore = create<AuthStore>()(
 
         if (!user) {
           try {
-            const userResponse = await api.get('/users/me');
+            const userResponse = await apiClient.getCurrentUser();
             set({ user: userResponse.data.user });
             console.info('User fetched successfully.');
           } catch (err) {
@@ -102,6 +111,7 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'auth',
+      partialize: (state) => ({ token: state.token, user: state.user }),
       onRehydrateStorage: () => (state) => {
         if (state?.token) {
           api.defaults.headers.common['Authorization'] = `Bearer ${state.token}`;

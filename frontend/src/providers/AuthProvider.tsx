@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { api } from '../lib/axios';
+import { apiClient } from '../lib/ApiClient';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { token, setToken, logout } = useAuthStore();
@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const initAuth = async () => {
       if (!token) {
         try {
-          const { data } = await api.post('/auth/refresh', null, { withCredentials: true });
+          const { data } = await apiClient.refreshToken()
           setToken(data.token);
         } catch (err) {
           logout();

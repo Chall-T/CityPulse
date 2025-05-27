@@ -4,6 +4,12 @@ import { useAuthStore } from '../store/authStore';
 import { ErrorCodes } from '../constants/errorCodes';
 import config from './config';
 
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    authRequired?: boolean;
+  }
+}
+
 export const api = axios.create({
   baseURL: config.apiUrl,
   withCredentials: false,
@@ -23,6 +29,28 @@ const processQueue = (error: AxiosError | null, token: string | null = null) => 
   failedQueue = [];
 };
 
+api.interceptors.request.use(
+  (config) => {
+    const authStore = useAuthStore.getState();
+
+    const needsAuth = (config as any).authRequired ?? false;
+
+    console.log(!authStore.hasRefreshToken, !authStore.firstAuthCheck, needsAuth)
+    if (!authStore.hasRefreshToken && !authStore.firstAuthCheck && needsAuth) {
+      console.warn('Skipping request: no refresh token and auth check is done.');
+      // Cancel the request
+      return Promise.reject({
+        message: 'Request cancelled: no refresh token and first auth check is done.',
+        config,
+        __CANCEL__: true,
+      });
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -38,7 +66,7 @@ api.interceptors.response.use(
       errorCode === ErrorCodes.AUTH_TOKEN_EXPIRED &&
       !originalRequest._retry &&
       !originalRequest?.url?.includes('/auth/logout') &&
-      authStore.hasRefreshToken || authStore.firstAuthCheck
+      (authStore.hasRefreshToken || authStore.firstAuthCheck)
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -57,7 +85,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await api.post('/auth/refresh', null, { withCredentials: true });
+        const { data } = await api.post('/auth/refresh', null, { withCredentials: true, authRequired: true });
         authStore.setToken(data.token);
         api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
         processQueue(null, data.token);
@@ -72,6 +100,8 @@ api.interceptors.response.use(
 
     }
 
-    return Promise.reject(error);
+    if (!authStore.token && !authStore.hasRefreshToken) {
+      return Promise.reject(error);
+    }
   }
 );

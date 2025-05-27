@@ -1,6 +1,6 @@
-import { useAuthStore } from '../store/authStore';
-import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 
 function stringToColor(str: string): string {
     let hash = 0;
@@ -28,14 +28,12 @@ const NavBar = () => {
             const rect = avatarRef.current.getBoundingClientRect();
             const isMobile = window.innerWidth < 768;
             if (isMobile) {
-                // mobile
                 setMenuPosition({
                     top: rect.bottom + window.scrollY,
                     right: -1,
                     left: rect.left
                 });
             } else {
-                // default
                 setMenuPosition({
                     top: rect.bottom + window.scrollY,
                     right: window.innerWidth - rect.right,
@@ -49,8 +47,7 @@ const NavBar = () => {
     const handleLogout = async () => {
         await logout();
         setMenuOpen(false);
-        window.location.reload();
-
+        window.location.reload(); // or navigate to login page instead
     };
 
     useEffect(() => {
