@@ -75,7 +75,7 @@ export const getPaginatedEvents = catchAsync(async (req: Request, res: Response)
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
   const { cursor, limit, categories, search, sort } = req.query;
   let userLimit = 20;
-  let sortOrder = 'desc';
+  let sortOrder: 'asc' | 'desc' = 'desc';
   if (limit) {
     userLimit = parseInt(limit as string);
   }
