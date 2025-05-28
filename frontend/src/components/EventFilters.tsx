@@ -21,7 +21,7 @@ const EventFilters = () => {
 
   const [localSearch, setLocalSearch] = useState('');
   const [localSelectedCategories, setLocalSelectedCategories] = useState<string[]>([]);
-  const [localSort, setLocalSort] = useState<'newest' | 'oldest'>('newest');
+  const [localSort, setLocalSort] = useState<'desc' | 'asc'>('desc');
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -32,7 +32,7 @@ const EventFilters = () => {
     // Get filters from URL
     const urlCategories = searchParams.get('categories');
     const urlSearch = searchParams.get('search') || '';
-    const urlSort = (searchParams.get('sort') as 'newest' | 'oldest') || 'newest';
+    const urlSort = (searchParams.get('sort') as 'desc' | 'asc') || 'desc';
 
     const parsedCats = urlCategories ? urlCategories.split(',').filter(Boolean) : [];
 
@@ -89,7 +89,7 @@ const EventFilters = () => {
     const params: any = {};
     if (localSelectedCategories.length) params.categories = localSelectedCategories.join(',');
     if (localSearch.trim()) params.search = localSearch.trim();
-    if (localSort && localSort !== 'newest') params.sort = localSort;
+    if (localSort && localSort !== 'desc') params.sort = localSort;
 
     setSearchParams(params, { replace: true });
 
@@ -106,12 +106,12 @@ const EventFilters = () => {
   const handleClear = () => {
     setLocalSearch('');
     setLocalSelectedCategories([]);
-    setLocalSort('newest');
+    setLocalSort('desc');
 
     clearFilters();
     setCategoriesFilter([]);
     setSearchFilter('');
-    setSort('newest');
+    setSort('desc');
 
     setSearchParams({}, { replace: true });
     fetchEvents(true, {
@@ -151,11 +151,11 @@ const EventFilters = () => {
       {/* Sort */}
       <select
         value={localSort}
-        onChange={(e) => setLocalSort(e.target.value as "newest" | "oldest")}
+        onChange={(e) => setLocalSort(e.target.value as "desc" | "asc")}
         className="select select-bordered px-3 py-2 rounded-lg w-full max-w-xs"
       >
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
+        <option value="desc">Newest</option>
+        <option value="asc">Oldest</option>
       </select>
 
       {/* Submit Button */}

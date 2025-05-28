@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../lib/axios';
+import { apiClient } from '../lib/ApiClient';
 import { useAuthStore } from '../store/authStore';
 import config from '../lib/config';
 
@@ -58,10 +58,7 @@ export const RegistrationPage = () => {
     if (!validate()) return;
 
     try {
-      const res = await api.post('/auth/register', {
-        email: formData.email,
-        password: formData.password,
-      }, { authRequired: true});
+      const res = await apiClient.register(formData.email, formData.password);
 
       login(res.data.user, res.data.token);
       navigate('/');

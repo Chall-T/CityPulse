@@ -1,8 +1,7 @@
 import { create } from 'zustand';
-import { api } from '../lib/axios';
 import type { Category } from '../types/category';
 import type { Event } from '../types';
-
+import { apiClient } from '../lib/ApiClient';
 
 
 
@@ -13,7 +12,7 @@ type EventStore = {
     nextCursor: string | null;
     categoriesFilter: string[];
     searchFilter: string;
-    fetchEvents: (reset?: boolean, filters?: { categories?: string[]; search?: string; sort?: 'newest' | 'oldest' } ) => Promise<void>;
+    fetchEvents: (reset?: boolean, filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc' } ) => Promise<void>;
     setCategoriesFilter: (categories: string[]) => void;
     setSearchFilter: (search: string) => void;
 };
@@ -27,7 +26,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
     fetchEvents: async (
         reset = false,
-        filters?: { categories?: string[]; search?: string; sort?: 'newest' | 'oldest' }
+        filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc' }
     ) => {
         // inside fetchEvents
         const { nextCursor, events } = get();
@@ -48,7 +47,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
             if (filters?.search && filters.search.trim()) params.search = filters.search.trim();
             if (filters?.sort) params.sort = filters.sort;
 
-            const response = await api.get('/events', { params });
+            const response = await apiClient.getEvents(params);
             const newEvents = response.data.data;
             const newCursor = response.data.nextCursor;
 
@@ -77,7 +76,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
 
 
-type SortOption = 'newest' | 'oldest';
+type SortOption = 'desc' | 'asc';
 
 type FilterStore = {
     categories: Category[];
@@ -97,13 +96,13 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
     categories: [],
     selectedCategories: [],
     search: '',
-    sort: 'newest',
+    sort: 'desc',
     loading: false,
 
     fetchCategories: async () => {
         set({ loading: true });
         try {
-            const res = await api.get('/categories');
+            const res = await apiClient.getCategories();
             set({ categories: res.data, loading: false });
         } catch (err) {
             console.error('Failed to fetch categories:', err);
@@ -129,6 +128,6 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
         set({
             selectedCategories: [],
             search: '',
-            sort: 'newest',
+            sort: 'desc',
         }),
 }));

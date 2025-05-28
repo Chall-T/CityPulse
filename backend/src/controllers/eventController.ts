@@ -73,11 +73,14 @@ export const getPaginatedEvents = catchAsync(async (req: Request, res: Response)
 });
 
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
-  const { cursor, limit, categories, search } = req.query;
+  const { cursor, limit, categories, search, sort } = req.query;
   let userLimit = 20;
-
+  let sortOrder = 'desc';
   if (limit) {
     userLimit = parseInt(limit as string);
+  }
+  if (sort && typeof sort === 'string' && ['asc', 'desc'].includes(sort)) {
+    sortOrder = sort as 'asc' | 'desc';
   }
 
   const categoryArray: string[] = categories
@@ -94,7 +97,8 @@ export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res
     userLimit,  
     true,
     categoryArray,
-    searchTerm
+    searchTerm,
+    sortOrder
   );
 
   res.json({

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { api } from '../lib/axios';
 import { ErrorCodes } from '../constants/errorCodes';
 import type { SafeUser } from '../types';
 import { apiClient } from '../lib/ApiClient';
@@ -41,7 +40,6 @@ export const useAuthStore = create<AuthStore>()(
             updatedAt: user.updatedAt,
           };
           set({ user: safeUser, token, error: null, hasRefreshToken: true });
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         } catch (err: any) {
           const errorCode = err?.response?.data?.error?.errorCode;
           const errorMsg = err?.response?.data?.error?.message || 'Login failed';
@@ -57,7 +55,6 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false });
-        delete api.defaults.headers.common['Authorization'];
 
         try {
           const logoutResponse = await apiClient.logout();
@@ -71,7 +68,6 @@ export const useAuthStore = create<AuthStore>()(
 
       setToken: (token: string) => {
         set((state) => ({ ...state, token, firstAuthCheck: false }));
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       },
 
       setHasRefreshToken: (value: boolean) => {
@@ -112,11 +108,6 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: 'auth',
       partialize: (state) => ({ token: state.token, user: state.user }),
-      onRehydrateStorage: () => (state) => {
-        if (state?.token) {
-          api.defaults.headers.common['Authorization'] = `Bearer ${state.token}`;
-        }
-      },
     }
   )
 );

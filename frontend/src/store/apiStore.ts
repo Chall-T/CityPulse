@@ -1,9 +1,8 @@
 import { create } from 'zustand'
-import { api } from '../lib/axios'
 import type { Event } from '../types/event'
 import type { Category } from '../types/category'
 import type { User } from '../types/user'
-
+import { apiClient } from '../lib/ApiClient'
 type APIStore = {
   // ─── EVENTS ─────────────────────────────
   events: Event[] | null
@@ -40,7 +39,7 @@ export const useApiStore = create<APIStore>((set, get) => ({
 
     set({ eventsLoading: true, eventsError: null })
     try {
-      const res = await api.get('/events')
+      const res = await apiClient.getEvents()
       // assume response.data.data is Event[]
       set({
         events: res.data.data,
@@ -69,7 +68,7 @@ export const useApiStore = create<APIStore>((set, get) => ({
 
     set({ categoriesLoading: true, categoriesError: null })
     try {
-      const res = await api.get('/categories')
+      const res = await apiClient.getCategories()
       // assume response.data is Category[]
       set({
         categories: res.data,
@@ -98,7 +97,7 @@ export const useApiStore = create<APIStore>((set, get) => ({
 
     set({ userLoading: true, userError: null })
     try {
-      const res = await api.get('/users/me')
+      const res = await apiClient.getCurrentUser()
       // assume response.data.user is User
       set({
         user: res.data.user,

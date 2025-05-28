@@ -1,5 +1,5 @@
 import axios, { AxiosHeaders, AxiosError } from 'axios';
-import type { InternalAxiosRequestConfig } from 'axios';
+import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { ErrorCodes } from '../constants/errorCodes';
 import config from './config';
@@ -10,12 +10,22 @@ interface AxiosRequestConfigWithMeta extends InternalAxiosRequestConfig {
   };
 }
 
+type CachedResponse = {
+  timestamp: number;
+  response: AxiosResponse | any;
+  success: boolean;
+};
+
+const CACHE_TTL = 5000; // 5 seconds
+
 class ApiClient {
   private api = axios.create({
     baseURL: config.apiUrl,
     withCredentials: false,
   });
 
+  private cache = new Map<string, CachedResponse>();
+  private pendingRequests = new Map<string, Promise<AxiosResponse>>();
   private isRefreshing = false;
   private failedQueue: Array<{
     resolve: (value?: unknown) => void;
@@ -108,25 +118,123 @@ class ApiClient {
       }
     );
   }
+  // --- Caching logic ---
+
+  private getRequestKey(method: string, url: string, params?: any, data?: any): string {
+    return `${method}:${url}:${JSON.stringify(params)}:${JSON.stringify(data)}`;
+  }
+
+  private async requestWithCache<T = any>(
+  method: 'get' | 'post',
+  url: string,
+  options: {
+    params?: any;
+    data?: any;
+    config?: any;
+    cacheable?: boolean;
+  } = {}
+): Promise<AxiosResponse<T>> {
+  const { params, data, config, cacheable = true } = options;
+
+  const key = this.getRequestKey(method, url, params, data);
+  const cached = this.cache.get(key);
+  const now = Date.now();
+
+  // ✅ Return cached response if valid
+  if (
+    cacheable &&
+    cached &&
+    now - cached.timestamp < CACHE_TTL &&
+    cached.success
+  ) {
+    return cached.response as AxiosResponse<T>;
+  }
+
+  // ✅ If identical request is in-flight, return its Promise
+  if (cacheable && this.pendingRequests.has(key)) {
+    return this.pendingRequests.get(key)! as Promise<AxiosResponse<T>>;
+  }
+
+  // 🚀 Make the request and store its Promise
+  const requestPromise = (async () => {
+    try {
+      const res: AxiosResponse<T> =
+        method === 'get'
+          ? await this.api.get(url, { params, ...config })
+          : await this.api.post(url, data, config);
+
+      if (cacheable) {
+        this.cache.set(key, {
+          timestamp: Date.now(),
+          response: res,
+          success: true,
+        });
+      }
+
+      return res;
+    } catch (err) {
+      if (cacheable) {
+        this.cache.set(key, {
+          timestamp: Date.now(),
+          response: err,
+          success: false,
+        });
+      }
+      throw err;
+    } finally {
+      // ❌ Clean up after it's done
+      this.pendingRequests.delete(key);
+    }
+  })();
+
+  if (cacheable) {
+    this.pendingRequests.set(key, requestPromise);
+  }
+
+  return requestPromise;
+}
 
   // API calls:
 
+  // Auth
   async login(email: string, password: string) {
-    return await this.api.post('/auth/login', { email, password });
+    return this.requestWithCache('post', '/auth/login', {
+      data: { email, password },
+      cacheable: false,
+    });
+  }
+
+  async register(email: string, password: string) {
+    return this.requestWithCache('post', '/auth/register', {
+      data: { email, password },
+      cacheable: false,
+    });
   }
 
   async logout() {
-    return await this.api.post('/auth/logout', null, { withCredentials: true });
+    return this.api.post('/auth/logout', null, { withCredentials: true });
   }
 
   async getCurrentUser() {
-    const response = await this.api.get('/users/me');
-    return response.data.user;
-  }
-  async refreshToken() {
-    return await this.api.post('/auth/refresh', null, { withCredentials: true, meta: { authRequired: true } });
+    return this.requestWithCache('get', '/users/me', {
+      config: { meta: { authRequired: true } },
+    });
   }
 
+  async refreshToken() {
+    return await this.api.post('/auth/refresh', null, {
+      withCredentials: true,
+      meta: { authRequired: true },
+    });
+  }
+
+  async getEvents(params: { cursor?: string; limit?: number } = {}) {
+    return this.requestWithCache('get', '/events', { params });
+  }
+
+  async getCategories() {
+    return this.requestWithCache('get', '/categories');
+  }
 }
 
 export const apiClient = new ApiClient();

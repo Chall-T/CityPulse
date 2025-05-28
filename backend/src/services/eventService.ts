@@ -60,6 +60,7 @@ export const getEventsPaginatedWithFilters = async (
   fetchCategories: boolean = true,
   categoryFilter: string[] = [],
   search: string = '',
+  sortOrder: 'desc' | 'asc' = 'desc',
 ) => {
   const where: Prisma.EventWhereInput = {
     AND: [
@@ -90,7 +91,7 @@ export const getEventsPaginatedWithFilters = async (
 
   return prisma.event.findMany({
 
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: sortOrder },
     take: limit,
     ...(cursor && {
       skip: 1,
