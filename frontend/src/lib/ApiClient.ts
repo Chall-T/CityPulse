@@ -140,7 +140,7 @@ class ApiClient {
   const cached = this.cache.get(key);
   const now = Date.now();
 
-  // ✅ Return cached response if valid
+  // Return cached response if valid
   if (
     cacheable &&
     cached &&
@@ -150,12 +150,11 @@ class ApiClient {
     return cached.response as AxiosResponse<T>;
   }
 
-  // ✅ If identical request is in-flight, return its Promise
+  // If same request is in-flight, return its Promise
   if (cacheable && this.pendingRequests.has(key)) {
     return this.pendingRequests.get(key)! as Promise<AxiosResponse<T>>;
   }
 
-  // 🚀 Make the request and store its Promise
   const requestPromise = (async () => {
     try {
       const res: AxiosResponse<T> =
@@ -182,7 +181,7 @@ class ApiClient {
       }
       throw err;
     } finally {
-      // ❌ Clean up after it's done
+      // Clean up
       this.pendingRequests.delete(key);
     }
   })();
@@ -218,6 +217,7 @@ class ApiClient {
   async getCurrentUser() {
     return this.requestWithCache('get', '/users/me', {
       config: { meta: { authRequired: true } },
+      cacheable: false,
     });
   }
 

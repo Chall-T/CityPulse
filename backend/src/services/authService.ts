@@ -125,7 +125,7 @@ export const generateAccessTokens = (userId: string) => {
   const accessToken = jwt.sign(
     { userId: userId },
     process.env.JWT_SECRET!,
-    { expiresIn: '1h' }
+    { expiresIn: '1m' }
   );
 
   // Generate refresh token (longer-lived)
