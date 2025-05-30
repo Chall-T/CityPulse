@@ -54,12 +54,14 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: async () => {
-        set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false });
-
+        const {hasRefreshToken } = get();
         try {
-          const logoutResponse = await apiClient.logout();
-          if (logoutResponse.status === 200) {
-            console.log('Logout success');
+          if (hasRefreshToken){
+            set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false });
+            const logoutResponse = await apiClient.logout();
+            if (logoutResponse.status === 200) {
+              console.log('Logout success');
+            }
           }
         } catch (error) {
           console.warn('Logout failed', error);
@@ -75,7 +77,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       hydrateAuth: async () => {
-        const { user, token, logout, setToken } = get();
+        const { user, token, hasRefreshToken, logout, setToken } = get();
         console.log(user, token);
         if (!token) {
           try {
@@ -86,8 +88,10 @@ export const useAuthStore = create<AuthStore>()(
             console.info('Token refreshed successfully.');
           } catch (err) {
             console.error('Failed to refresh token:', err);
+            if (hasRefreshToken) {
+              logout();
+            }
             set({ hasRefreshToken: false });
-            logout();
             return;
           }
         }
@@ -99,7 +103,9 @@ export const useAuthStore = create<AuthStore>()(
             console.info('User fetched successfully.');
           } catch (err) {
             console.error('Failed to fetch user data:', err);
-            logout();
+            if (hasRefreshToken) {
+              logout();
+            }
             return;
           }
         }

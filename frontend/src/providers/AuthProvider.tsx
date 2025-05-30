@@ -5,15 +5,17 @@ import { useAuthStore } from '../store/authStore';
 import { apiClient } from '../lib/ApiClient';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { token, setToken, logout } = useAuthStore();
+  const { token, setToken, logout, hasRefreshToken, firstAuthCheck } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const initAuth = async () => {
       if (!token) {
         try {
-          const { data } = await apiClient.refreshToken()
-          setToken(data.token);
+          if (!firstAuthCheck && !hasRefreshToken) {
+            const { data } = await apiClient.refreshToken()
+            setToken(data.token);
+          }
         } catch (err) {
           logout();
         }
