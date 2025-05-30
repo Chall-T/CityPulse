@@ -15,6 +15,7 @@ type AuthStore = {
   setToken: (token: string) => void;
   setHasRefreshToken: (value: boolean) => void;
   hydrateAuth: () => Promise<void>;
+  isAuthenticated: () => boolean;
 };
 
 export const useAuthStore = create<AuthStore>()(
@@ -54,15 +55,13 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: async () => {
-        const {hasRefreshToken } = get();
         try {
-          if (hasRefreshToken){
             set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false });
             const logoutResponse = await apiClient.logout();
             if (logoutResponse.status === 200) {
               console.log('Logout success');
             }
-          }
+          
         } catch (error) {
           console.warn('Logout failed', error);
         }
@@ -109,6 +108,10 @@ export const useAuthStore = create<AuthStore>()(
             return;
           }
         }
+      },
+      isAuthenticated: () => {
+        const { user, token } = get();
+        return !!user && !!token;
       },
     }),
     {

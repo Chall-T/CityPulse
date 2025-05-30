@@ -49,18 +49,12 @@ class ApiClient {
       (config: AxiosRequestConfigWithMeta): AxiosRequestConfigWithMeta => {
         const authStore = useAuthStore.getState();
 
-        if (
-          config.meta?.authRequired &&
-          !authStore.hasRefreshToken &&
-          !authStore.firstAuthCheck
-        ) {
-          throw new axios.Cancel('Auth not ready');
-        }
-
+        // Setup headers safely
         if (!(config.headers instanceof AxiosHeaders)) {
           config.headers = new AxiosHeaders(config.headers);
         }
 
+        // Attach token if we have it
         if (authStore.token) {
           config.headers.set('Authorization', `Bearer ${authStore.token}`);
         }
@@ -78,13 +72,13 @@ class ApiClient {
 
         const errorCode = (error.response?.data as any)?.error?.errorCode;
 
-        if (
+        const shouldAttemptRefresh =
           error.response?.status === 401 &&
           errorCode === ErrorCodes.AUTH_TOKEN_EXPIRED &&
           !originalRequest._retry &&
-          !originalRequest.url?.includes('/auth/logout') &&
-          (authStore.hasRefreshToken || authStore.firstAuthCheck)
-        ) {
+          !originalRequest.url?.includes('/auth/logout');
+
+        if (shouldAttemptRefresh && (authStore.hasRefreshToken || authStore.firstAuthCheck)) {
           if (this.isRefreshing) {
             return new Promise((resolve, reject) => {
               this.failedQueue.push({ resolve, reject });
@@ -117,6 +111,7 @@ class ApiClient {
         return Promise.reject(error);
       }
     );
+
   }
   // --- Caching logic ---
 
@@ -125,73 +120,73 @@ class ApiClient {
   }
 
   private async requestWithCache<T = any>(
-  method: 'get' | 'post',
-  url: string,
-  options: {
-    params?: any;
-    data?: any;
-    config?: any;
-    cacheable?: boolean;
-  } = {}
-): Promise<AxiosResponse<T>> {
-  const { params, data, config, cacheable = true } = options;
+    method: 'get' | 'post',
+    url: string,
+    options: {
+      params?: any;
+      data?: any;
+      config?: any;
+      cacheable?: boolean;
+    } = {}
+  ): Promise<AxiosResponse<T>> {
+    const { params, data, config, cacheable = true } = options;
 
-  const key = this.getRequestKey(method, url, params, data);
-  const cached = this.cache.get(key);
-  const now = Date.now();
+    const key = this.getRequestKey(method, url, params, data);
+    const cached = this.cache.get(key);
+    const now = Date.now();
 
-  // Return cached response if valid
-  if (
-    cacheable &&
-    cached &&
-    now - cached.timestamp < CACHE_TTL &&
-    cached.success
-  ) {
-    return cached.response as AxiosResponse<T>;
-  }
-
-  // If same request is in-flight, return its Promise
-  if (cacheable && this.pendingRequests.has(key)) {
-    return this.pendingRequests.get(key)! as Promise<AxiosResponse<T>>;
-  }
-
-  const requestPromise = (async () => {
-    try {
-      const res: AxiosResponse<T> =
-        method === 'get'
-          ? await this.api.get(url, { params, ...config })
-          : await this.api.post(url, data, config);
-
-      if (cacheable) {
-        this.cache.set(key, {
-          timestamp: Date.now(),
-          response: res,
-          success: true,
-        });
-      }
-
-      return res;
-    } catch (err) {
-      if (cacheable) {
-        this.cache.set(key, {
-          timestamp: Date.now(),
-          response: err,
-          success: false,
-        });
-      }
-      throw err;
-    } finally {
-      // Clean up
-      this.pendingRequests.delete(key);
+    // Return cached response if valid
+    if (
+      cacheable &&
+      cached &&
+      now - cached.timestamp < CACHE_TTL &&
+      cached.success
+    ) {
+      return cached.response as AxiosResponse<T>;
     }
-  })();
 
-  if (cacheable) {
-    this.pendingRequests.set(key, requestPromise);
+    // If same request is in-flight, return its Promise
+    if (cacheable && this.pendingRequests.has(key)) {
+      return this.pendingRequests.get(key)! as Promise<AxiosResponse<T>>;
+    }
+
+    const requestPromise = (async () => {
+      try {
+        const res: AxiosResponse<T> =
+          method === 'get'
+            ? await this.api.get(url, { params, ...config })
+            : await this.api.post(url, data, config);
+
+        if (cacheable) {
+          this.cache.set(key, {
+            timestamp: Date.now(),
+            response: res,
+            success: true,
+          });
+        }
+
+        return res;
+      } catch (err) {
+        if (cacheable) {
+          this.cache.set(key, {
+            timestamp: Date.now(),
+            response: err,
+            success: false,
+          });
+        }
+        throw err;
+      } finally {
+        // Clean up
+        this.pendingRequests.delete(key);
+      }
+    })();
+
+    if (cacheable) {
+      this.pendingRequests.set(key, requestPromise);
+    }
+
+    return requestPromise;
   }
-
-  return requestPromise;
-}
 
   // API calls:
 
@@ -229,11 +224,25 @@ class ApiClient {
   }
 
   async getEvents(params: { cursor?: string; limit?: number } = {}) {
-    return this.requestWithCache('get', '/events', { params });
+    return this.requestWithCache('get', '/events', { params, config: { meta: { authRequired: true } } });
   }
 
   async getCategories() {
     return this.requestWithCache('get', '/categories');
+  }
+
+  async getEventById(eventId: string) {
+    return this.requestWithCache('get', `/events/${eventId}`, {
+      cacheable: false,
+    });
+  }
+
+  async createMessage(eventId: string, content: string) {
+    return this.requestWithCache('post', `/events/${eventId}/messages`, {
+      data: { message: content },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
   }
 }
 

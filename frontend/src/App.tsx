@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { RegistrationPage } from './pages/RegisterPage';
+import EventDetailPage from './pages/DetailedEventPage';
 import EventPage from './pages/EventsPage';
 import { PublicOnlyRoute } from './providers/AuthProvider';
 import Layout from './components/Layout';
@@ -19,6 +20,7 @@ const App = () => {
               <RegistrationPage />
             </PublicOnlyRoute>} />
           <Route path="/" element={<EventPage />} />
+          <Route path="/events/:id" element={<EventDetailPage />} />
         </Routes>
       </Layout>
     </div>
