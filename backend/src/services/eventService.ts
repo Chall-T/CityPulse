@@ -1,6 +1,13 @@
 import prisma from '../config/database';
 import { Prisma } from '@prisma/client';
 
+export type Creator = {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl: string | null;
+};
+
 export const createEvent = async (userData: Prisma.EventCreateInput) => {
   const { nanoid } = await import('nanoid');
   const eventId = `evt_${nanoid()}`;
@@ -22,6 +29,14 @@ export const getEventById = async (id: string, fetchCategories: boolean) => {
       where: { id },
       include: {
         categories: fetchCategories,
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
       },
     },
 

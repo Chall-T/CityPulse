@@ -4,46 +4,80 @@ import { apiClient } from '../lib/ApiClient';
 import { useAuthStore } from '../store/authStore';
 import type { Event, Message } from '../types';
 import { CalendarDays, MapPin } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const contactEmail = import.meta.env.VITE_APP_CONTACT_EMAIL;
+const appVersion = import.meta.env.VITE_APP_VERSION;
+const baseUrl = import.meta.env.VITE_GEOCODING_API;
 
 const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<Event | null>(null);
+  const [coords, setCoords] = useState<[number, number] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const fetchEvent = async () => {
+      if (!id) {
+        setError('Event ID is required');
+        setLoading(false);
+        return;
+      }
+
       try {
-        if (!id) {
-          console.error('Event ID is required');
-          return;
-        }
         const res = await apiClient.getEventById(id);
-        console.log('Fetched event:', res.data);
         setEvent(res.data);
-        // setMessages(res.data.event.messages ?? []);
-      } catch (err) {
-        console.error('Failed to fetch event:', err);
+
+        // Handle coordinates
+        if (res.data.lat !== null && res.data.lng !== null) {
+          setCoords([res.data.lat, res.data.lng]);
+        } else {
+          const geoRes = await fetch(
+            `${baseUrl}?format=json&q=${encodeURIComponent(res.data.location)}`,
+            {
+              headers: {
+                'User-Agent': `CityPulse/${appVersion} (${contactEmail})`,
+              },
+            }
+          );
+          const geoData = await geoRes.json();
+          if (Array.isArray(geoData) && geoData.length > 0) {
+            setCoords([parseFloat(geoData[0].lat), parseFloat(geoData[0].lon)]);
+          }
+        }
+      } catch (err: any) {
+        console.error('Error fetching event:', err);
+        setError(err.message || 'Failed to fetch event');
       } finally {
         setLoading(false);
       }
     };
 
+
     fetchEvent();
   }, [id]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !id) return;
 
     try {
-        if (!id) {
-          console.error('Event ID is required');
-          return;
-        }
       const res = await apiClient.createMessage(id, newMessage);
-
       setMessages((prev) => [...prev, res.data.message]);
       setNewMessage('');
     } catch (err) {
@@ -51,71 +85,127 @@ const EventDetailPage: React.FC = () => {
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Loading event...</p>;
-  if (!event) return <p className="text-center mt-10">Event not found.</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-gray-600">Loading event...</p>
+      </div>
+    );
+  }
 
+  if (error || !event) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-red-600">{error || 'Event not found.'}</p>
+      </div>
+    );
+  }
+  console.log('Event data:', event);
   return (
-    <main className="max-w-4xl mx-auto p-4 space-y-8">
-      {event.imageUrl && (
-        <img
-          src={event.imageUrl}
-          alt={event.title}
-          className="w-full h-64 object-cover rounded-2xl pointer-events-none select-none"
-          draggable={false}
-        />
+    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+      {/* Event Title */}
+      <h1 className="text-3xl font-bold text-gray-800">{event.title}</h1>
+
+      {/* Event Image */}
+      <img
+        src={event.imageUrl || '/images/missingImage.jpg'}
+        alt={event.title}
+        className="w-full h-64 object-cover rounded-lg shadow-md"
+      />
+
+      {/* Event Description */}
+      <p className="text-gray-700 leading-relaxed">{event.description}</p>
+
+      {/* Date & Time */}
+      <p className="text-gray-600">
+        <span className="font-semibold">Date & Time:</span>{' '}
+        {new Date(event.dateTime).toLocaleString()}
+      </p>
+
+      {/* Location Address */}
+      <p className="text-gray-600">
+        <span className="font-semibold">Location:</span> {event.location}
+      </p>
+
+      {/* Categories */}
+      <div className="flex flex-wrap gap-2">
+        {event.categories.map((cat) => (
+          <span
+            key={cat.id}
+            className="flex items-center space-x-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+          >
+            <span>{cat.emoji}</span>
+            <span>{cat.name}</span>
+          </span>
+        ))}
+      </div>
+
+      {/* Creator Info */}
+      {event.creator && (
+        <div className="flex items-center mt-4 space-x-3">
+          <img
+            src={event.creator.avatarUrl || '/images/missingImage.jpg'}
+            alt={event.creator.name}
+            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+          />
+          <div>
+            <p className="text-gray-800 font-medium">{event.creator.name}</p>
+            <p className="text-gray-500 text-sm">@{event.creator.username}</p>
+          </div>
+        </div>
       )}
 
-      <div>
-        <h1 className="text-3xl font-bold mb-2">{event.title}</h1>
-        <div className="flex items-center gap-2 text-gray-600 mb-1">
-          <CalendarDays className="w-5 h-5" />
-          {new Date(event.dateTime).toLocaleString()}
-        </div>
-        <div className="flex items-center gap-2 text-gray-600">
-          <MapPin className="w-5 h-5" />
-          {event.location}
-        </div>
-      </div>
-
-      <p className="text-lg text-gray-700">{event.description}</p>
-
-      <div className="mt-10">
-        <h2 className="text-2xl font-semibold mb-4">Chat</h2>
-
-        <div className="bg-gray-100 rounded-xl p-4 max-h-64 overflow-y-auto space-y-2">
-          {messages.length === 0 ? (
-            <p className="text-gray-500">No messages yet.</p>
-          ) : (
-            messages.map((msg) => (
-              <div key={msg.id} className="bg-white rounded-lg p-2 shadow">
-                <p className="text-sm text-gray-800">{msg.content}</p>
-                <p className="text-xs text-gray-400 text-right">
-                  {new Date(msg.createdAt).toLocaleTimeString()}
-                </p>
-              </div>
-            ))
-          )}
-        </div>
-
-        {isAuthenticated() && (
-          <div className="mt-4 flex gap-2">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Write a message..."
-              className="flex-1 border rounded-xl px-4 py-2"
+      {/* OpenStreetMap Map (if coords are available) */}
+      {coords && (
+        <div className="mt-6">
+          <MapContainer
+            center={coords}
+            zoom={13}
+            scrollWheelZoom={false}
+            className="w-full h-64 rounded-lg shadow"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <button
-              onClick={handleSendMessage}
-              className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700"
-            >
-              Send
-            </button>
+            <Marker position={coords}>
+              <Popup>{event.title}</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
+      )}
+
+      {/* Chat Placeholder (shown only if user is authenticated) */}
+      {isAuthenticated() && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Chat</h2>
+          <div className="border rounded-lg bg-gray-50 p-4 space-y-4">
+            {/* Messages Container (empty for now) */}
+            <div className="h-48 overflow-y-auto p-2 bg-white border rounded">
+              {/* Real chat messages will be appended here once WebSocket is implemented */}
+              <p className="text-gray-500 italic">No messages yet.</p>
+            </div>
+
+            {/* Input + Send Button */}
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-grow px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <button
+                onClick={handleSendMessage}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              >
+                Send
+              </button>
+            </div>
           </div>
-        )}
-      </div>
-    </main>
+        </div>
+      )}
+    </div>
   );
 };
 

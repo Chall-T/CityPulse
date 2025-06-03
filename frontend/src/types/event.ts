@@ -14,6 +14,9 @@ export type Event = {
   description: string;
   imageUrl: string | null;
   dateTime: string;
+  lat: number | null;
+  lng: number | null;
+  capacity: number | null;
   location: string;
   createdAt: string;
   categories: Category[];
