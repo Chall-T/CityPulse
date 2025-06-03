@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-
+import CacheConfig from '../constants/cache';
 function stringToColor(str: string): string {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -10,6 +10,7 @@ function stringToColor(str: string): string {
     const color = `hsl(${hash % 360}, 70%, 50%)`;
     return color;
 }
+const TTL = 24 * 60 * 60 * 1000;
 
 const NavBar = () => {
     const user = useAuthStore(state => state.user);
@@ -22,6 +23,50 @@ const NavBar = () => {
     const navigate = useNavigate();
 
     const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0, left: 0 });
+
+    const [cachedAvatar, setCachedAvatar] = useState<string | null>(null);
+
+    const avatarCacheKey = user?.id ? `${CacheConfig.avatar.prefix}${user.id}` : null;
+    const avatarCacheTimeKey = avatarCacheKey ? `${avatarCacheKey}-time` : null;
+
+    const loadAndCacheAvatar = async (avatarUrl: string, cacheKey: string, timeKey: string) => {
+        try {
+            const cached = localStorage.getItem(cacheKey);
+            const cachedTime = localStorage.getItem(timeKey);
+            const now = Date.now();
+
+            const isExpired = !cachedTime || now - Number(cachedTime) > TTL;
+
+            if (cached && !isExpired) {
+                setCachedAvatar(cached);
+                return;
+            }
+
+            // If expired or no cache, remove old
+            localStorage.removeItem(cacheKey);
+            localStorage.removeItem(timeKey);
+
+            // Fetch new image and cache as base64
+            const res = await fetch(avatarUrl);
+            if (!res.ok) throw new Error("Failed to fetch avatar");
+
+            const blob = await res.blob();
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+                const base64 = reader.result as string;
+                localStorage.setItem(cacheKey, base64);
+                localStorage.setItem(timeKey, now.toString());
+                setCachedAvatar(base64);
+            };
+
+            reader.readAsDataURL(blob);
+        } catch (err) {
+            console.error("Avatar caching failed:", err);
+            // On failure, just fallback to raw URL by clearing cachedAvatar
+            setCachedAvatar(null);
+        }
+    };
 
     const handleAvatarClick = () => {
         if (avatarRef.current) {
@@ -47,13 +92,21 @@ const NavBar = () => {
     const handleLogout = async () => {
         await logout();
         setMenuOpen(false);
+        setCachedAvatar(null);
         window.location.reload(); // or navigate to login page instead
     };
 
     useEffect(() => {
         if (!user) {
             hydrateAuth();
+            setCachedAvatar(null);
+            return;
         }
+        if (user.avatarUrl && avatarCacheKey && avatarCacheTimeKey) {
+        if (!cachedAvatar) {
+            loadAndCacheAvatar(user.avatarUrl, avatarCacheKey, avatarCacheTimeKey);
+        }
+    }
     }, [user, hydrateAuth]);
 
     useEffect(() => {
@@ -79,7 +132,7 @@ const NavBar = () => {
             <header ref={navbarRef} className="flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full bg-white border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
                 <nav className="relative max-w-[85rem] w-full mx-auto md:flex md:items-center md:justify-between md:gap-3 py-2 px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center gap-x-1">
-                        <a className="flex-none font-semibold text-xl text-black focus:outline-hidden focus:opacity-80 dark:text-white cursor-pointer" onClick={()=>navigate("/")} aria-label="Brand">City Pulse</a>
+                        <a className="flex-none font-semibold text-xl text-black focus:outline-hidden focus:opacity-80 dark:text-white cursor-pointer" onClick={() => navigate("/")} aria-label="Brand">City Pulse</a>
 
                         {/* Collapse Button */}
                         <button
@@ -191,9 +244,9 @@ const NavBar = () => {
                                                     }}
                                                     onClick={handleAvatarClick}
                                                 >
-                                                    {user?.avatarUrl ? (
+                                                    {user?.avatarUrl && cachedAvatar ? (
                                                         <img
-                                                            src={user.avatarUrl}
+                                                            src={cachedAvatar}
                                                             alt="Profile"
                                                             className="w-full h-full object-cover"
                                                         />
@@ -205,10 +258,10 @@ const NavBar = () => {
                                         </div>
                                     ) : (
                                         <>
-                                            <a className="py-[7px] px-2.5 inline-flex items-center font-medium text-sm rounded-lg border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 focus:outline-hidden focus:bg-gray-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 cursor-pointer"  onClick={()=>navigate("/login")}>
+                                            <a className="py-[7px] px-2.5 inline-flex items-center font-medium text-sm rounded-lg border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 focus:outline-hidden focus:bg-gray-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 cursor-pointer" onClick={() => navigate("/login")}>
                                                 Sign in
                                             </a>
-                                            <a className="py-2 px-2.5 inline-flex items-center font-medium text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:bg-blue-600 cursor-pointer"  onClick={()=>navigate("/register")}>
+                                            <a className="py-2 px-2.5 inline-flex items-center font-medium text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:bg-blue-600 cursor-pointer" onClick={() => navigate("/register")}>
                                                 Get started
                                             </a>
                                         </>

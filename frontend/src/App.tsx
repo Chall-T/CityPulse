@@ -5,10 +5,18 @@ import EventDetailPage from './pages/DetailedEventPage';
 import EventPage from './pages/EventsPage';
 import { PublicOnlyRoute } from './providers/AuthProvider';
 import Layout from './components/Layout';
+import { useEffect } from "react";
+import { cleanAllExpiredCaches } from "./utils/cleanupExpiredCache";
+import { useAuthStore } from './store/authStore';
+
 const App = () => {
+  const user = useAuthStore(state => state.user);
+  useEffect(() => {
+    cleanAllExpiredCaches();
+  }, []);
   return (
     <div className="app">
-      <Layout>
+      <Layout user={user}>
         <Routes>
 
           <Route path="/login" element={

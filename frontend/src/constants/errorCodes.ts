@@ -18,5 +18,6 @@ export enum ErrorCodes {
     
     // Server Errors
     SERVER_INTERNAL_ERROR = 'SERVER_INTERNAL_ERROR',
+
   }
   
