@@ -4,6 +4,7 @@ import { apiClient } from '../lib/ApiClient';
 import { useAuthStore } from '../store/authStore';
 import type { Event, Message } from '../types';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import UserProfileIcon from '../components/UserProfileIcon';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -148,12 +149,12 @@ const EventDetailPage: React.FC = () => {
 
       {/* Creator Info */}
       {event.creator && (
+
         <div className="flex items-center mt-4 space-x-3">
-          <img
-            src={event.creator.avatarUrl || '/images/missingImage.jpg'}
-            alt={event.creator.name}
-            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-          />
+          <UserProfileIcon
+            avatarUrl={event.creator.avatarUrl}
+            username={event.creator.username}
+            onClick={() => console.log('Creator profile clicked')} />
           <div>
             <p className="text-gray-800 font-medium">{event.creator.name}</p>
             <p className="text-gray-500 text-sm">@{event.creator.username}</p>

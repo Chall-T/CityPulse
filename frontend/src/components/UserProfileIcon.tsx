@@ -11,19 +11,19 @@ function stringToColor(str: string): string {
 
 interface UserProfileIconProps {
   avatarUrl?: string | null;
-  displayLetter: string;  // Usually first letter of name/username
+  username: string;  // Usually first letter of name/username
   onClick?: () => void;
   refProp?: React.Ref<HTMLDivElement>;
 }
 
-const UserProfileIcon: React.FC<UserProfileIconProps> = ({ avatarUrl, displayLetter, onClick, refProp }) => {
+const UserProfileIcon: React.FC<UserProfileIconProps> = ({ avatarUrl, username, onClick, refProp }) => {
   return (
     <div
       ref={refProp}
       onClick={onClick}
       className="w-9 h-9 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center text-sm font-semibold text-white select-none cursor-pointer"
       style={{
-        backgroundColor: !avatarUrl ? stringToColor(displayLetter) : undefined,
+        backgroundColor: stringToColor(username),
       }}
     >
       {avatarUrl ? (
@@ -33,7 +33,7 @@ const UserProfileIcon: React.FC<UserProfileIconProps> = ({ avatarUrl, displayLet
           className="w-full h-full object-cover"
         />
       ) : (
-        displayLetter.toUpperCase()
+        username[0].toUpperCase()
       )}
     </div>
   );

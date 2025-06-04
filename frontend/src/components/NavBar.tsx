@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import UserProfileIcon from './UserProfileIcon';
 import CacheConfig from '../constants/cache';
 function stringToColor(str: string): string {
     let hash = 0;
@@ -236,24 +237,7 @@ const NavBar = () => {
                                     {user ? (
                                         <div className="relative">
                                             <div>
-                                                <div
-                                                    ref={avatarRef}
-                                                    className="w-9 h-9 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center text-sm font-semibold text-white select-none cursor-pointer"
-                                                    style={{
-                                                        backgroundColor: !user?.avatarUrl ? stringToColor(user?.name || user?.username || "U") : undefined,
-                                                    }}
-                                                    onClick={handleAvatarClick}
-                                                >
-                                                    {user?.avatarUrl && cachedAvatar ? (
-                                                        <img
-                                                            src={cachedAvatar}
-                                                            alt="Profile"
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        (user?.name || user?.username || "U")[0].toUpperCase()
-                                                    )}
-                                                </div>
+                                                <UserProfileIcon avatarUrl={cachedAvatar} username={user.username} onClick={handleAvatarClick} refProp={avatarRef}/>
                                             </div>
                                         </div>
                                     ) : (
