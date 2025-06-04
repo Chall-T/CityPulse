@@ -104,7 +104,23 @@ const EventDetailPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
       {/* Event Title */}
-      <h1 className="text-3xl font-bold text-gray-800">{event.title}</h1>
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+        <h1 className="text-3xl font-bold text-gray-800">{event.title}</h1>
+
+        {event.creator && (
+          <div className="flex items-center space-x-3 bg-gray-100 px-3 py-2 rounded-lg shadow-sm">
+            <UserProfileIcon
+              avatarUrl={event.creator.avatarUrl}
+              username={event.creator.username}
+              onClick={() => console.log('Creator profile clicked')}
+            />
+            <div>
+              <p className="text-gray-800 font-medium">{event.creator.name}</p>
+              <p className="text-gray-500 text-sm">@{event.creator.username}</p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Event Image */}
       <div className="w-full max-w-4xl mx-auto mb-6">
@@ -146,22 +162,7 @@ const EventDetailPage: React.FC = () => {
           </span>
         ))}
       </div>
-
-      {/* Creator Info */}
-      {event.creator && (
-
-        <div className="flex items-center mt-4 space-x-3">
-          <UserProfileIcon
-            avatarUrl={event.creator.avatarUrl}
-            username={event.creator.username}
-            onClick={() => console.log('Creator profile clicked')} />
-          <div>
-            <p className="text-gray-800 font-medium">{event.creator.name}</p>
-            <p className="text-gray-500 text-sm">@{event.creator.username}</p>
-          </div>
-        </div>
-      )}
-
+      
       {/* OpenStreetMap Map (if coords are available) */}
       {coords && (
         <div className="mt-6">

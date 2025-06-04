@@ -4,7 +4,10 @@ import type { Event } from '../types';
 import { apiClient } from '../lib/ApiClient';
 
 
-
+type DateRange = {
+  from: string;
+  to: string;
+};
 
 type EventStore = {
     events: Event[];
@@ -12,7 +15,9 @@ type EventStore = {
     nextCursor: string | null;
     categoriesFilter: string[];
     searchFilter: string;
-    fetchEvents: (reset?: boolean, filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc' } ) => Promise<void>;
+    dateRange: DateRange;
+    setDateRangeFilter: (range: DateRange) => void;
+    fetchEvents: (reset?: boolean, filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string } ) => Promise<void>;
     setCategoriesFilter: (categories: string[]) => void;
     setSearchFilter: (search: string) => void;
 };
@@ -23,10 +28,11 @@ export const useEventStore = create<EventStore>((set, get) => ({
     nextCursor: null,
     categoriesFilter: [],
     searchFilter: '',
+    dateRange: { from: "", to: "" },
 
     fetchEvents: async (
         reset = false,
-        filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc' }
+        filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string }
     ) => {
         // inside fetchEvents
         const { nextCursor, events } = get();
@@ -46,6 +52,8 @@ export const useEventStore = create<EventStore>((set, get) => ({
             if (filters?.categories && filters.categories.length > 0) params.categories = filters.categories.join(',');
             if (filters?.search && filters.search.trim()) params.search = filters.search.trim();
             if (filters?.sort) params.sort = filters.sort;
+            if (filters?.fromDate) params.fromDate = filters.fromDate;
+            if (filters?.toDate) params.toDate = filters.toDate;
 
             const response = await apiClient.getEvents(params);
             const newEvents = response.data.data;
@@ -69,6 +77,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
     setSearchFilter: (search) => {
         set({ searchFilter: search, nextCursor: null, events: [] });
     },
+    setDateRangeFilter: (range) => set({ dateRange: range }),
 }
 )
 );

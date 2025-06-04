@@ -23,6 +23,7 @@
     "react-leaflet": "^5.0.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.0",
+    "rsuite": "^5.82.0",
     "socket.io-client": "^4.8.1",
     "vanilla-calendar-pro": "^3.0.4",
     "zustand": "^5.0.4"

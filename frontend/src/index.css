@@ -4,3 +4,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.custom-sort-picker {
+  --rs-picker-value: #000;
+}
