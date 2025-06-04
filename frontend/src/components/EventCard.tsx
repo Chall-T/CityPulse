@@ -10,9 +10,9 @@ export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
       className="bg-white rounded-2xl shadow p-4 flex flex-col hover:shadow-lg transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
       draggable={false}
     >
-      {event.imageUrl && (
+      {event && (
         <img
-          src={event.imageUrl}
+          src={event.imageUrl || '/missingEvent.png'}
           alt={event.title}
           className="w-full h-48 object-cover rounded-xl mb-4 pointer-events-none select-none"
           draggable={false}

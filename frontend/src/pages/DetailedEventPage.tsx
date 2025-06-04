@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { apiClient } from '../lib/ApiClient';
 import { useAuthStore } from '../store/authStore';
 import type { Event, Message } from '../types';
-import { CalendarDays, MapPin } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -107,11 +106,18 @@ const EventDetailPage: React.FC = () => {
       <h1 className="text-3xl font-bold text-gray-800">{event.title}</h1>
 
       {/* Event Image */}
-      <img
-        src={event.imageUrl || '/images/missingImage.jpg'}
-        alt={event.title}
-        className="w-full h-64 object-cover rounded-lg shadow-md"
-      />
+      <div className="w-full max-w-4xl mx-auto mb-6">
+        <img
+          src={event?.imageUrl || '/missingEventBig.png'}
+          alt={event?.title || 'Event image'}
+          className="w-full h-64 object-cover rounded-xl shadow-lg border border-gray-200"
+        />
+        {!event?.imageUrl && (
+          <p className="text-center text-sm mt-2 text-gray-500 italic">
+            No event image provided
+          </p>
+        )}
+      </div>
 
       {/* Event Description */}
       <p className="text-gray-700 leading-relaxed">{event.description}</p>
