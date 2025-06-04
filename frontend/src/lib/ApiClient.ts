@@ -71,17 +71,11 @@ class ApiClient {
         const originalRequest = error.config as AxiosRequestConfigWithMeta & { _retry?: boolean };
 
         const errorCode = (error.response?.data as any)?.error?.errorCode;
-        console.log(error.response?.status === 401,
-          errorCode === ErrorCodes.AUTH_TOKEN_EXPIRED,
-          !originalRequest._retry,
-          !originalRequest.url?.includes('/auth/logout'))
         const shouldAttemptRefresh =
           error.response?.status === 401 &&
           errorCode === ErrorCodes.AUTH_TOKEN_EXPIRED &&
           !originalRequest._retry &&
           !originalRequest.url?.includes('/auth/logout');
-        console.log(shouldAttemptRefresh, (authStore.hasRefreshToken || authStore.firstAuthCheck))
-        console.log(authStore.hasRefreshToken, authStore.firstAuthCheck)
         if (shouldAttemptRefresh && (authStore.hasRefreshToken || authStore.firstAuthCheck)) {
           if (this.isRefreshing) {
             return new Promise((resolve, reject) => {
