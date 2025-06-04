@@ -24,10 +24,11 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       token: null,
       error: null,
-      hasRefreshToken: false,
+      hasRefreshToken: true,
       firstAuthCheck: true,
 
       login: async (email, password) => {
+        const { setHasRefreshToken } = get();
         try {
           const response = await apiClient.login(email, password);
           const { user, token } = response.data;
@@ -41,6 +42,7 @@ export const useAuthStore = create<AuthStore>()(
             updatedAt: user.updatedAt,
           };
           set({ user: safeUser, token, error: null, hasRefreshToken: true });
+          setHasRefreshToken(true);
         } catch (err: any) {
           const errorCode = err?.response?.data?.error?.errorCode;
           const errorMsg = err?.response?.data?.error?.message || 'Login failed';
@@ -56,7 +58,9 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         try {
+          const { setHasRefreshToken } = get();
             set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false });
+            setHasRefreshToken(false);
             const logoutResponse = await apiClient.logout();
             if (logoutResponse.status === 200) {
               console.log('Logout success');

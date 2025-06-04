@@ -81,6 +81,7 @@ class ApiClient {
           !originalRequest._retry &&
           !originalRequest.url?.includes('/auth/logout');
         console.log(shouldAttemptRefresh, (authStore.hasRefreshToken || authStore.firstAuthCheck))
+        console.log(authStore.hasRefreshToken, authStore.firstAuthCheck)
         if (shouldAttemptRefresh && (authStore.hasRefreshToken || authStore.firstAuthCheck)) {
           if (this.isRefreshing) {
             return new Promise((resolve, reject) => {
