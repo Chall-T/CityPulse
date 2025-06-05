@@ -4,48 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import GoogleLogin from '../components/GoogleButton'
 import config from '../lib/config';
 
-export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const login = useAuthStore((state) => state.login);
-  const error = useAuthStore((state) => state.error);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await login(email, password);
-  };
-
-  return (
-    <div className="max-w-md mx-auto p-4">
-      <h2 className="text-xl font-bold mb-4">Login</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          className="border p-2"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          className="border p-2"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button className="bg-blue-500 text-white p-2 rounded" type="submit">
-          Login
-        </button>
-      </form>
-
-      <div className="mt-4">
-        <GoogleLogin />
-      </div>
-
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-    </div>
-  );
-}
 export const LoginPage = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
@@ -163,3 +121,5 @@ export const LoginPage = () => {
     </div>
   );
 }
+
+export default LoginPage
