@@ -5,8 +5,8 @@ import { apiClient } from '../lib/ApiClient';
 
 
 type DateRange = {
-  from: string;
-  to: string;
+    from: string;
+    to: string;
 };
 
 type EventStore = {
@@ -17,9 +17,10 @@ type EventStore = {
     searchFilter: string;
     dateRange: DateRange;
     setDateRangeFilter: (range: DateRange) => void;
-    fetchEvents: (reset?: boolean, filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string } ) => Promise<void>;
+    fetchEvents: (reset?: boolean, filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string }) => Promise<void>;
     setCategoriesFilter: (categories: string[]) => void;
     setSearchFilter: (search: string) => void;
+    reset: () => void;
 };
 
 export const useEventStore = create<EventStore>((set, get) => ({
@@ -77,6 +78,14 @@ export const useEventStore = create<EventStore>((set, get) => ({
         set({ searchFilter: search, nextCursor: null, events: [] });
     },
     setDateRangeFilter: (range) => set({ dateRange: range }),
+    reset: () => set({
+        events: [],
+        loading: false,
+        nextCursor: null,
+        categoriesFilter: [],
+        searchFilter: '',
+        dateRange: { from: '', to: '' },
+    }),
 }
 )
 );
@@ -98,6 +107,7 @@ type FilterStore = {
     setSelectedCategories: (categories: string[]) => void,
     setSort: (value: SortOption) => void;
     clearFilters: () => void;
+    reset: () => void;
 };
 
 export const useFilterStore = create<FilterStore>((set, get) => ({
@@ -138,4 +148,11 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
             search: '',
             sort: 'desc',
         }),
+    reset: () => set({
+        categories: [],
+        selectedCategories: [],
+        search: '',
+        sort: 'desc',
+        loading: false,
+    }),
 }));

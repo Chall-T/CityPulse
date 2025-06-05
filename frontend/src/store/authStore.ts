@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { ErrorCodes } from '../constants/errorCodes';
 import type { SafeUser } from '../types';
 import { apiClient } from '../lib/ApiClient';
-
+import { useEventStore, useFilterStore } from './eventStore';
 type AuthStore = {
   user: SafeUser | null;
   token: string | null;
@@ -66,6 +66,8 @@ export const useAuthStore = create<AuthStore>()(
             const logoutResponse = await apiClient.logout();
             if (logoutResponse.status === 200) {
               console.log('Logout success');
+              useEventStore.getState().reset();
+              useFilterStore.getState().reset();
             }
             
         } catch (error) {

@@ -90,6 +90,7 @@ const NavBar = () => {
         await logout();
         setMenuOpen(false);
         setCachedAvatar(null);
+        navigate("/login")
     };
 
     useEffect(() => {
