@@ -73,49 +73,51 @@ export const getPaginatedEvents = catchAsync(async (req: Request, res: Response)
 });
 
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
-  const { cursor, limit, categories, search, sort, fromDate, toDate } = req.query;
-  let userLimit = 20;
-  let sortOrder: 'asc' | 'desc' = 'desc';
-  if (limit) {
-    userLimit = parseInt(limit as string);
-  }
-  if (sort && typeof sort === 'string' && ['asc', 'desc'].includes(sort)) {
-    sortOrder = sort as 'asc' | 'desc';
-  }
+    const { cursor, limit, categories, search, sort, fromDate, toDate } = req.query;
+    let userLimit = 20;
+    let sortOrder: 'asc' | 'desc' = 'desc';
+    if (limit) {
+        userLimit = parseInt(limit as string);
+    }
+    if (sort && typeof sort === 'string' && ['asc', 'desc'].includes(sort)) {
+        sortOrder = sort as 'asc' | 'desc';
+    }
 
-  const categoryArray: string[] = categories
-  ? Array.isArray(categories)
-    ? (categories as string[]).map((c) => c.trim())
-    : String(categories).split(',').map((c) => c.trim())
-  : [];
+    const categoryArray: string[] = categories
+        ? Array.isArray(categories)
+            ? (categories as string[]).map((c) => c.trim())
+            : String(categories).split(',').map((c) => c.trim())
+        : [];
 
 
-  const searchTerm = typeof search === 'string' ? search.trim() : '';
+    const searchTerm = typeof search === 'string' ? search.trim() : '';
 
-  let parsedFromDate = fromDate ? new Date(fromDate as string) : undefined;
-  let parsedToDate = toDate ? new Date(toDate as string) : undefined;
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (parsedFromDate !== undefined && parsedFromDate < today) {
-    parsedFromDate = today
-}
+    let parsedFromDate = fromDate ? new Date(fromDate as string) : undefined;
+    let parsedToDate = toDate ? new Date(toDate as string) : undefined;
 
-  const events = await eventService.getEventsPaginatedWithFilters(
-    cursor ? String(cursor) : undefined,
-    userLimit,  
-    true,
-    categoryArray,
-    searchTerm,
-    sortOrder,
-    parsedFromDate,
-    parsedToDate
-  );
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (parsedFromDate !== undefined && parsedFromDate < today) {
+        parsedFromDate = today
+    }else if (parsedFromDate !== undefined ){
+        parsedFromDate = today
+    }
 
-  res.json({
-    data: events,
-    nextCursor: events.length === userLimit ? events[events.length - 1].id : null,
-  });
+    const events = await eventService.getEventsPaginatedWithFilters(
+        cursor ? String(cursor) : undefined,
+        userLimit,
+        true,
+        categoryArray,
+        searchTerm,
+        sortOrder,
+        parsedFromDate,
+        parsedToDate
+    );
+
+    res.json({
+        data: events,
+        nextCursor: events.length === userLimit ? events[events.length - 1].id : null,
+    });
 });
 
 

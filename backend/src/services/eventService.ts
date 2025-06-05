@@ -111,6 +111,12 @@ export const getEventsPaginatedWithFilters = async (
         ...(toDate && { lte: toDate }),
       },
     });
+  }else if(fromDate){
+    andFilters.push({
+      dateTime: {
+        ...(fromDate && { gte: fromDate }),
+      },
+    });
   }
 
   const where: Prisma.EventWhereInput = {
