@@ -6,7 +6,7 @@ import SearchIcon from '@rsuite/icons/Search';
 import { Input, InputGroup, InputPicker, CheckPicker } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css';
 import { addMonths, startOfMonth, endOfMonth, endOfWeek } from 'date-fns';
-
+import useIsMobile from "../hooks/useIsMobile";
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
@@ -45,6 +45,8 @@ const customRanges: RangeType[] = [
 
 
 const EventFilters: React.FC = () => {
+  const isMobile = useIsMobile();
+
   const {
     categories,
     // selectedCategories,
@@ -208,21 +210,28 @@ const EventFilters: React.FC = () => {
 
       {/* Sort & Date Filter Row */}
       <div className="flex flex-col md:flex-row items-center gap-4 w-full">
+        <div className="w-full md:w-auto">
+          <InputPicker
+            className="custom-picker-colour"
+            data={[
+              { label: "Newest First", value: "desc" },
+              { label: "Oldest First", value: "asc" }
+            ]}
+            style={{ width: '100%', maxWidth: "100%", minWidth: 224 }}
+            value={localSort}
+            onChange={(value) => setLocalSort(value as "desc" | "asc")}
+            cleanable={false}
+          />
+        </div>
 
-        <InputPicker
-          className="custom-picker-colour"
-          data={[
-            { label: "Newest First", value: "desc" },
-            { label: "Oldest First", value: "asc" }
-          ]}
-          style={{ width: '100%', maxWidth: 224 }}
-          value={localSort}
-          onChange={(value) => setLocalSort(value as "desc" | "asc")}
-          cleanable={false}
-        />
-
-        <div className="w-full md:w-auto" style={{ flexShrink: 0, flexGrow: 0, minWidth: 224 }}>
-          <DateRangePicker
+        <div className="w-full md:w-auto"
+          style={{
+            flexShrink: 0,
+            flexGrow: 0,
+            maxWidth: "100%",
+          }}
+        >
+          <DateRangePicker {...isMobile ? { showOneCalendar: true } : {}}
             value={dateRange}
             onChange={(range) => {
               if (range === null) {
@@ -232,16 +241,22 @@ const EventFilters: React.FC = () => {
               }
             }}
             appearance="default"
-            placement="auto"
             cleanable={true}
             shouldDisableDate={(date) => {
               return date < today;
             }}
-            ranges={customRanges}
-            style={{ width: "224px" }}
+            ranges={customRanges.map(range => ({
+              ...range,
+              ...(isMobile && { placement: 'left' }),
+            }))}
+            style={{
+              width: "100%",
+              maxWidth: "100%",
+              minWidth: "224px",
+            }}
           />
         </div>
-            
+
         <div className="w-full max-w-full overflow-x-auto md:overflow-hidden whitespace-nowrap md:text-ellipsis no-scrollbar">
           {/* Categories */}
           <CheckPicker

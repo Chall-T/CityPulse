@@ -1,14 +1,17 @@
 import { Routes, Route } from 'react-router-dom';
-import { LoginPage } from './pages/LoginPage';
-import { RegistrationPage } from './pages/RegisterPage';
-import EventDetailPage from './pages/DetailedEventPage';
-import EventPage from './pages/EventsPage';
-import { PublicOnlyRoute } from './providers/AuthProvider';
-import Layout from './components/Layout';
+import { PublicOnlyRoute, PrivateOnlyRoute } from './providers/AuthProvider';
 import { useEffect } from "react";
 import { cleanAllExpiredCaches } from "./utils/cleanupExpiredCache";
 import { useAuthStore } from './store/authStore';
 
+import Layout from './components/Layout';
+
+import LoginPage from './pages/LoginPage';
+import RegistrationPage from './pages/RegisterPage';
+
+import CreateEventPage from './pages/CreateEventPage';
+import EventDetailPage from './pages/DetailedEventPage';
+import EventPage from './pages/EventsPage';
 const App = () => {
   const user = useAuthStore(state => state.user);
   useEffect(() => {
@@ -26,9 +29,15 @@ const App = () => {
           <Route path="/register" element={
             <PublicOnlyRoute>
               <RegistrationPage />
-            </PublicOnlyRoute>} />
+            </PublicOnlyRoute>
+          } />
           <Route path="/" element={<EventPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/events/create" element={
+            <PrivateOnlyRoute>
+              <CreateEventPage />
+            </PrivateOnlyRoute>
+          } />
         </Routes>
       </Layout>
     </div>
