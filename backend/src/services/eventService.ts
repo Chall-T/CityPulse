@@ -76,31 +76,45 @@ export const getEventsPaginatedWithFilters = async (
   categoryFilter: string[] = [],
   search: string = '',
   sortOrder: 'desc' | 'asc' = 'desc',
+  fromDate?: Date,
+  toDate?: Date
 ) => {
-  const where: Prisma.EventWhereInput = {
-    AND: [
-      ...(categoryFilter.length > 0
-        ? [{
+  const andFilters: Prisma.EventWhereInput[] = [];
+
+  if (categoryFilter.length > 0) {
+    andFilters.push({
+      categories: {
+        some: { id: { in: categoryFilter } },
+      },
+    });
+  }
+
+  if (search.trim()) {
+    andFilters.push({
+      OR: [
+        { title: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        { description: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        { location: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        {
           categories: {
-            some: { id: { in: categoryFilter } },
+            some: { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
           },
-        }]
-        : []),
-      ...(search.trim()
-        ? [{
-          OR: [
-            { title: { contains: search, mode: Prisma.QueryMode.insensitive } },
-            { description: { contains: search, mode: Prisma.QueryMode.insensitive } },
-            { location: { contains: search, mode: Prisma.QueryMode.insensitive } },
-            {
-              categories: {
-                some: { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
-              },
-            },
-          ],
-        }]
-        : []),
-    ],
+        },
+      ],
+    });
+  }
+
+  if (fromDate && toDate) {
+    andFilters.push({
+      dateTime: {
+        ...(fromDate && { gte: fromDate }),
+        ...(toDate && { lte: toDate }),
+      },
+    });
+  }
+
+  const where: Prisma.EventWhereInput = {
+    AND: andFilters,
   };
 
 

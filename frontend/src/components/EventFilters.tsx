@@ -5,7 +5,7 @@ import { DateRangePicker } from 'rsuite';
 import SearchIcon from '@rsuite/icons/Search';
 import { Input, InputGroup, InputPicker, CheckPicker } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css';
-import { addMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
+import { addMonths, startOfMonth, endOfMonth, endOfWeek } from 'date-fns';
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -47,9 +47,9 @@ const customRanges: RangeType[] = [
 const EventFilters: React.FC = () => {
   const {
     categories,
-    selectedCategories,
-    search,
-    sort,
+    // selectedCategories,
+    // search,
+    // sort,
     setSearch,
     setSort,
     setSelectedCategories,
@@ -207,10 +207,10 @@ const EventFilters: React.FC = () => {
       </div> */}
 
       {/* Sort & Date Filter Row */}
-      <div className="flex flex-col md:flex-row items-center gap-4">
+      <div className="flex flex-col md:flex-row items-center gap-4 w-full">
 
         <InputPicker
-          className="custom-sort-picker"
+          className="custom-picker-colour"
           data={[
             { label: "Newest First", value: "desc" },
             { label: "Oldest First", value: "asc" }
@@ -241,10 +241,11 @@ const EventFilters: React.FC = () => {
             style={{ width: "224px" }}
           />
         </div>
-
-        <div className="w-full md:w-auto flex-1">
+            
+        <div className="w-full max-w-full overflow-x-auto md:overflow-hidden whitespace-nowrap md:text-ellipsis no-scrollbar">
           {/* Categories */}
           <CheckPicker
+            className="custom-picker-colour"
             data={categories.map(cat => ({
               label: `${cat.emoji} ${cat.name}`,
               value: cat.id,

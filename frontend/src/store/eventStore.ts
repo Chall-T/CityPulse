@@ -36,7 +36,6 @@ export const useEventStore = create<EventStore>((set, get) => ({
     ) => {
         // inside fetchEvents
         const { nextCursor, events } = get();
-        console.log('Fetching events with filters:', filters);
         if (reset) {
             set({ loading: true, nextCursor: null, events: [] });
         } else if (!nextCursor && events.length > 0) {

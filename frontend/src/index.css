@@ -5,6 +5,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.custom-sort-picker {
+
+.custom-picker-colour{
   --rs-picker-value: #000;
 }

@@ -11,6 +11,8 @@ const NavBar = () => {
     const user = useAuthStore(state => state.user);
     const logout = useAuthStore(state => state.logout);
     const hydrateAuth = useAuthStore(state => state.hydrateAuth);
+    // const setHasRefreshToken = useAuthStore(state => state.setHasRefreshToken);
+    const hasRefreshToken = useAuthStore(state => state.hasRefreshToken);
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement | null>(null);
     const avatarRef = useRef<HTMLDivElement | null>(null);
@@ -88,11 +90,10 @@ const NavBar = () => {
         await logout();
         setMenuOpen(false);
         setCachedAvatar(null);
-        window.location.reload(); // or navigate to login page instead
     };
 
     useEffect(() => {
-        if (!user) {
+        if (!user || hasRefreshToken === false) {
             hydrateAuth();
             setCachedAvatar(null);
             return;

@@ -10,6 +10,7 @@ type AuthStore = {
   error: string | null;
   hasRefreshToken: boolean;
   firstAuthCheck: boolean;
+  isLoggingOut: boolean,
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   setToken: (token: string) => void;
@@ -26,6 +27,7 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
       hasRefreshToken: true,
       firstAuthCheck: true,
+      isLoggingOut: false,
 
       login: async (email, password) => {
         const { setHasRefreshToken } = get();
@@ -58,14 +60,13 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         try {
-          const { setHasRefreshToken } = get();
-            set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false });
-            setHasRefreshToken(false);
+            set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false, isLoggingOut: true });
+            setTimeout(() => set({ isLoggingOut: false }), 500);
             const logoutResponse = await apiClient.logout();
             if (logoutResponse.status === 200) {
               console.log('Logout success');
             }
-          
+            
         } catch (error) {
           console.warn('Logout failed', error);
         }
@@ -80,8 +81,11 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       hydrateAuth: async () => {
-        const { user, token, hasRefreshToken, logout, setToken } = get();
-        console.log(user, token);
+        const { user, token, hasRefreshToken, logout, setToken, isLoggingOut } = get();
+        if (isLoggingOut) {
+          console.log('Skipping hydrateAuth because we are logging out.');
+          return;
+        }
         if (!token) {
           try {
             const refreshResponse = await apiClient.refreshToken();

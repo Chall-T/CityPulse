@@ -73,7 +73,7 @@ export const getPaginatedEvents = catchAsync(async (req: Request, res: Response)
 });
 
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
-  const { cursor, limit, categories, search, sort } = req.query;
+  const { cursor, limit, categories, search, sort, fromDate, toDate } = req.query;
   let userLimit = 20;
   let sortOrder: 'asc' | 'desc' = 'desc';
   if (limit) {
@@ -92,13 +92,24 @@ export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res
 
   const searchTerm = typeof search === 'string' ? search.trim() : '';
 
+  let parsedFromDate = fromDate ? new Date(fromDate as string) : undefined;
+  let parsedToDate = toDate ? new Date(toDate as string) : undefined;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (parsedFromDate !== undefined && parsedFromDate < today) {
+    parsedFromDate = today
+}
+
   const events = await eventService.getEventsPaginatedWithFilters(
     cursor ? String(cursor) : undefined,
     userLimit,  
     true,
     categoryArray,
     searchTerm,
-    sortOrder
+    sortOrder,
+    parsedFromDate,
+    parsedToDate
   );
 
   res.json({
