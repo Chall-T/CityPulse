@@ -4,19 +4,33 @@ import * as messageService from '../services/messageService';
 import * as rsvpService from '../services/rsvpService';
 import { catchAsync, AppError, ErrorCodes } from '../utils/errorHandler';
 import { Prisma } from '@prisma/client';
-
+import { isISO8601 } from "validator";
+import { isWithinBerlin } from "../utils/validators";
+import { isSafeURL } from '../utils/validators';
 interface AuthRequest extends Request {
     userId: string;
 }
 
 export const createEvent = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
     const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryIds } = req.body;
-    if (!title) return next(new AppError("Title is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
-    if (!description) return next(new AppError("Description is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
-    if (!dateTime) return next(new AppError("Date and time are required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
-    if (!location) return next(new AppError("Location is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!title || title.trim().length < 5) return next(new AppError("Title is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!description || description.trim().length < 100) return next(new AppError("Description is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!isISO8601(dateTime)) return next(new AppError("Date and time are required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (typeof location !== "string" || location.trim().length < 3) return next(new AppError("Location is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
         return next(new AppError("At least one category ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    }
+    if (categoryIds.length > 4){
+        return next(new AppError("Too many categories", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
+    }
+    if (lat && (isNaN(lat) || lat < -90 || lat > 90))
+        return next(new AppError("Invalid latitude", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
+    if (lng && (isNaN(lng) || lng < -180 || lng > 180))
+        return next(new AppError("Invalid longitude", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
+    if (lat && lng && !isWithinBerlin(lat, lng)) {
+        return next(
+            new AppError("Event location must be within Berlin.", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS)
+        );
     }
     const newEvent: Prisma.EventCreateInput = {
         title,
@@ -26,7 +40,7 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
         categories: { connect: categoryIds.map((id: string) => ({ id })), },
         creator: { connect: { id: req.userId } },
     };
-    if (imageUrl) newEvent.imageUrl = imageUrl;
+    if (imageUrl && isSafeURL(imageUrl)) newEvent.imageUrl = imageUrl;
     if (lat) newEvent.lat = lat;
     if (lng) newEvent.lng = lng;
     if (capacity) newEvent.capacity = capacity;
@@ -99,7 +113,7 @@ export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res
     today.setHours(0, 0, 0, 0);
     if (parsedFromDate !== undefined && parsedFromDate < today) {
         parsedFromDate = today
-    }else if (parsedFromDate !== undefined ){
+    } else if (parsedFromDate !== undefined) {
         parsedFromDate = today
     }
 
