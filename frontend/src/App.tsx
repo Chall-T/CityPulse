@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { PublicOnlyRoute } from './providers/AuthProvider';
+import { PrivateOnlyRoute, PublicOnlyRoute } from './providers/AuthProvider';
 import { useEffect } from "react";
 import { cleanAllExpiredCaches } from "./utils/cleanupExpiredCache";
 import { useAuthStore } from './store/authStore';
@@ -33,7 +33,11 @@ const App = () => {
             </PublicOnlyRoute>} />
           <Route path="/events" element={<EventPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
-          <Route path="/events/create" element={<CreateEventPage />} />
+          <Route path="/events/create" element={
+            <PrivateOnlyRoute>
+              <CreateEventPage />
+            </PrivateOnlyRoute>} 
+            />
           <Route path='/' element={<Navigate to="/events" replace />}/>
         </Routes>
       </Layout>

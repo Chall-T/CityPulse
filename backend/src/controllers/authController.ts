@@ -33,7 +33,7 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
     secure: isProd,
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/api/auth/refresh',
+    path: '/api/auth',
   });
 
   res.json({ user, token: accessToken, refreshToken });
@@ -49,12 +49,16 @@ export const refresh = catchAsync(async (req: Request, res: Response, next: Next
   res.json({ token: newAccessToken });
 });
 
-export const logout = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
+export const logout = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const { refreshToken } = req.cookies;
+  if (!refreshToken) {
+    return next(new AppError("Not logged in", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+  }
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: isProd,
     sameSite: 'strict',
-    path: '/api/auth/refresh',
+    path: '/api/auth',
   });
 
   res.status(200).json({ message: 'Logged out successfully' });
@@ -81,7 +85,7 @@ export const googleCallback = catchAsync(async (req: Request, res: Response, nex
       secure: isProd,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: '/api/auth/refresh',
+      path: '/api/auth',
     });
 
     res.redirect(`${process.env.FRONTEND_URL ||`http://localhost:3000`}`);

@@ -60,16 +60,18 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         try {
-            set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false, isLoggingOut: true });
+          const { isLoggingOut } = get();
+          if (isLoggingOut) return;
+          set({ user: null, token: null, error: null, hasRefreshToken: false, firstAuthCheck: false, isLoggingOut: true });
+          setTimeout(() => set({ isLoggingOut: false }), 500);
+          const logoutResponse = await apiClient.logout();
+          if (logoutResponse.status === 200) {
             localStorage.removeItem('auth');
-            setTimeout(() => set({ isLoggingOut: false }), 500);
-            const logoutResponse = await apiClient.logout();
-            if (logoutResponse.status === 200) {
-              console.log('Logout success');
-              useEventStore.getState().reset();
-              useFilterStore.getState().reset();
-            }
-            
+            console.log('Logout success');
+            useEventStore.getState().reset();
+            useFilterStore.getState().reset();
+          }
+
         } catch (error) {
           console.warn('Logout failed', error);
         }
