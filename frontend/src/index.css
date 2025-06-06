@@ -9,3 +9,7 @@
 .custom-picker-colour{
   --rs-picker-value: #000;
 }
+
+.rs-picker-menu {
+  z-index: 20000 !important;
+}
