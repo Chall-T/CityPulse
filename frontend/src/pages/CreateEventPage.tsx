@@ -2,11 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useFilterStore } from '../store/eventStore';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import { InputPicker, DatePicker, InputNumber, TagPicker } from 'rsuite';
-
+import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { apiClient } from '../lib/ApiClient';
 
 // Fix Leaflet's default icon paths
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -136,6 +137,7 @@ function getDistanceMeters(
 const CreateEventPage: React.FC = () => {
   // Form state
   const now = new Date()
+  const navigate = useNavigate()
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dateTime, setDateTime] = useState<Date | undefined>(undefined);
@@ -143,7 +145,7 @@ const CreateEventPage: React.FC = () => {
   const [location, setLocation] = useState('');       // Address string
   const [coords, setCoords] = useState<[number, number] | null>(null); // [lat, lon]
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [jsonResult, setJsonResult] = useState<any>(null);
+  // const [jsonResult, setJsonResult] = useState<any>(null);
   const [zoom, setZoom] = useState(12);
   const [originalCoords, setOriginalCoords] = useState<[number, number] | null>(null);
   const [maxPinMovable, setMaxPinMovable] = useState<number>(100);
@@ -168,13 +170,6 @@ const CreateEventPage: React.FC = () => {
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
-
-  // Berlin bounds (SW and NE corners for restricting the map/marker)
-  const berlinBounds: [[number, number], [number, number]] = [
-    [52.30, 13.00], // Southwest lat, lon
-    [52.70, 13.90]  // Northeast lat, lon
-  ];
-
 
   const handleMarkerDrag = (event: any) => {
 
@@ -219,8 +214,7 @@ const CreateEventPage: React.FC = () => {
     setSelectedImage(prev => (prev === url ? '' : url));
   };
 
-  // Form submission (prepare JSON without sending to server)
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     let valid = true;
     const newErrors: { [key: string]: string } = {};
     setErrors({});
@@ -257,15 +251,19 @@ const CreateEventPage: React.FC = () => {
     const eventData = {
       title,
       description,
-      dateTime,
+      dateTime: dateTime?.toISOString() ?? '',
       location,
       lat: coords![0],
       lng: coords![1],
-      capacity: capacity || undefined,
+      capacity: capacity || null,
       categoryIds: selectedCats,
-      imageUrl: selectedImage || undefined
+      imageUrl: selectedImage || null
     };
-    setJsonResult(eventData);
+    const result = await apiClient.createEvent(eventData)
+    if (result.status == 200 || result.status == 201 ){
+      navigate(`/events/${result.data.id}`)
+    }
+    // setJsonResult(eventData);
   };
 
   const debouncedFetchLocations = useCallback(
@@ -323,6 +321,7 @@ const CreateEventPage: React.FC = () => {
             onSearch={debouncedFetchLocations}
             shouldDisplayCreateOption={() => false}
             searchBy={() => true}
+            className='custom-picker-colour'
             onChange={(val) => {
               const selectedLocation = locations.find(loc => loc.value === val);
               if (selectedLocation) {
@@ -424,6 +423,8 @@ const CreateEventPage: React.FC = () => {
           format="MM/dd/yyyy HH:mm"
           placeholder="Set the date and time of your event"
           value={dateTime}
+          placement="auto"
+          menuStyle={{ zIndex: 20000 }}
           onChange={(val) => setDateTime(val as Date)}
           appearance="default"
           style={{ width: '100%' }}
@@ -514,19 +515,19 @@ const CreateEventPage: React.FC = () => {
           onClick={handleSubmit}
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
-          Create Event (Prepare JSON)
+          Create Event
         </button>
       </div>
 
       {/* JSON Result Output */}
-      {jsonResult && (
+      {/* {jsonResult && (
         <div className="mt-6 p-4 bg-gray-100 border rounded">
           <h2 className="font-semibold mb-2">Event JSON Data:</h2>
           <pre className="text-sm bg-white p-2 border rounded">
             {JSON.stringify(jsonResult, null, 2)}
           </pre>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

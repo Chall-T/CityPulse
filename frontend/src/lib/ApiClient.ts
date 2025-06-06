@@ -3,7 +3,7 @@ import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { ErrorCodes } from '../constants/errorCodes';
 import config from './config';
-
+import type { EventCreate } from '../types';
 interface AxiosRequestConfigWithMeta extends InternalAxiosRequestConfig {
   meta?: {
     authRequired?: boolean;
@@ -238,6 +238,14 @@ class ApiClient {
   async createMessage(eventId: string, content: string) {
     return this.requestWithCache('post', `/events/${eventId}/messages`, {
       data: { message: content },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+
+  async createEvent(content: EventCreate) {
+    return this.requestWithCache('post', `/events`, {
+      data: content,
       config: { meta: { authRequired: true } },
       cacheable: false,
     });

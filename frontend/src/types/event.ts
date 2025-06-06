@@ -23,3 +23,14 @@ export type Event = {
   creator?: Creator;
 };
 
+export type EventCreate = {
+  title: string;
+  description: string;
+  imageUrl: string | null;
+  dateTime: string;
+  lat: number | null;
+  lng: number | null;
+  capacity: number | null;
+  location: string;
+  categoryIds: string[];
+};

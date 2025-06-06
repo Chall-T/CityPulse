@@ -111,7 +111,6 @@ export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    console.log(parsedFromDate !== undefined, parsedFromDate !== undefined && parsedFromDate < today)
     if (parsedFromDate !== undefined && parsedFromDate < today) {
         parsedFromDate = today
     } else if (parsedFromDate === undefined) {
