@@ -13,8 +13,8 @@ interface AuthRequest extends Request {
 
 export const createEvent = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
     const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryIds } = req.body;
-    if (!title || title.trim().length < 5) return next(new AppError("Title is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
-    if (!description || description.trim().length < 100) return next(new AppError("Description is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!title || title.trim().length < 3) return next(new AppError("Title is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (!description || description.trim().length < 30) return next(new AppError("Description is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     if (!isISO8601(dateTime)) return next(new AppError("Date and time are required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     if (typeof location !== "string" || location.trim().length < 3) return next(new AppError("Location is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
@@ -111,9 +111,10 @@ export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    console.log(parsedFromDate !== undefined, parsedFromDate !== undefined && parsedFromDate < today)
     if (parsedFromDate !== undefined && parsedFromDate < today) {
         parsedFromDate = today
-    } else if (parsedFromDate !== undefined) {
+    } else if (parsedFromDate === undefined) {
         parsedFromDate = today
     }
 
