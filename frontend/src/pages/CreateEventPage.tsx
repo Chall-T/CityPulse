@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useFilterStore } from '../store/eventStore';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
-import { InputPicker, DatePicker, InputNumber, Uploader, Button, TagPicker, Stack } from 'rsuite';
+import { InputPicker, DatePicker, InputNumber, TagPicker } from 'rsuite';
 
-import SpinnerIcon from '@rsuite/icons/legacy/Spinner';
 import debounce from 'lodash/debounce';
 
 import L from 'leaflet';
@@ -50,7 +49,6 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
     if (!query || typeof query !== 'string') return setLocations([]);
     setLoading(true);
 
-    // Photon API – better at handling fuzzy address queries
     fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query + ', Berlin')}&limit=5&lang=en`, {
       headers: {
         'User-Agent': `CityPulse/${appVersion} (${contactEmail})`
@@ -67,28 +65,24 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
 
           const street = props.street || '';
           const housenumber = props.housenumber || '';
-          const postcode = props.postcode || '';      // ← grab the postal code if it exists
+          const postcode = props.postcode || ''; 
           const city = props.city || '';
           const country = props.country || '';
           const name = props.name || '';
 
+          
+          if (city && city.toLowerCase() !== "berlin") return null;
 
-          // Build label parts in the desired order:
           if (["railway"].includes(osm_key)) return null
+          
           const labelParts: string[] = [];
-          // if (["city", "street", "district", "other"].includes(type)) labelParts.push(name)
           if (name) labelParts.push(name);
-          // if (osm_key == "tourism" && osm_value == "attraction") {
-          //   labelParts.push(name);
-          // } else {
-          //   if (street) labelParts.push(street + (housenumber ? ` ${housenumber}` : ''));
-          // }
           if (street) labelParts.push(street + (housenumber ? ` ${housenumber}` : ''));
           if (postcode) labelParts.push(postcode);
           if (city) labelParts.push(city);
           if (country) labelParts.push(country);
 
-
+          
 
           return {
             label: labelParts.join(', '),  // e.g. "Bernauer Straße 112, 13355, Berlin, Germany"
@@ -341,7 +335,7 @@ const CreateEventPage: React.FC = () => {
 
                 switch (selectedLocation.type) {
                   case 'city':
-                    zoomLevel = 12;
+                    zoomLevel = 11;
                     radius = 5000
                     break;
                   case 'street':
@@ -359,7 +353,11 @@ const CreateEventPage: React.FC = () => {
                     switch (selectedLocation.osm_key){
                       case 'amenity':
                         zoomLevel = 17;
-                        radius = 50
+                        radius = 100
+                        break;
+                      case 'attraction':
+                        zoomLevel = 17;
+                        radius = 100
                         break;
                       default:
                         zoomLevel = 18;
@@ -388,7 +386,7 @@ const CreateEventPage: React.FC = () => {
             zoom={zoom}
             scrollWheelZoom={false}
             className="w-full h-64 rounded-lg border"
-            maxBounds={[[52.3383, 13.0884], [52.6755, 13.7611]]} // Berlin bounds
+            maxBounds={[[52.3383, 13.0884], [52.6755, 13.7611]]}
           >
             <TileLayer
               attribution="&copy; OpenStreetMap contributors"
