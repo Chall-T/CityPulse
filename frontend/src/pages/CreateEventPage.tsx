@@ -4,10 +4,11 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-le
 import { InputPicker, DatePicker, InputNumber, TagPicker } from 'rsuite';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
-
+import { searchStockImages } from '../assets/images/';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { apiClient } from '../lib/ApiClient';
+
 
 // Fix Leaflet's default icon paths
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -66,16 +67,16 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
 
           const street = props.street || '';
           const housenumber = props.housenumber || '';
-          const postcode = props.postcode || ''; 
+          const postcode = props.postcode || '';
           const city = props.city || '';
           const country = props.country || '';
           const name = props.name || '';
 
-          
+
           if (city && city.toLowerCase() !== "berlin") return null;
 
           if (["railway"].includes(osm_key)) return null
-          
+
           const labelParts: string[] = [];
           if (name) labelParts.push(name);
           if (street) labelParts.push(street + (housenumber ? ` ${housenumber}` : ''));
@@ -83,7 +84,7 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
           if (city) labelParts.push(city);
           if (country) labelParts.push(country);
 
-          
+
 
           return {
             label: labelParts.join(', '),  // e.g. "Bernauer Straße 112, 13355, Berlin, Germany"
@@ -96,7 +97,7 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
             osm_key,
             osm_value
           };
-        }).filter((loc:any) => loc !== null);
+        }).filter((loc: any) => loc !== null);
 
         setLocations(transformedLocations);
         setLoading(false);
@@ -155,15 +156,38 @@ const CreateEventPage: React.FC = () => {
 
   const [locations, loading, fetchLocations] = useLocations();
 
-  // Images mapping (category ID to stock image URLs)
-  const stockImagesByCat: { [catId: string]: string[] } = {
-    // Example static mapping; replace with your actual category IDs and image URLs
-    '1': ['https://source.unsplash.com/400x300/?concert', 'https://source.unsplash.com/400x300/?music'],
-    '2': ['https://source.unsplash.com/400x300/?art', 'https://source.unsplash.com/400x300/?exhibition'],
-    '3': ['https://source.unsplash.com/400x300/?food', 'https://source.unsplash.com/400x300/?restaurant'],
-    '4': ['https://source.unsplash.com/400x300/?sports', 'https://source.unsplash.com/400x300/?stadium'],
-    // Add more as needed
-  };
+  const [stockImages, setStockImages] = useState<string[]>([]);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+
+  const [randomSeed] = useState(() => Math.random().toString(36).substring(2, 15));
+
+
+  // Images mapping
+  useEffect(() => {
+    if (selectedCats.length > 0) {
+      setIsLoadingImages(true);
+      const fetchImages = async () => {
+        try {
+          const images = await searchStockImages(
+            title,
+            categories.filter(c => selectedCats.includes(c.id)),
+            randomSeed
+          );
+          const uniqueImages = [...new Set(images)];
+          
+          setStockImages(uniqueImages);
+        } catch (error) {
+          console.error("Error fetching stock images:", error);
+        } finally {
+          setIsLoadingImages(false);
+        }
+      };
+
+      fetchImages();
+    } else {
+      setStockImages([]);
+    }
+  }, [selectedCats, title, categories]);
   const [selectedImage, setSelectedImage] = useState<string>('');
 
   // Fetch categories on mount
@@ -260,7 +284,7 @@ const CreateEventPage: React.FC = () => {
       imageUrl: selectedImage || null
     };
     const result = await apiClient.createEvent(eventData)
-    if (result.status == 200 || result.status == 201 ){
+    if (result.status == 200 || result.status == 201) {
       navigate(`/events/${result.data.id}`)
     }
     // setJsonResult(eventData);
@@ -349,7 +373,7 @@ const CreateEventPage: React.FC = () => {
                   case 'house':
                     zoomLevel = 18;
                     radius = 50
-                    switch (selectedLocation.osm_key){
+                    switch (selectedLocation.osm_key) {
                       case 'amenity':
                         zoomLevel = 17;
                         radius = 100
@@ -371,7 +395,7 @@ const CreateEventPage: React.FC = () => {
                     zoomLevel = 15;
                     radius = 100
                 }
-                
+
                 setMaxPinMovable(radius)
                 setZoom(zoomLevel);
               }
@@ -410,7 +434,7 @@ const CreateEventPage: React.FC = () => {
             <MapUpdater coords={coords} zoom={zoom} />
           </MapContainer>
         </div>
-        
+
         {errors.location && <p className="text-red-600 text-sm">{errors.location}</p>}
       </div>
 
@@ -487,25 +511,41 @@ const CreateEventPage: React.FC = () => {
       </div>
 
       {/* Image Selection (from stock images of chosen categories) */}
+      {/* Image Selection (from stock images of chosen categories) */}
       {selectedCats.length > 0 && (
         <div>
           <span className="block text-sm font-medium text-gray-700">
-            Select an Image (assigned to chosen categories)
+            Select an Image
           </span>
-          <div className="grid grid-cols-2 gap-4 mt-2">
-            {selectedCats.flatMap(catId =>
-              (stockImagesByCat[catId] || []).map((url, idx) => (
+          {isLoadingImages ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+          ) : stockImages.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              {Array.from(new Set(stockImages)).map((image, index) => (
                 <div
-                  key={catId + '-' + idx}
-                  onClick={() => handleImageClick(url)}
-                  className={`cursor-pointer border rounded overflow-hidden ${selectedImage === url ? 'border-blue-500' : ''
+                  key={`${image}-${index}`}  // More unique key
+                  onClick={() => handleImageClick(image)}
+                  className={`cursor-pointer border rounded overflow-hidden relative ${selectedImage === image ? 'ring-2 ring-blue-500' : ''
                     }`}
                 >
-                  <img src={url} alt="Event" className="w-full h-32 object-cover" />
+                  <img
+                    src={image}
+                    alt={`Event image ${index}`}
+                    className="w-full h-32 object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'fallback-image-url.jpg';
+                    }}
+                  />
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-gray-500 text-sm mt-2">
+              No images found for selected categories.
+            </div>
+          )}
         </div>
       )}
 
