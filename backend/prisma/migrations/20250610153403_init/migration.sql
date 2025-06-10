@@ -22,6 +22,7 @@ CREATE TABLE "Event" (
     "imageUrl" TEXT,
     "dateTime" TIMESTAMP(3) NOT NULL,
     "location" TEXT NOT NULL,
+    "coords" geometry(Point, 4326),
     "lat" DOUBLE PRECISION,
     "lng" DOUBLE PRECISION,
     "capacity" INTEGER,
@@ -76,6 +77,9 @@ CREATE UNIQUE INDEX "User_googleId_key" ON "User"("googleId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+
+-- CreateIndex
+CREATE INDEX "location_idx" ON "Event" USING GIST ("coords");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "RSVP_userId_eventId_key" ON "RSVP"("userId", "eventId");

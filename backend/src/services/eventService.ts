@@ -42,6 +42,51 @@ export const getEventById = async (id: string, fetchCategories: boolean) => {
 
   );
 };
+export const getEventByIdWithCords = async (id: string, fetchCategories: boolean) => {
+  const rawEvent: any = await prisma.$queryRawUnsafe(`
+  SELECT 
+    id, 
+    title, 
+    description, 
+    "imageUrl",    -- quote this!
+    "dateTime",    -- quote other camelCase columns too
+    location, 
+    capacity, 
+    "createdAt", 
+    "updatedAt", 
+    "creatorId",
+    ST_AsGeoJSON(coords)::TEXT AS coords
+  FROM "Event"
+  WHERE id = $1
+`, id);
+
+  const event = rawEvent[0];
+
+  if (event?.coords) {
+  event.coords = JSON.parse(event.coords);  // parse GeoJSON string to JSON object
+}
+  if (event && event.coords_geojson) {
+    event.coords = JSON.parse(event.coords_geojson);
+    delete event.coords_geojson;
+  }
+
+  const fullEvent = await prisma.event.findUnique({
+    where: { id },
+    include: {
+      categories: fetchCategories,
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          avatarUrl: true,
+        },
+      },
+    },
+  });
+
+  return { ...fullEvent, coords: event.coords };
+};
 
 export const getEventsPaginated = async (
   cursor?: string,
