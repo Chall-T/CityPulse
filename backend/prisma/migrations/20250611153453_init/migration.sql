@@ -23,8 +23,6 @@ CREATE TABLE "Event" (
     "dateTime" TIMESTAMP(3) NOT NULL,
     "location" TEXT NOT NULL,
     "coords" geometry(Point, 4326),
-    "lat" DOUBLE PRECISION,
-    "lng" DOUBLE PRECISION,
     "capacity" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,

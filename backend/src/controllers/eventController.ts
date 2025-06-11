@@ -41,13 +41,14 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
         creator: { connect: { id: req.userId } },
     };
     if (imageUrl && isSafeURL(imageUrl)) newEvent.imageUrl = imageUrl;
-    if (lat) newEvent.lat = lat;
-    if (lng) newEvent.lng = lng;
     if (capacity) newEvent.capacity = capacity;
 
 
     const event = await eventService.createEvent(newEvent);
 
+    if (lat !== undefined && lng !== undefined) {
+        const setCordsResult = await eventService.setCordsEvent(event.id, lat, lng);
+    }
     if (event) {
         rsvpService.createRSVP({
             user: { connect: { id: req.userId } },
@@ -63,7 +64,7 @@ export const getEvents = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const event = await eventService.getEventById(req.params.eventId, true);
+    const event = await eventService.getEventByIdWithCords(req.params.eventId, true);
     if (!event) {
         return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
     }
@@ -144,8 +145,6 @@ export const updateEvent = catchAsync(async (req: Request, res: Response, next: 
     const updates: Prisma.EventUpdateInput = {
     };
     if (imageUrl) updates.imageUrl = imageUrl;
-    if (lat) updates.lat = lat;
-    if (lng) updates.lng = lng;
     if (capacity) updates.capacity = capacity;
     if (title) updates.title = title;
     if (description) updates.description = description;
@@ -158,11 +157,14 @@ export const updateEvent = catchAsync(async (req: Request, res: Response, next: 
     if (Object.keys(updates).length === 0) {
         return next(new AppError('No valid fields provided to update', 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     }
-
     const event = await eventService.updateEvent(req.params.eventId, updates);
     if (!event) {
         return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
     }
+    if (event && lat !== undefined && lng !== undefined) {
+        const setCordsResult = await eventService.setCordsEvent(req.params.eventId, lat, lng);
+    }
+    
     res.json(event);
 });
 

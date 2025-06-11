@@ -42,14 +42,15 @@ const EventDetailPage: React.FC = () => {
 
       try {
         const res = await apiClient.getEventById(id);
+        const eventData: Event = res.data;
         setEvent(res.data);
 
         // Handle coordinates
-        if (res.data.lat !== null && res.data.lng !== null) {
-          setCoords([res.data.lat, res.data.lng]);
+        if (eventData.coords !== null) {
+          setCoords([eventData.lat, eventData.lng]);
         } else {
           const geoRes = await fetch(
-            `${baseUrl}?format=json&q=${encodeURIComponent(res.data.location)}`,
+            `${baseUrl}?format=json&q=${encodeURIComponent(eventData.location)}`,
             {
               headers: {
                 'User-Agent': `CityPulse/${appVersion} (${contactEmail})`,

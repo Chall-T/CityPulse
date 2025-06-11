@@ -1,8 +1,6 @@
 generator client {
   provider = "prisma-client-js"
   binaryTargets   = "native"
-
-  previewFeatures = ["extendedIndexes", "improvedQueryRaw"]
 }
 
 datasource db {
@@ -35,8 +33,6 @@ model Event {
   dateTime    DateTime
   location    String
   coords    Unsupported("geometry(Point, 4326)")? // Using PostGIS for geospatial data
-  lat         Float?
-  lng         Float?
   capacity    Int?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt

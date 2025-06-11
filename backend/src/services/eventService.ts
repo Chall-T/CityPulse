@@ -15,6 +15,15 @@ export const createEvent = async (userData: Prisma.EventCreateInput) => {
   return prisma.event.create({ data: userData });
 };
 
+export const setCordsEvent = async (id: string, lat: number, lng: number) => {
+  return await prisma.$executeRaw(Prisma.sql`
+    UPDATE "Event"
+    SET coords = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)
+    WHERE id = ${id}
+  `);
+}
+
+
 export const getEvents = async (fetchCategories: boolean) => {
   return prisma.event.findMany({
     include: {
@@ -43,7 +52,7 @@ export const getEventById = async (id: string, fetchCategories: boolean) => {
   );
 };
 export const getEventByIdWithCords = async (id: string, fetchCategories: boolean) => {
-  const rawEvent: any = await prisma.$queryRawUnsafe(`
+  const rawEvent: any = await prisma.$queryRaw(Prisma.sql`
   SELECT 
     id, 
     title, 
@@ -57,8 +66,8 @@ export const getEventByIdWithCords = async (id: string, fetchCategories: boolean
     "creatorId",
     ST_AsGeoJSON(coords)::TEXT AS coords
   FROM "Event"
-  WHERE id = $1
-`, id);
+  WHERE id = ${id}
+`);
 
   const event = rawEvent[0];
 
@@ -199,3 +208,63 @@ export const updateEvent = async (id: string, userUpdateData: Prisma.EventUpdate
 export const deleteEvent = async (id: string) => {
   return prisma.event.delete({ where: { id } });
 };
+
+
+function getGeoHashPrecision(zoom: number): number {
+  if (zoom >= 15) return 8;
+  if (zoom >= 13) return 7;
+  if (zoom >= 11) return 6;
+  if (zoom >= 9) return 5;
+  if (zoom >= 7) return 4;
+  return 3;
+}
+
+type RawGeoCluster = {
+  geohash: string;
+  count: string | number | null;
+  lat: string | number | null;
+  lng: string | number | null;
+};
+
+type ClusterPin = {
+  geohash: string;
+  count: number;
+  lat: number;
+  lng: number;
+};
+
+export async function getGeoHashedClusters({ minLat, maxLat, minLng, maxLng, zoom, category }: {minLat: number, maxLat: number, minLng: number, maxLng: number, zoom: number, category: string}) {
+  const precision = getGeoHashPrecision(zoom);
+
+  const query = Prisma.sql`
+    SELECT 
+      ST_GeoHash(coords::geometry, ${precision}) AS geohash,
+      COUNT(*) AS count,
+      AVG(lat) AS lat,
+      AVG(lng) AS lng
+    FROM "Event"
+    WHERE coords IS NOT NULL
+      AND lat BETWEEN ${minLat} AND ${maxLat}
+      AND lng BETWEEN ${minLng} AND ${maxLng}
+      AND '${category}' = ANY (
+        SELECT c.name FROM "_CategoryToEvent" ce
+        JOIN "Category" c ON ce."A" = c.id
+        WHERE ce."B" = "Event".id
+      )
+    GROUP BY geohash;
+  `;
+
+  const result = await prisma.$queryRaw<RawGeoCluster[]>(query);
+
+
+  const pins: ClusterPin[] = result
+  .filter(cluster => cluster.lat != null && cluster.lng != null)
+  .map((cluster) => ({
+    geohash: cluster.geohash,
+    count: Number(cluster.count ?? 0),
+    lat: parseFloat(String(cluster.lat ?? 0)),
+    lng: parseFloat(String(cluster.lng ?? 0)),
+  }));
+
+  return pins
+}
