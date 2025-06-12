@@ -18,7 +18,7 @@ export const createEvent = async (userData: Prisma.EventCreateInput) => {
 export const setCordsEvent = async (id: string, lat: number, lng: number) => {
   return await prisma.$executeRaw(Prisma.sql`
     UPDATE "Event"
-    SET coords = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)
+    SET coords = ST_SetSRID(ST_MakePoint(${lat}, ${lng}), 4326)
     WHERE id = ${id}
   `);
 }
@@ -57,8 +57,8 @@ export const getEventByIdWithCords = async (id: string, fetchCategories: boolean
     id, 
     title, 
     description, 
-    "imageUrl",    -- quote this!
-    "dateTime",    -- quote other camelCase columns too
+    "imageUrl",
+    "dateTime",
     location, 
     capacity, 
     "createdAt", 
@@ -72,7 +72,7 @@ export const getEventByIdWithCords = async (id: string, fetchCategories: boolean
   const event = rawEvent[0];
 
   if (event?.coords) {
-  event.coords = JSON.parse(event.coords);  // parse GeoJSON string to JSON object
+  event.coords = JSON.parse(event.coords);
 }
   if (event && event.coords_geojson) {
     event.coords = JSON.parse(event.coords_geojson);

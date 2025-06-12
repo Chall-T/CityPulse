@@ -5,18 +5,11 @@ import { InputPicker, DatePicker, InputNumber, TagPicker } from 'rsuite';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
 import { searchStockImages } from '../assets/images/';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { apiClient } from '../lib/ApiClient';
 
 
-// Fix Leaflet's default icon paths
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+
 
 function MapUpdater({ coords, zoom }: { coords: [number, number] | null, zoom: number }) {
   const map = useMap();
@@ -87,7 +80,7 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
 
 
           return {
-            label: labelParts.join(', '),  // e.g. "Bernauer Straße 112, 13355, Berlin, Germany"
+            label: labelParts.join(', '),  //  address or place
             value: `${feature.geometry.coordinates[1].toFixed(6)},${feature.geometry.coordinates[0].toFixed(6)}`,
             coords: [
               feature.geometry.coordinates[1],
@@ -136,21 +129,20 @@ function getDistanceMeters(
 
 
 const CreateEventPage: React.FC = () => {
-  // Form state
   const now = new Date()
   const navigate = useNavigate()
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dateTime, setDateTime] = useState<Date | undefined>(undefined);
   const [capacity, setCapacity] = useState<number | undefined>(undefined);
-  const [location, setLocation] = useState('');       // Address string
+  const [location, setLocation] = useState('');
   const [coords, setCoords] = useState<[number, number] | null>(null); // [lat, lon]
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  // const [jsonResult, setJsonResult] = useState<any>(null);
   const [zoom, setZoom] = useState(12);
   const [originalCoords, setOriginalCoords] = useState<[number, number] | null>(null);
   const [maxPinMovable, setMaxPinMovable] = useState<number>(100);
-  // Categories (from store)
+
+  
   const { categories, fetchCategories } = useFilterStore();
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
 
@@ -161,7 +153,7 @@ const CreateEventPage: React.FC = () => {
 
   const [randomSeed] = useState(() => Math.random().toString(36).substring(2, 15));
 
-
+  if (loading) // not used yet
   // Images mapping
   useEffect(() => {
     if (selectedCats.length > 0) {
@@ -338,7 +330,7 @@ const CreateEventPage: React.FC = () => {
           <InputPicker
             data={locations}
             style={{ width: '100%' }}
-            menuStyle={{ zIndex: 20000 }}  // rsuite supports menuStyle prop
+            menuStyle={{ zIndex: 20000 }}
             labelKey="label"
             valueKey="value"
             placement="auto"
@@ -525,7 +517,7 @@ const CreateEventPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-4 mt-2">
               {Array.from(new Set(stockImages)).map((image, index) => (
                 <div
-                  key={`${image}-${index}`}  // More unique key
+                  key={`${image}-${index}`}
                   onClick={() => handleImageClick(image)}
                   className={`cursor-pointer border rounded overflow-hidden relative ${selectedImage === image ? 'ring-2 ring-blue-500' : ''
                     }`}

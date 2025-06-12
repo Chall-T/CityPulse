@@ -1,0 +1,23 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y openssl python3 build-essential && rm -rf /var/lib/apt/lists/*
+
+# Copy package files first for better Docker caching
+COPY package*.json tsconfig*.json ./
+
+# Install dev dependencies including ts-node
+RUN npm install
+
+# Copy app code after dependencies (to leverage Docker cache)
+COPY prisma ./prisma
+COPY src ./src
+
+# Generate Prisma client (optional, but good practice)
+RUN npx prisma generate
+
+EXPOSE 3001
+
+CMD ["npm", "run", "dev"]

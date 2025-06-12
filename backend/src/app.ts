@@ -13,7 +13,6 @@ import { globalErrorHandler } from './utils/errorHandler';
 import { DB_URI, PORT } from "./utils/secrets";
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
-// dotenv.config();
 
 
 const app = express();

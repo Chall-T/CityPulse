@@ -1,0 +1,61 @@
+version: '3.8'
+services:
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: citypulse-db
+    env_file: [ .env ]
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql:ro
+    ports:
+      - '5432:5432'
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: citypulse-backend-dev
+    env_file: [ .env ]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - '3001:3001'
+    depends_on: [ db ]
+    command: npm run dev
+
+  seed:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: citypulse-seed
+    env_file: [ .env ]
+    volumes:
+      - ./backend:/app
+      - ./.env:/app/.env:ro # ✅ Mount .env file
+    depends_on: [ db ]
+    command: npm run prisma:seed
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: citypulse-frontend
+    env_file: [ .env ]
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - '8080:8080'
+    depends_on: [ backend ]
+    command: npm run dev
+
+volumes:
+  pgdata:

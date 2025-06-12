@@ -101,7 +101,6 @@ const EventFilters: React.FC = () => {
     setCategoriesFilter(parsedCats);
 
 
-    // Fetch initial events with all filters
     fetchEvents(true, {
       categories: parsedCats,
       search: urlSearch,
@@ -121,7 +120,6 @@ const EventFilters: React.FC = () => {
   // When "Apply Filters" is clicked
   const handleSubmit = () => {
 
-    // Update global store
     const [start, end] = dateRange ?? [null, null];
 
     if ((start && start < today) || (end && end < today)) {
@@ -149,7 +147,6 @@ const EventFilters: React.FC = () => {
 
     setSearchParams(params, { replace: true });
 
-    // Refetch events with filters
     fetchEvents(true, {
       categories: localSelectedCategories,
       search: localSearch,
@@ -159,7 +156,6 @@ const EventFilters: React.FC = () => {
     });
   };
 
-  // When "Clear all filters" is clicked
   const handleClear = () => {
     setLocalSearch("");
     setLocalSelectedCategories([]);

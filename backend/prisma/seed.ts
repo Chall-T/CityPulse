@@ -53,7 +53,6 @@ const categories = [];
   }
   console.log(`Seeded categories: ${categories.map((c) => c.name).join(', ')}`);
 
-  // 2. Create a user via your service register function
   const email = 'testuser@example.com';
   const password = 'Password123!';
   const baseUsername = 'testuser';
@@ -75,7 +74,6 @@ const categories = [];
   }
   console.log(`User id: ${user.id}`);
 
-  // 3. Create some events linked to user and categories, using your createEvent service
   const eventsData: Prisma.EventCreateInput[] = [
     {
       title: 'Summer Music Fest',

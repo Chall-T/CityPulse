@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
-import GoogleLogin from '../components/GoogleButton'
 import config from '../lib/config';
 
 export const LoginPage = () => {

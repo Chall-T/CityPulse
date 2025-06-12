@@ -57,7 +57,7 @@ model RSVP { // RSVP stands for "Répondez s'il vous plaît" (French for "Please
 
   createdAt DateTime @default(now())
 
-  @@unique([userId, eventId]) // prevent double booking
+  @@unique([userId, eventId])
 }
 
 model Category {

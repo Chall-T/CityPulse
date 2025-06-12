@@ -5,7 +5,7 @@ const DarkModeSwitch: React.FC = () => {
   const [darkMode, setDarkMode] = useState<boolean>(false);
 
   useEffect(() => {
-    // Get the initial theme from localStorage or system preference
+    // Get the initial theme from localStorage or system
     const storedTheme = localStorage.getItem('hs_theme');
     const isDarkOrAuto = storedTheme === 'dark' || (storedTheme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
     

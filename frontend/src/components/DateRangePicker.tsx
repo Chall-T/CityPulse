@@ -22,7 +22,6 @@ const DateRangePickerWithShadow: React.FC<DateRangePickerWithShadowProps> = ({
     if (containerRef.current && !containerRef.current.shadowRoot) {
       const shadow = containerRef.current.attachShadow({ mode: 'open' });
 
-      // Append RSuite CSS link inside shadow root
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = RSUITE_CSS_URL;
@@ -33,12 +32,11 @@ const DateRangePickerWithShadow: React.FC<DateRangePickerWithShadowProps> = ({
   }, []);
 
   if (!shadowRoot) {
-    // Add explicit size styles so container is visible
     return (
       <div
         ref={containerRef}
         style={{
-          width: '250px',  // or '100%' depending on your layout
+          width: '250px',
           minHeight: '40px',
         }}
       />

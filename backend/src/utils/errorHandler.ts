@@ -54,14 +54,12 @@ export const globalErrorHandler = (err: AppError, req: Request, res: Response, n
   const message = err.message || 'Internal Server Error';
   const errorCode = err.errorCode || ErrorCodes.SERVER_INTERNAL_ERROR;
 
-  // Log the error with the code for better visibility
   logger.error(`${statusCode} - ${message} - ErrorCode: ${errorCode} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
 
-  // Send the error response with the error code
   res.status(statusCode).json({
     error: {
       message,
-      errorCode, // Include errorCode in the response
+      errorCode,
     },
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined, // Show stack trace in development
   });

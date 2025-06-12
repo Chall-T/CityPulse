@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 import { AppError, ErrorCodes } from '../utils/errorHandler';
 import logger from '../utils/logger';
-// const nanoid = await import('nanoid');
 
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
@@ -119,7 +118,7 @@ export const refreshAccessToken = async (refreshToken: string): Promise<string> 
     throw new AppError('Invalid or expired refresh token', 400, ErrorCodes.AUTH_INVALID_REFRESH_TOKEN);
   }
 };
-// 
+
 export const generateAccessTokens = (userId: string) => {
   // Generate access token (short-lived)
   const accessToken = jwt.sign(
@@ -150,7 +149,6 @@ export const handleGoogleLogin = async (googleProfile: any) => {
   let user = await prisma.user.findUnique({ where: { googleId } });
 
   if (!user) {
-    // Maybe user signed up with email/password before
     user = await prisma.user.findUnique({ where: { email } });
 
     if (user) {

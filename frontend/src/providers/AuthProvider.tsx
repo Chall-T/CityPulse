@@ -56,10 +56,8 @@ export function PublicOnlyRoute({ children }: PublicRouteProps) {
   const token = useAuthStore((state) => state.token);
 
   if (token) {
-    // User logged in → redirect to home
     return <Navigate to="/" replace />;
   }
 
-  // User NOT logged in → render the component
   return children;
 }

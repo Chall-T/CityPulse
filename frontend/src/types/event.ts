@@ -9,8 +9,8 @@ export type Creator = {
 };
 
 type Coords = {
-  lat: number | null;
-  lng: number | null;
+  type: string
+  coordinates: [number, number]
 }
 
 export type Event = {

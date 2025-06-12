@@ -11,7 +11,7 @@ function stringToColor(str: string): string {
 
 interface UserProfileIconProps {
   avatarUrl?: string | null;
-  username: string;  // Usually first letter of name/username
+  username: string; 
   onClick?: () => void;
   refProp?: React.Ref<HTMLDivElement>;
 }
