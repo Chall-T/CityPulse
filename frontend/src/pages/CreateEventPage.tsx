@@ -7,7 +7,7 @@ import debounce from 'lodash/debounce';
 import { searchStockImages } from '../assets/images/';
 import 'leaflet/dist/leaflet.css';
 import { apiClient } from '../lib/ApiClient';
-
+import OneLineLoader from '../components/Loader/OneLine';
 
 
 
@@ -152,8 +152,9 @@ const CreateEventPage: React.FC = () => {
   const [isLoadingImages, setIsLoadingImages] = useState(false);
 
   const [randomSeed] = useState(() => Math.random().toString(36).substring(2, 15));
+  const [typingLocation, setTypingLocation] = useState<boolean>(false);
 
-  if (loading) // not used yet
+  // if (loading) // not used yet
   // Images mapping
   useEffect(() => {
     if (selectedCats.length > 0) {
@@ -285,9 +286,14 @@ const CreateEventPage: React.FC = () => {
   const debouncedFetchLocations = useCallback(
     debounce((val: string) => {
       fetchLocations(val);
+      setTypingLocation(false)
     }, 1000),
     []
   );
+  const handleLocationSearch = (val: string) => {
+    setTypingLocation(true);
+    debouncedFetchLocations(val);
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
@@ -334,10 +340,20 @@ const CreateEventPage: React.FC = () => {
             labelKey="label"
             valueKey="value"
             placement="auto"
-            onSearch={debouncedFetchLocations}
+            onSearch={handleLocationSearch}
             shouldDisplayCreateOption={() => false}
             searchBy={() => true}
             className='custom-picker-colour'
+            renderMenu={(menu) => {
+              if (loading || typingLocation) {
+                return (
+                  <div style={{ textAlign: 'center' }}>
+                    <OneLineLoader height={38} width={400} />
+                  </div>
+                );
+              }
+              return menu;
+            }}
             onChange={(val) => {
               const selectedLocation = locations.find(loc => loc.value === val);
               if (selectedLocation) {
