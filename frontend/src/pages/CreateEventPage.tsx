@@ -136,7 +136,7 @@ const CreateEventPage: React.FC = () => {
   const [dateTime, setDateTime] = useState<Date | undefined>(undefined);
   const [capacity, setCapacity] = useState<number | undefined>(undefined);
   const [location, setLocation] = useState('');
-  const [coords, setCoords] = useState<[number, number] | null>(null); // [lat, lon]
+  const [coords, setCoords] = useState<[number, number] | null>([52.510885, 13.3989367]); // Berlin
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [zoom, setZoom] = useState(12);
   const [originalCoords, setOriginalCoords] = useState<[number, number] | null>(null);
@@ -154,7 +154,6 @@ const CreateEventPage: React.FC = () => {
   const [randomSeed] = useState(() => Math.random().toString(36).substring(2, 15));
   const [typingLocation, setTypingLocation] = useState<boolean>(false);
 
-  // if (loading) // not used yet
   // Images mapping
   useEffect(() => {
     if (selectedCats.length > 0) {

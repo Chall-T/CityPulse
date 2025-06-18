@@ -8,6 +8,7 @@ import Layout from './components/Layout';
 
 import EventDetailPage from './pages/DetailedEventPage';
 import EventPage from './pages/EventsPage';
+import EventMapPage from './pages/EventsMapPage';
 import CreateEventPage from './pages/CreateEventPage';
 
 import LoginPage from './pages/LoginPage';
@@ -32,6 +33,7 @@ const App = () => {
               <RegistrationPage />
             </PublicOnlyRoute>} />
           <Route path="/events" element={<EventPage />} />
+          <Route path="/events/map" element={<EventMapPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/events/create" element={
             <PrivateOnlyRoute>
