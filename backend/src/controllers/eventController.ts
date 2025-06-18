@@ -87,6 +87,23 @@ export const getPaginatedEvents = catchAsync(async (req: Request, res: Response)
     });
 });
 
+export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { minLat, maxLat, minLng, maxLng, categoryIds } = req.query;
+    if (!minLat || !maxLat || !minLng || !maxLng) {
+        return next(new AppError("Missing required query parameters: minLat, maxLat, minLng, maxLng", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    }
+    if (typeof minLat !== 'number' || typeof maxLat !== 'number' || typeof minLng !== 'number' || typeof maxLng !== 'number') {
+        return next(new AppError("Query parameters must be numbers", 400, ErrorCodes.VALIDATION_INVALID_TYPE));
+    }
+    let categories = []
+    if (categoryIds || Array.isArray(categoryIds)) {
+        categoryIds.map((id: string) => id.trim());
+        categories = categoryIds ? [categoryIds] : [];
+    }
+    
+    eventService.getGeoHashedClusters({minLat, maxLat, minLng, maxLng, zoom: 10, categories})
+})
+
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
     const { cursor, limit, categories, search, sort, fromDate, toDate } = req.query;
     let userLimit = 20;

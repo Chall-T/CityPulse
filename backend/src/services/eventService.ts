@@ -233,38 +233,62 @@ type ClusterPin = {
   lng: number;
 };
 
-export async function getGeoHashedClusters({ minLat, maxLat, minLng, maxLng, zoom, category }: {minLat: number, maxLat: number, minLng: number, maxLng: number, zoom: number, category: string}) {
+export async function getGeoHashedClusters({
+  minLat,
+  maxLat,
+  minLng,
+  maxLng,
+  zoom,
+  categoryIds,
+}: {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+  zoom: number;
+  categoryIds: string[];
+}) {
   const precision = getGeoHashPrecision(zoom);
 
   const query = Prisma.sql`
+    WITH filtered_events AS (
+      SELECT 
+        e.id,
+        e.lat,
+        e.lng,
+        e.coords,
+        ST_GeoHash(e.coords::geometry, ${precision}) AS geohash
+      FROM "Event" e
+      INNER JOIN "_CategoryToEvent" ce ON ce."B" = e.id
+      WHERE e.coords IS NOT NULL
+        AND e.lat BETWEEN ${minLat} AND ${maxLat}
+        AND e.lng BETWEEN ${minLng} AND ${maxLng}
+        AND ce."A" = ANY (${Prisma.join(categoryIds)})
+    )
     SELECT 
-      ST_GeoHash(coords::geometry, ${precision}) AS geohash,
+      geohash,
       COUNT(*) AS count,
       AVG(lat) AS lat,
       AVG(lng) AS lng
-    FROM "Event"
-    WHERE coords IS NOT NULL
-      AND lat BETWEEN ${minLat} AND ${maxLat}
-      AND lng BETWEEN ${minLng} AND ${maxLng}
-      AND '${category}' = ANY (
-        SELECT c.name FROM "_CategoryToEvent" ce
-        JOIN "Category" c ON ce."A" = c.id
-        WHERE ce."B" = "Event".id
-      )
+    FROM filtered_events
     GROUP BY geohash;
   `;
 
-  const result = await prisma.$queryRaw<RawGeoCluster[]>(query);
-
+  const result = await prisma.$queryRaw<Array<{
+    geohash: string;
+    count: bigint;
+    lat: number;
+    lng: number;
+  }>>(query);
 
   const pins: ClusterPin[] = result
-  .filter(cluster => cluster.lat != null && cluster.lng != null)
-  .map((cluster) => ({
-    geohash: cluster.geohash,
-    count: Number(cluster.count ?? 0),
-    lat: parseFloat(String(cluster.lat ?? 0)),
-    lng: parseFloat(String(cluster.lng ?? 0)),
-  }));
+    .filter(cluster => cluster.lat != null && cluster.lng != null)
+    .map(cluster => ({
+      geohash: cluster.geohash,
+      count: Number(cluster.count),
+      lat: parseFloat(String(cluster.lat)),
+      lng: parseFloat(String(cluster.lng)),
+    }));
 
-  return pins
+  return pins;
 }
