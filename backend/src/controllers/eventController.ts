@@ -20,7 +20,7 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
     if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
         return next(new AppError("At least one category ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     }
-    if (categoryIds.length > 4){
+    if (categoryIds.length > 4) {
         return next(new AppError("Too many categories", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
     }
     if (lat && (isNaN(lat) || lat < -90 || lat > 90))
@@ -88,24 +88,39 @@ export const getPaginatedEvents = catchAsync(async (req: Request, res: Response)
 });
 
 export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { minLat, maxLat, minLng, maxLng, categoryIds } = req.query;
-    if (!minLat || !maxLat || !minLng || !maxLng) {
+    // const { minLat, maxLat, minLng, maxLng, categoryIds, zoom } = req.query;
+    const minLat = parseFloat(req.query.minLat as string);
+    const maxLat = parseFloat(req.query.maxLat as string);
+    const minLng = parseFloat(req.query.minLng as string);
+    const maxLng = parseFloat(req.query.maxLng as string);
+    const zoom = parseInt(req.query.zoom as string, 10);
+    const categoryIds = (req.query.categoryIds as string);
+
+    if (isNaN(minLat) || isNaN(maxLat) || isNaN(minLng) || isNaN(maxLng) || isNaN(zoom)) {
         return next(new AppError("Missing required query parameters: minLat, maxLat, minLng, maxLng", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     }
-    if (typeof minLat !== 'number' || typeof maxLat !== 'number' || typeof minLng !== 'number' || typeof maxLng !== 'number') {
+    if (typeof minLat !== 'number' || typeof maxLat !== 'number' || typeof minLng !== 'number' || typeof maxLng !== 'number' || typeof zoom !== 'number') {
         return next(new AppError("Query parameters must be numbers", 400, ErrorCodes.VALIDATION_INVALID_TYPE));
     }
-    let categories = []
-    if (categoryIds || Array.isArray(categoryIds)) {
-        categoryIds.map((id: string) => id.trim());
-        categories = categoryIds ? [categoryIds] : [];
+    let categories: string[] = []
+    if (Array.isArray(categoryIds)) {
+        categories = categoryIds
+            .filter((id): id is string => typeof id === 'string')
+            .map(id => id.trim());
+    } else if (typeof categoryIds === 'string') {
+        categories = [categoryIds.trim()];
     }
-    
-    eventService.getGeoHashedClusters({minLat, maxLat, minLng, maxLng, zoom: 10, categories})
+
+    const pins = await eventService.getGeoHashedClusters({ minLat, maxLat, minLng, maxLng, zoom, categoryIds: categories })
+
+    if (!pins) {
+        return next(new AppError('Internal error', 500, ErrorCodes.SERVER_INTERNAL_ERROR));
+    }
+    return res.json(pins);
 })
 
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
-    const { cursor, limit, categories, search, sort, fromDate, toDate } = req.query;
+    const { cursor, limit, categoryIds, search, sort, fromDate, toDate } = req.query;
     let userLimit = 20;
     let sortOrder: 'asc' | 'desc' = 'desc';
     if (limit) {
@@ -115,10 +130,10 @@ export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res
         sortOrder = sort as 'asc' | 'desc';
     }
 
-    const categoryArray: string[] = categories
-        ? Array.isArray(categories)
-            ? (categories as string[]).map((c) => c.trim())
-            : String(categories).split(',').map((c) => c.trim())
+    const categoryArray: string[] = categoryIds
+        ? Array.isArray(categoryIds)
+            ? (categoryIds as string[]).map((c) => c.trim())
+            : String(categoryIds).split(',').map((c) => c.trim())
         : [];
 
 
@@ -181,7 +196,7 @@ export const updateEvent = catchAsync(async (req: Request, res: Response, next: 
     if (event && lat !== undefined && lng !== undefined) {
         const setCordsResult = await eventService.setCordsEvent(req.params.eventId, lat, lng);
     }
-    
+
     res.json(event);
 });
 

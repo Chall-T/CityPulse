@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Category } from '../types/category';
-import type { Event } from '../types';
+import type { Event, ClusterPin } from '../types';
 import { apiClient } from '../lib/ApiClient';
 
 
@@ -155,4 +155,84 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
         sort: 'desc',
         loading: false,
     }),
+}));
+
+
+type ClusterStore = {
+    clusters: ClusterPin[];
+    loading: boolean;
+    fetchedAreas: Set<string>;
+    fetchClusters: (params: {
+        minLat: number;
+        maxLat: number;
+        minLng: number;
+        maxLng: number;
+        zoom: number;
+        categoryIds?: string[];
+        force?: boolean;
+    }) => Promise<void>;
+    reset: () => void;
+};
+
+
+
+function generateBoundsKey(
+    minLat: number,
+    maxLat: number,
+    minLng: number,
+    maxLng: number,
+    zoom: number,
+    categoryIds?: string[]
+): string {
+    const catKey = categoryIds?.sort().join(',') || '';
+    return `${minLat.toFixed(2)}-${maxLat.toFixed(2)}:${minLng.toFixed(2)}-${maxLng.toFixed(2)}@z=${zoom}|cats=${catKey}`;
+}
+
+export const useClusterStore = create<ClusterStore>((set, get) => ({
+    clusters: [],
+    loading: false,
+    fetchedAreas: new Set(),
+
+    fetchClusters: async ({ minLat, maxLat, minLng, maxLng, zoom, categoryIds, force = false }) => {
+        const key = generateBoundsKey(minLat, maxLat, minLng, maxLng, zoom, categoryIds);
+        const { fetchedAreas } = get();
+
+        if (!force && fetchedAreas.has(key)) {
+            return;
+        }
+
+        try {
+            const params: any = {
+                minLat: Number(minLat),
+                maxLat: Number(maxLat),
+                minLng: Number(minLng),
+                maxLng: Number(maxLng),
+                categoryIds: [],
+                zoom: Number(zoom),
+            };
+
+            if (categoryIds && categoryIds.length > 0) params.categoryIds = categoryIds.join(',');
+            if (zoom) params.zoom = zoom;
+
+            const res = await apiClient.getEventsCluster(params);
+            const existingClusters = get().clusters;
+
+            set({
+                clusters: [...existingClusters, ...res.data],
+                loading: false,
+                fetchedAreas: new Set([...fetchedAreas, key]),
+            });
+        } catch (error) {
+            console.error('Failed to fetch clusters', error);
+            set({ loading: false });
+        }
+    },
+
+    reset: () => {
+        set({
+            clusters: [],
+            loading: false,
+            fetchedAreas: new Set(),
+        });
+    },
 }));

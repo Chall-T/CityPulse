@@ -72,8 +72,8 @@ export const getEventByIdWithCords = async (id: string, fetchCategories: boolean
   const event = rawEvent[0];
 
   if (event?.coords) {
-  event.coords = JSON.parse(event.coords);
-}
+    event.coords = JSON.parse(event.coords);
+  }
   if (event && event.coords_geojson) {
     event.coords = JSON.parse(event.coords_geojson);
     delete event.coords_geojson;
@@ -165,7 +165,7 @@ export const getEventsPaginatedWithFilters = async (
         ...(toDate && { lte: toDate }),
       },
     });
-  }else if(fromDate){
+  } else if (fromDate) {
     andFilters.push({
       dateTime: {
         ...(fromDate && { gte: fromDate }),
@@ -249,30 +249,31 @@ export async function getGeoHashedClusters({
   categoryIds: string[];
 }) {
   const precision = getGeoHashPrecision(zoom);
-
+const categoryArray = Prisma.sql`ARRAY[${Prisma.join(categoryIds)}]`;
   const query = Prisma.sql`
-    WITH filtered_events AS (
-      SELECT 
-        e.id,
-        e.lat,
-        e.lng,
-        e.coords,
-        ST_GeoHash(e.coords::geometry, ${precision}) AS geohash
-      FROM "Event" e
-      INNER JOIN "_CategoryToEvent" ce ON ce."B" = e.id
-      WHERE e.coords IS NOT NULL
-        AND e.lat BETWEEN ${minLat} AND ${maxLat}
-        AND e.lng BETWEEN ${minLng} AND ${maxLng}
-        AND ce."A" = ANY (${Prisma.join(categoryIds)})
-    )
+  WITH filtered_events AS (
     SELECT 
-      geohash,
-      COUNT(*) AS count,
-      AVG(lat) AS lat,
-      AVG(lng) AS lng
-    FROM filtered_events
-    GROUP BY geohash;
-  `;
+      e.id,
+      ST_Y(e.coords::geometry) AS lat,
+      ST_X(e.coords::geometry) AS lng,
+      e.coords,
+      ST_GeoHash(e.coords::geometry, ${Prisma.raw(`${precision}::int`)}) AS geohash
+    FROM "Event" e
+    INNER JOIN "_CategoryToEvent" ce ON ce."B" = e.id
+    WHERE e.coords IS NOT NULL
+      AND ST_Y(e.coords::geometry) BETWEEN ${minLat} AND ${maxLat}
+      AND ST_X(e.coords::geometry) BETWEEN ${minLng} AND ${maxLng}
+      AND ce."A" = ANY (${categoryArray})
+  )
+  SELECT 
+    geohash,
+    COUNT(*) AS count,
+    AVG(lat) AS lat,
+    AVG(lng) AS lng
+  FROM filtered_events
+  GROUP BY geohash;
+`;
+
 
   const result = await prisma.$queryRaw<Array<{
     geohash: string;

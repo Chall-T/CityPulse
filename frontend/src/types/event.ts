@@ -38,3 +38,10 @@ export type EventCreate = {
   location: string;
   categoryIds: string[];
 };
+
+export type ClusterPin = {
+  geohash: string;
+  count: number;
+  lat: number;
+  lng: number;
+};

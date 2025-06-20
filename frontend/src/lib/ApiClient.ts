@@ -221,8 +221,12 @@ class ApiClient {
     });
   }
 
-  async getEvents(params: { cursor?: string; limit?: number } = {}) {
+  async getEvents(params: { cursor?: string; limit?: number, categoryIds?: string, search?: string, sort?: string, fromDate?: string, toDate?: string } = {}) {
     return this.requestWithCache('get', '/events', { params, config: { meta: { authRequired: true } } });
+  }
+
+  async getEventsCluster(params: { minLat: number; maxLat: number, minLng: number, maxLng: number, categoryIds: string, zoom: number}) {
+    return this.requestWithCache('get', '/events/clusters', { params, config: { meta: { authRequired: true } } });
   }
 
   async getCategories() {

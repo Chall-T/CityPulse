@@ -33,6 +33,8 @@ const router = express.Router();
  */
 router.post('/', authenticate, eventController.createEvent);
 
+
+router.get('/clusters', eventController.getEventPinsWithFilters);
 /**
  * @swagger
  * /events/{eventId}:
@@ -363,6 +365,8 @@ router.delete('/:eventId/rsvps', authenticate, rsvpController.deleteRSVPByEvent)
  *       401:
  *         description: Unauthorized
  */
+
 router.get('/', eventController.getPaginatedEventsWithFilters);
+
 
 export default router;

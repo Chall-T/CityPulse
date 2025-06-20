@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useEventStore } from '../store/eventStore';
+import { useClusterStore } from '../store/eventStore';
 import { EventCard } from '../components/EventCard';
 import EventFilters from '../components/EventFilters';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -7,11 +7,17 @@ import MarkerClusterGroup from 'react-leaflet-markercluster';
 import type { LatLngExpression } from 'leaflet';
 
 const EventPage: React.FC = () => {
-    const { events, fetchEvents, loading } = useEventStore();
+    const { clusters, fetchClusters, loading } = useClusterStore();
     const [coords, setCoords] = useState<LatLngExpression>([52.510885, 13.3989367]); // Berlin
     useEffect(() => {
-        fetchEvents();
-    }, [fetchEvents]);
+        fetchClusters({
+            minLat: 1.0,
+            maxLat: 100.0,
+            minLng: 1.0,
+            maxLng: 100.0,
+            categoryIds: ["cat_IsQY7a3OwO2M-ZXUXZJ00"],
+            zoom: 10,});
+    }, [fetchClusters]);
 
     return (
         <main className="max-w-7xl mx-auto px-4 py-10">
