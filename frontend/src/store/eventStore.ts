@@ -162,6 +162,8 @@ type ClusterStore = {
     clusters: ClusterPin[];
     loading: boolean;
     fetchedAreas: Set<string>;
+    categoriesFilter: string[];
+    dateRange: DateRange;
     fetchClusters: (params: {
         minLat: number;
         maxLat: number;
@@ -171,6 +173,8 @@ type ClusterStore = {
         categoryIds?: string[];
         force?: boolean;
     }) => Promise<void>;
+    setDateRangeFilter: (range: DateRange) => void;
+    setCategoriesFilter: (categories: string[]) => void;
     reset: () => void;
 };
 
@@ -192,6 +196,8 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
     clusters: [],
     loading: false,
     fetchedAreas: new Set(),
+    categoriesFilter: [],
+    dateRange: { from: "", to: "" },
 
     fetchClusters: async ({ minLat, maxLat, minLng, maxLng, zoom, categoryIds, force = false }) => {
         const key = generateBoundsKey(minLat, maxLat, minLng, maxLng, zoom, categoryIds);
@@ -227,12 +233,17 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
             set({ loading: false });
         }
     },
-
+    setCategoriesFilter: (categories) => {
+        set({ categoriesFilter: categories, clusters: [], fetchedAreas: new Set() });
+    },
+    setDateRangeFilter: (range) => set({ dateRange: range }),
     reset: () => {
         set({
             clusters: [],
             loading: false,
             fetchedAreas: new Set(),
+            categoriesFilter: [],
+            dateRange: { from: '', to: '' },
         });
     },
 }));
