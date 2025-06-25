@@ -18,7 +18,7 @@ export const createEvent = async (userData: Prisma.EventCreateInput) => {
 export const setCordsEvent = async (id: string, lat: number, lng: number) => {
   return await prisma.$executeRaw(Prisma.sql`
     UPDATE "Event"
-    SET coords = ST_SetSRID(ST_MakePoint(${lat}, ${lng}), 4326)
+    SET coords = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)
     WHERE id = ${id}
   `);
 }
@@ -249,7 +249,7 @@ export async function getGeoHashedClusters({
   categoryIds: string[];
 }) {
   const precision = getGeoHashPrecision(zoom);
-const categoryArray = Prisma.sql`ARRAY[${Prisma.join(categoryIds)}]`;
+  // const categoryArray = Prisma.sql`ARRAY[${Prisma.join(categoryIds)}]`;
   const query = Prisma.sql`
   WITH filtered_events AS (
     SELECT 
@@ -263,7 +263,6 @@ const categoryArray = Prisma.sql`ARRAY[${Prisma.join(categoryIds)}]`;
     WHERE e.coords IS NOT NULL
       AND ST_Y(e.coords::geometry) BETWEEN ${minLat} AND ${maxLat}
       AND ST_X(e.coords::geometry) BETWEEN ${minLng} AND ${maxLng}
-      AND ce."A" = ANY (${categoryArray})
   )
   SELECT 
     geohash,

@@ -116,7 +116,7 @@ export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Resp
     if (!pins) {
         return next(new AppError('Internal error', 500, ErrorCodes.SERVER_INTERNAL_ERROR));
     }
-    return res.json(pins);
+    return res.json({clusters: pins});
 })
 
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {

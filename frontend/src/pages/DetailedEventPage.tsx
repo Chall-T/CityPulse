@@ -39,7 +39,7 @@ const EventDetailPage: React.FC = () => {
 
         // Handle coordinates
         if (eventData.coords !== null && eventData.coords !== undefined) {
-          setCoords([eventData.coords.coordinates[0], eventData.coords.coordinates[1]]);
+          setCoords([eventData.coords.coordinates[1], eventData.coords.coordinates[0]]);
         } else {
           const geoRes = await fetch(
             `${baseUrl}?format=json&q=${encodeURIComponent(eventData.location)}`,
