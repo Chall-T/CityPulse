@@ -45,16 +45,15 @@ const EventFilters: React.FC = () => {
 
   const {
     categories,
-    setSearch,
     setSelectedCategories,
-    clearFilters,
+    setDateRangeFilter,
+    reset,
     fetchCategories,
   } = useFilterStore();
 
   const {
     categoriesFilter,
     setCategoriesFilter,
-    setDateRangeFilter,
   } = useClusterStore();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -65,16 +64,16 @@ const EventFilters: React.FC = () => {
   useEffect(() => {
     fetchCategories();
 
-    const urlCats = searchParams.get("categories");
+    const urlCats = searchParams.get("categoryIds");
     const urlFrom = searchParams.get("fromDate") || "";
     const urlTo = searchParams.get("toDate") || "";
-
+    console.log("URL Categories:", urlCats);
     const parsedCats = urlCats ? urlCats.split(",").filter(Boolean) : [];
 
     if (urlFrom && urlTo) {
       setDateRange([new Date(urlFrom), new Date(urlTo)]);
     }
-
+    console.log("Parsed Categories:", parsedCats);
     setSelectedCategories(parsedCats);
     setCategoriesFilter(parsedCats);
     setDateRangeFilter({ from: urlFrom, to: urlTo });
@@ -91,11 +90,15 @@ const EventFilters: React.FC = () => {
     const fromDate = start ? start.toISOString().split("T")[0] : "";
     const toDate = end ? end.toISOString().split("T")[0] : "";
 
+    console.log("Selected Categories:", categoriesFilter);
+    console.log("Selected Date Range:", { from: fromDate, to: toDate });
+
     setDateRangeFilter({ from: fromDate, to: toDate });
 
     const params: Record<string, string> = {};
     if (categories.length)
-      params.categories = categories.join(",");
+      params.categories = categoriesFilter.join(",");
+      console.log("Categories Filter:", params.categories);
     if (fromDate) params.fromDate = fromDate;
     if (toDate) params.toDate = toDate;
 
@@ -105,7 +108,7 @@ const EventFilters: React.FC = () => {
   const handleClear = () => {
     setDateRange(null);
 
-    clearFilters();
+    reset();
     setCategoriesFilter([]);
     setDateRangeFilter({ from: "", to: "" });
 

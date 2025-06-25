@@ -1,54 +1,66 @@
-import React, { useEffect, useState } from 'react';
-import { useClusterStore } from '../store/eventStore';
+import React, { useEffect, useRef, useState } from 'react';
+import { useClusterStore, useFilterStore } from '../store/eventStore';
 import { EventCard } from '../components/EventCard';
 import EventMapFilters from '../components/EventMapFilters';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
-import type { LatLngExpression } from 'leaflet';
+import type { LatLngExpression, Map as LeafletMap } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const EventPage: React.FC = () => {
     const { clusters, fetchClusters, loading } = useClusterStore();
+    const { selectedCategories } = useFilterStore();
+
     const [coords, setCoords] = useState<LatLngExpression>([52.510885, 13.3989367]); // Berlin
     const [zoom, setZoom] = useState(10);
+
+    const mapRef = useRef<LeafletMap | null>(null);
+
 
     const handleBoundsFetch = (bounds: any, newZoom: number) => {
         const southWest = bounds.getSouthWest();
         const northEast = bounds.getNorthEast();
-
+        console.log(selectedCategories)
         fetchClusters({
             minLat: southWest.lat,
             maxLat: northEast.lat,
             minLng: southWest.lng,
             maxLng: northEast.lng,
             zoom: newZoom,
+            categoryIds: selectedCategories,
         });
     };
 
+    const didInitialFetch = useRef(false);
+
     const MapEvents = () => {
+        const map = useMap();
+
         useMapEvents({
-            moveend: (e) => {
-                const map = e.target;
-                const bounds = map.getBounds();
-                const newZoom = map.getZoom();
-                setZoom(newZoom);
-                handleBoundsFetch(bounds, newZoom);
+            moveend: () => {
+                // Only fetch on moves after initial fetch
+                if (didInitialFetch.current) {
+                    const bounds = map.getBounds();
+                    const zoom = map.getZoom();
+                    setZoom(zoom);
+                    handleBoundsFetch(bounds, zoom);
+                }
             },
         });
+
+        useEffect(() => {
+            if (!didInitialFetch.current && map && map.getBounds) {
+                const bounds = map.getBounds();
+                const currentZoom = map.getZoom();
+                setZoom(currentZoom);
+                handleBoundsFetch(bounds, currentZoom);
+                didInitialFetch.current = true; // mark initial fetch done
+            }
+        }, [map]);
+
         return null;
     };
 
-    useEffect(() => {
-        // Initial fetch on mount
-        fetchClusters({
-            minLat: 1.0,
-            maxLat: 100.0,
-            minLng: 1.0,
-            maxLng: 100.0,
-            categoryIds: undefined,
-            zoom,
-        });
-    }, []);
 
     return (
         <main className="max-w-7xl mx-auto px-4 py-10">
@@ -68,7 +80,14 @@ const EventPage: React.FC = () => {
                     zoom={zoom}
                     scrollWheelZoom={true}
                     className="h-full w-full rounded-lg"
+                    ref={(mapInstance) => {
+                        if (mapInstance) {
+                            mapRef.current = mapInstance;
+                        }
+                    }}
                 >
+
+
                     <MapEvents />
 
                     <TileLayer
@@ -85,7 +104,6 @@ const EventPage: React.FC = () => {
                                 <Popup>
                                     <div className="max-w-xs">
                                         <h3 className="font-bold">{cluster.count}</h3>
-                                        {/* You can render a mini EventCard here if you want */}
                                     </div>
                                 </Popup>
                             </Marker>

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Category } from '../types/category';
 import type { Event, ClusterPin } from '../types';
 import { apiClient } from '../lib/ApiClient';
+import { includes } from 'lodash';
 
 
 type DateRange = {
@@ -13,13 +14,7 @@ type EventStore = {
     events: Event[];
     loading: boolean;
     nextCursor: string | null;
-    categoriesFilter: string[];
-    searchFilter: string;
-    dateRange: DateRange;
-    setDateRangeFilter: (range: DateRange) => void;
-    fetchEvents: (reset?: boolean, filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string }) => Promise<void>;
-    setCategoriesFilter: (categories: string[]) => void;
-    setSearchFilter: (search: string) => void;
+    fetchEvents: (reset?: boolean, filters?: { categoryIds?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string }) => Promise<void>;
     reset: () => void;
 };
 
@@ -27,13 +22,10 @@ export const useEventStore = create<EventStore>((set, get) => ({
     events: [],
     loading: false,
     nextCursor: null,
-    categoriesFilter: [],
-    searchFilter: '',
-    dateRange: { from: "", to: "" },
 
     fetchEvents: async (
         reset = false,
-        filters?: { categories?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string }
+        filters?: { categoryIds?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string }
     ) => {
         // inside fetchEvents
         const { nextCursor, events } = get();
@@ -49,7 +41,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
             const params: any = { limit: 20 };
 
             if (!reset && nextCursor) params.cursor = nextCursor;
-            if (filters?.categories && filters.categories.length > 0) params.categories = filters.categories.join(',');
+            if (filters?.categoryIds && filters.categoryIds.length > 0) params.categoryIds = filters.categoryIds.join(',');
             if (filters?.search && filters.search.trim()) params.search = filters.search.trim();
             if (filters?.sort) params.sort = filters.sort;
             if (filters?.fromDate) params.fromDate = filters.fromDate;
@@ -69,22 +61,10 @@ export const useEventStore = create<EventStore>((set, get) => ({
             set({ loading: false });
         }
     },
-
-    setCategoriesFilter: (categories) => {
-        set({ categoriesFilter: categories, nextCursor: null, events: [] });
-    },
-
-    setSearchFilter: (search) => {
-        set({ searchFilter: search, nextCursor: null, events: [] });
-    },
-    setDateRangeFilter: (range) => set({ dateRange: range }),
     reset: () => set({
         events: [],
         loading: false,
         nextCursor: null,
-        categoriesFilter: [],
-        searchFilter: '',
-        dateRange: { from: '', to: '' },
     }),
 }
 )
@@ -95,20 +75,33 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
 type SortOption = 'desc' | 'asc';
 
+type FilterParams = 
+    'categoryIds' |
+    'search' |
+    'sort' |
+    'fromDate' |
+    'toDate' 
+
+
 type FilterStore = {
     categories: Category[];
     selectedCategories: string[];
     search: string;
     sort: SortOption;
     loading: boolean;
+    dateRange: DateRange;
+    searchFilter: string;
+    setDateRangeFilter: (range: DateRange) => void;
     fetchCategories: () => Promise<void>;
     toggleCategory: (id: string) => void;
     setSearch: (value: string) => void;
     setSelectedCategories: (categories: string[]) => void,
     setSort: (value: SortOption) => void;
-    clearFilters: () => void;
+    setSearchFilter: (search: string) => void;
+    getParamString: (params: FilterParams[]) => string;
     reset: () => void;
 };
+
 
 export const useFilterStore = create<FilterStore>((set, get) => ({
     categories: [],
@@ -116,6 +109,8 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
     search: '',
     sort: 'desc',
     loading: false,
+    dateRange: { from: "", to: "" },
+    searchFilter: '',
 
     fetchCategories: async () => {
         set({ loading: true });
@@ -142,18 +137,39 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
 
     setSearch: (value) => set({ search: value }),
     setSort: (value) => set({ sort: value }),
-    clearFilters: () =>
-        set({
-            selectedCategories: [],
-            search: '',
-            sort: 'desc',
-        }),
+    setDateRangeFilter: (range) => set({ dateRange: range }),
+    setSearchFilter: (search) => {
+        set({ searchFilter: search });
+    },
+    getParamString: (params: FilterParams[]) => {
+        const { selectedCategories, search, sort, dateRange } = get();
+        const paramString: Record<string, string> = {};
+        if (params.includes('categoryIds') && selectedCategories.length > 0) {
+            paramString.categoryIds = selectedCategories.join(',');
+        }
+        if (params.includes('search') && search.trim()) {
+            paramString.search = search.trim();
+        }
+        if (params.includes('sort') && sort) {
+            paramString.sort = sort;
+        }
+        if (params.includes('fromDate') && dateRange.from) {
+            paramString.fromDate = dateRange.from;
+        }
+        if (params.includes('toDate') && dateRange.to) {
+            paramString.toDate = dateRange.to;
+        }
+        const queryString = new URLSearchParams(paramString).toString();
+        return queryString ? `?${queryString}` : "";
+    },
     reset: () => set({
         categories: [],
         selectedCategories: [],
         search: '',
         sort: 'desc',
         loading: false,
+        dateRange: { from: "", to: "" },
+        searchFilter: '',
     }),
 }));
 
@@ -163,7 +179,6 @@ type ClusterStore = {
     loading: boolean;
     fetchedAreas: Set<string>;
     categoriesFilter: string[];
-    dateRange: DateRange;
     fetchClusters: (params: {
         minLat: number;
         maxLat: number;
@@ -173,7 +188,6 @@ type ClusterStore = {
         categoryIds?: string[];
         force?: boolean;
     }) => Promise<void>;
-    setDateRangeFilter: (range: DateRange) => void;
     setCategoriesFilter: (categories: string[]) => void;
     reset: () => void;
 };
@@ -197,7 +211,6 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
     loading: false,
     fetchedAreas: new Set(),
     categoriesFilter: [],
-    dateRange: { from: "", to: "" },
 
     fetchClusters: async ({ minLat, maxLat, minLng, maxLng, zoom, categoryIds, force = false }) => {
         const key = generateBoundsKey(minLat, maxLat, minLng, maxLng, zoom, categoryIds);
@@ -236,14 +249,12 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
     setCategoriesFilter: (categories) => {
         set({ categoriesFilter: categories, clusters: [], fetchedAreas: new Set() });
     },
-    setDateRangeFilter: (range) => set({ dateRange: range }),
     reset: () => {
         set({
             clusters: [],
             loading: false,
             fetchedAreas: new Set(),
             categoriesFilter: [],
-            dateRange: { from: '', to: '' },
         });
     },
 }));

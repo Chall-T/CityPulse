@@ -7,6 +7,7 @@ import { Input, InputGroup, InputPicker, CheckPicker } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css';
 import { addMonths, startOfMonth, endOfMonth, endOfWeek } from 'date-fns';
 import useIsMobile from "../hooks/useMobile";
+import { get } from "lodash";
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -50,30 +51,31 @@ const EventFilters: React.FC = () => {
 
   const {
     categories,
-    // selectedCategories,
+    selectedCategories,
     // search,
     // sort,
+    setSearchFilter, 
+    setDateRangeFilter,
     setSearch,
     setSort,
     setSelectedCategories,
-    clearFilters,
+    reset,
     fetchCategories,
   } = useFilterStore();
-  const { setCategoriesFilter, setSearchFilter, setDateRangeFilter, fetchEvents } = useEventStore();
+  const { fetchEvents } = useEventStore();
 
   const [searchParams, setSearchParams] = useSearchParams();
-
   // Local UI state
   const [localSearch, setLocalSearch] = useState<string>("");
   const [localSelectedCategories, setLocalSelectedCategories] = useState<string[]>([]);
   const [localSort, setLocalSort] = useState<"desc" | "asc">("desc");
   const [dateRange, setDateRange] = useState<[Date, Date] | null>(null);
-
+  const [paramsLoaded, setParamsLoaded] = useState<string>("");
 
   useEffect(() => {
     fetchCategories();
 
-    const urlCats = searchParams.get("categories");
+    const urlCats = searchParams.get("categoryIds");
     const urlSearch = searchParams.get("search") || "";
     const urlSort = (searchParams.get("sort") as "desc" | "asc") || "desc";
     const urlFrom = searchParams.get("fromDate") || "";
@@ -98,11 +100,10 @@ const EventFilters: React.FC = () => {
     setSort(urlSort);
     setDateRangeFilter({ from: urlFrom, to: urlTo });
     setSearchFilter(urlSearch);
-    setCategoriesFilter(parsedCats);
 
 
     fetchEvents(true, {
-      categories: parsedCats,
+      categoryIds: parsedCats,
       search: urlSearch,
       sort: urlSort,
       fromDate: urlFrom,
@@ -131,7 +132,6 @@ const EventFilters: React.FC = () => {
 
     setSearch(localSearch);
     setSearchFilter(localSearch);
-    setCategoriesFilter(localSelectedCategories);
     setSelectedCategories(localSelectedCategories);
     setSort(localSort);
     setDateRangeFilter({ from: fromDate, to: toDate });
@@ -139,7 +139,7 @@ const EventFilters: React.FC = () => {
     // Build query params
     const params: Record<string, string> = {};
     if (localSelectedCategories.length)
-      params.categories = localSelectedCategories.join(",");
+      params.categoryIds = localSelectedCategories.join(",");
     if (localSearch.trim()) params.search = localSearch.trim();
     if (localSort && localSort !== "desc") params.sort = localSort;
     if (fromDate) params.fromDate = fromDate;
@@ -148,7 +148,7 @@ const EventFilters: React.FC = () => {
     setSearchParams(params, { replace: true });
 
     fetchEvents(true, {
-      categories: localSelectedCategories,
+      categoryIds: localSelectedCategories,
       search: localSearch,
       sort: localSort,
       fromDate,
@@ -162,16 +162,12 @@ const EventFilters: React.FC = () => {
     setLocalSort("desc");
     setDateRange(null);
 
-    clearFilters();
-    setCategoriesFilter([]);
-    setSearchFilter("");
-    setSort("desc");
-    setDateRangeFilter({ from: "", to: "" });
+    reset();
 
     setSearchParams({}, { replace: true });
 
     fetchEvents(true, {
-      categories: [],
+      categoryIds: [],
       search: "",
       sort: "desc",
       fromDate: "",

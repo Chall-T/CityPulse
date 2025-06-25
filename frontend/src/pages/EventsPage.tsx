@@ -1,14 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useEventStore } from '../store/eventStore';
 import { EventCard } from '../components/EventCard';
 import EventFilters from '../components/EventFilters';
 
 const EventPage: React.FC = () => {
-  const { events, fetchEvents, loading } = useEventStore();
+  const { events, loading } = useEventStore();
 
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-10">
