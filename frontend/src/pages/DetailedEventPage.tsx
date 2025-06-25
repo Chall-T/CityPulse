@@ -23,7 +23,7 @@ const EventDetailPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const { isAuthenticated } = useAuthStore();
-  console.log(messages)
+
   useEffect(() => {
     const fetchEvent = async () => {
       if (!id) {

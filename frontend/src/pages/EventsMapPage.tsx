@@ -20,7 +20,7 @@ const EventPage: React.FC = () => {
     const handleBoundsFetch = (bounds: any, newZoom: number) => {
         const southWest = bounds.getSouthWest();
         const northEast = bounds.getNorthEast();
-        console.log(selectedCategories)
+        // console.log(selectedCategories)
         fetchClusters({
             minLat: southWest.lat,
             maxLat: northEast.lat,

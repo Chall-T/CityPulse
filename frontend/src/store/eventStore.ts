@@ -75,12 +75,12 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
 type SortOption = 'desc' | 'asc';
 
-type FilterParams = 
+type FilterParams =
     'categoryIds' |
     'search' |
     'sort' |
     'fromDate' |
-    'toDate' 
+    'toDate'
 
 
 type FilterStore = {
@@ -205,6 +205,9 @@ function generateBoundsKey(
     const catKey = categoryIds?.sort().join(',') || '';
     return `${minLat.toFixed(2)}-${maxLat.toFixed(2)}:${minLng.toFixed(2)}-${maxLng.toFixed(2)}@z=${zoom}|cats=${catKey}`;
 }
+const getClusterKey = (cluster: ClusterPin): string => {
+    return `${cluster.lat}_${cluster.lng}_${cluster.geohash ?? ''}`;
+};
 
 export const useClusterStore = create<ClusterStore>((set, get) => ({
     clusters: [],
@@ -214,11 +217,11 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
 
     fetchClusters: async ({ minLat, maxLat, minLng, maxLng, zoom, categoryIds, force = false }) => {
         const key = generateBoundsKey(minLat, maxLat, minLng, maxLng, zoom, categoryIds);
-        const { fetchedAreas } = get();
+        const { fetchedAreas, clusters } = get();
 
-        if (!force && fetchedAreas.has(key)) {
-            return;
-        }
+        if (!force && fetchedAreas.has(key)) return;
+
+        set({ loading: true });
 
         try {
             const params: any = {
@@ -230,14 +233,32 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
                 zoom: Number(zoom),
             };
 
-            if (categoryIds && categoryIds.length > 0) params.categoryIds = categoryIds.join(',');
-            if (zoom) params.zoom = zoom;
+            if (categoryIds && categoryIds?.length > 0) {
+                params.categoryIds = categoryIds.join(',');
+            }
 
             const res = await apiClient.getEventsCluster(params);
-            const existingClusters = get().clusters;
+            if (!res.data.clusters) {
+                set({ loading: false });
+                return;
+            }
+
+            const clusterMap = new Map<string, ClusterPin>();
+
+            // Add existing clusters
+            for (const cluster of clusters) {
+                const key = getClusterKey(cluster);
+                clusterMap.set(key, cluster);
+            }
+
+            // Add new clusters, overwriting duplicates
+            for (const cluster of res.data.clusters) {
+                const key = getClusterKey(cluster);
+                clusterMap.set(key, cluster);
+            }
 
             set({
-                clusters: [...existingClusters, ...res.data],
+                clusters: Array.from(clusterMap.values()),
                 loading: false,
                 fetchedAreas: new Set([...fetchedAreas, key]),
             });
@@ -246,9 +267,15 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
             set({ loading: false });
         }
     },
+
     setCategoriesFilter: (categories) => {
-        set({ categoriesFilter: categories, clusters: [], fetchedAreas: new Set() });
+        set({
+            categoriesFilter: categories,
+            clusters: [],
+            fetchedAreas: new Set(),
+        });
     },
+
     reset: () => {
         set({
             clusters: [],

@@ -67,13 +67,11 @@ const EventFilters: React.FC = () => {
     const urlCats = searchParams.get("categoryIds");
     const urlFrom = searchParams.get("fromDate") || "";
     const urlTo = searchParams.get("toDate") || "";
-    console.log("URL Categories:", urlCats);
     const parsedCats = urlCats ? urlCats.split(",").filter(Boolean) : [];
 
     if (urlFrom && urlTo) {
       setDateRange([new Date(urlFrom), new Date(urlTo)]);
     }
-    console.log("Parsed Categories:", parsedCats);
     setSelectedCategories(parsedCats);
     setCategoriesFilter(parsedCats);
     setDateRangeFilter({ from: urlFrom, to: urlTo });
@@ -90,15 +88,11 @@ const EventFilters: React.FC = () => {
     const fromDate = start ? start.toISOString().split("T")[0] : "";
     const toDate = end ? end.toISOString().split("T")[0] : "";
 
-    console.log("Selected Categories:", categoriesFilter);
-    console.log("Selected Date Range:", { from: fromDate, to: toDate });
-
     setDateRangeFilter({ from: fromDate, to: toDate });
 
     const params: Record<string, string> = {};
     if (categories.length)
       params.categories = categoriesFilter.join(",");
-      console.log("Categories Filter:", params.categories);
     if (fromDate) params.fromDate = fromDate;
     if (toDate) params.toDate = toDate;
 
