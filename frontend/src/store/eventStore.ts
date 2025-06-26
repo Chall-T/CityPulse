@@ -429,7 +429,6 @@ export const useMapPinsStore = create<MapPinsStore>((set, get) => ({
 
   fetchPins: async (params) => {
     const { minLat, maxLat, minLng, maxLng, categoryIds, force = false, fromDate, toDate } = params;
-    console.log({ minLat, maxLat, minLng, maxLng, categoryIds, force, fromDate, toDate })
     const bounds = { minLat, maxLat, minLng, maxLng };
     const { fetchedAreas, pins: existingPins } = get();
     set({ currentBounds: bounds });
@@ -461,7 +460,6 @@ export const useMapPinsStore = create<MapPinsStore>((set, get) => ({
         }
         if (fromDate) fetchParams.fromDate = fromDate;
         if (toDate) fetchParams.toDate = toDate;
-        console.log(fetchParams)
         const res = await apiClient.getMapPins(fetchParams);
         const newPins = res.data?.pins ?? [];
         allNewPins.push(...newPins);

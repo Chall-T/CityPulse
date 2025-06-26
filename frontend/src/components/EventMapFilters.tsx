@@ -85,10 +85,13 @@ const EventFilters: React.FC = () => {
       alert("Please select a valid date range starting from today.");
       return;
     }
-
-    const fromDate = start ? start.toISOString().split("T")[0] : "";
-    const toDate = end ? end.toISOString().split("T")[0] : "";
-
+    const fromDate = start
+      ? `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`
+      : "";
+    const toDate = end
+      ? `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
+      : "";
+    console.log(fromDate, toDate);
     setDateRangeFilter({ from: fromDate, to: toDate });
 
     const params: Record<string, string> = {};
