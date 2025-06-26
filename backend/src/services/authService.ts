@@ -6,7 +6,7 @@ import logger from '../utils/logger';
 
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-
+import { ulid } from 'ulid';
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -46,11 +46,10 @@ export const register = async (email: string, password: string, baseUsername: st
   }
   // Generate a basic username from name or email
   let username = baseUsername;
-  const { nanoid } = await import('nanoid');
   let attempt = 0;
   while (await prisma.user.findUnique({ where: { username } })) {
     attempt++;
-    username = `${baseUsername}${attempt}-${nanoid(4)}`;
+    username = `${baseUsername}${attempt}-${ulid(4)}`;
   }
   
   const hashedPassword = await bcrypt.hash(password, 12);
@@ -60,7 +59,7 @@ export const register = async (email: string, password: string, baseUsername: st
     password: string;
     username: string;
     name?: string;
-  } = { id: `usr_${nanoid()}`, email, password: hashedPassword, username }
+  } = { id: `usr_${ulid()}`, email, password: hashedPassword, username }
   if (name) {
     data.name = name;
   }else{
@@ -158,11 +157,10 @@ export const handleGoogleLogin = async (googleProfile: any) => {
         data: { googleId, avatarUrl, name },
       });
     } else {
-      const { nanoid } = await import('nanoid');
       // Create new user
       user = await prisma.user.create({
         data: {
-          id: `usr_${nanoid()}`,
+          id: `usr_${ulid()}`,
           email,
           googleId,
           name,

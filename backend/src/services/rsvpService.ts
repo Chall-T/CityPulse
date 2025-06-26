@@ -1,5 +1,6 @@
 import prisma from '../config/database';
 import { Prisma } from '@prisma/client';
+import { ulid } from 'ulid';
 
 export const getRSVPByUserAndEvent = async (userId: string, eventId: string) => {
     return prisma.rSVP.findFirst({
@@ -27,8 +28,7 @@ export const getRSVPsByEventId = async (eventId: string) => {
 };
 
 export const createRSVP = async (data: Prisma.RSVPCreateInput) => {
-    const { nanoid } = await import('nanoid');
-    const rsvpId = `rsvp_${nanoid()}`;
+    const rsvpId = `rsvp_${ulid()}`;
     data.id = rsvpId;
     return prisma.rSVP.create({ data });
 };

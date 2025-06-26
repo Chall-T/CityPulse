@@ -1,11 +1,11 @@
 import prisma from '../config/database';
 import { Category } from '@prisma/client';
-
+import { ulid } from 'ulid';
 export const createCategory = async (name: string, emoji?: string): Promise<Category> => {
-    const { nanoid } = await import('nanoid');
+
     return await prisma.category.create({
         data: {
-            id: `cat_${nanoid()}`,
+            id: `cat_${ulid()}`,
             name,
             emoji,
         },

@@ -1,9 +1,9 @@
 import prisma from '../config/database';
 import { Prisma } from '@prisma/client';
+import { ulid } from 'ulid';
 
 export const createUser = async (userData: Prisma.UserCreateInput) => {
-  const { nanoid } = await import('nanoid');
-  const userId = `usr_${nanoid()}`;
+  const userId = `usr_${ulid()}`;
   userData.id = userId;
   return prisma.user.create({ data: userData });
 };

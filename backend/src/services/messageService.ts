@@ -1,11 +1,10 @@
 import prisma from '../config/database';
 import { Prisma } from '@prisma/client';
-
+import { ulid } from 'ulid';
 
 
 export const createMessage = async (data: Prisma.MessageCreateInput) => {
-    const { nanoid } = await import('nanoid');
-    const messageId = `msg_${nanoid()}`;
+    const messageId = `msg_${ulid()}`;
     data.id = messageId;
     return prisma.message.create({ data });
 };

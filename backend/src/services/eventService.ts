@@ -1,6 +1,6 @@
 import prisma from '../config/database';
 import { Prisma } from '@prisma/client';
-
+import { ulid } from 'ulid';
 export type Creator = {
   id: string;
   name: string;
@@ -9,8 +9,9 @@ export type Creator = {
 };
 
 export const createEvent = async (userData: Prisma.EventCreateInput) => {
-  const { nanoid } = await import('nanoid');
-  const eventId = `evt_${nanoid()}`;
+  // import { nanoid } from 'nanoid'; 
+
+  const eventId = `evt_${ulid()}`;
   userData.id = eventId;
   return prisma.event.create({ data: userData });
 };
