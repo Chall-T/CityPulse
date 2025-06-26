@@ -225,8 +225,11 @@ class ApiClient {
     return this.requestWithCache('get', '/events', { params, config: { meta: { authRequired: true } } });
   }
 
-  async getEventsCluster(params: { minLat: number; maxLat: number, minLng: number, maxLng: number, categoryIds: string, zoom: number}) {
+  async getEventsCluster(params: { minLat: number; maxLat: number, minLng: number, maxLng: number, categoryIds: string, zoom: number, fromDate?: string, toDate?: string }) {
     return this.requestWithCache('get', '/events/clusters', { params, config: { meta: { authRequired: true } } });
+  }
+  async getMapPins(params: { minLat: number; maxLat: number, minLng: number, maxLng: number, categoryIds: string, fromDate?: string, toDate?: string }){
+    return this.requestWithCache('get', '/events/pins', { params, config: { meta: { authRequired: true } } });
   }
 
   async getCategories() {

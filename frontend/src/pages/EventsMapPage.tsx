@@ -1,19 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useClusterStore, useFilterStore } from '../store/eventStore';
+import { useClusterStore, useFilterStore, useMapPinsStore } from '../store/eventStore';
 import { EventCard } from '../components/EventCard';
 import EventMapFilters from '../components/EventMapFilters';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import type { LatLngExpression, Map as LeafletMap } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
 
 const EventPage: React.FC = () => {
-    const { clusters, fetchClusters, loading } = useClusterStore();
+    const { pins, fetchPins, loading } = useMapPinsStore();
     const { selectedCategories } = useFilterStore();
 
     const [coords, setCoords] = useState<LatLngExpression>([52.510885, 13.3989367]); // Berlin
     const [zoom, setZoom] = useState(10);
-
     const mapRef = useRef<LeafletMap | null>(null);
 
 
@@ -21,12 +22,11 @@ const EventPage: React.FC = () => {
         const southWest = bounds.getSouthWest();
         const northEast = bounds.getNorthEast();
         // console.log(selectedCategories)
-        fetchClusters({
+        fetchPins({
             minLat: southWest.lat,
             maxLat: northEast.lat,
             minLng: southWest.lng,
             maxLng: northEast.lng,
-            zoom: newZoom,
             categoryIds: selectedCategories,
         });
     };
@@ -96,16 +96,16 @@ const EventPage: React.FC = () => {
                     />
 
                     <MarkerClusterGroup>
-                        {clusters.map((cluster) => (
+                        {pins.map((pin) => (
                             <Marker
-                                key={cluster.geohash}
-                                position={[cluster.lat, cluster.lng] as LatLngExpression}
+                                key={pin.id}
+                                position={[pin.lat, pin.lng] as LatLngExpression}
                             >
-                                <Popup>
+                                {/* <Popup>
                                     <div className="max-w-xs">
-                                        <h3 className="font-bold">{cluster.count}</h3>
+                                        <h3 className="font-bold">{pin.count}</h3>
                                     </div>
-                                </Popup>
+                                </Popup> */}
                             </Marker>
                         ))}
                     </MarkerClusterGroup>

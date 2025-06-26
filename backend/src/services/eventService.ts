@@ -249,7 +249,9 @@ export async function getGeoHashedClusters({
   categoryIds: string[];
 }) {
   const precision = getGeoHashPrecision(zoom);
-  // const categoryArray = Prisma.sql`ARRAY[${Prisma.join(categoryIds)}]`;
+  const categoryFilter = categoryIds.length > 0 
+  ? Prisma.sql`AND ce."A" = ANY(${Prisma.join(categoryIds)})`
+  : Prisma.sql``;
   const query = Prisma.sql`
   WITH filtered_events AS (
     SELECT 
@@ -263,6 +265,7 @@ export async function getGeoHashedClusters({
     WHERE e.coords IS NOT NULL
       AND ST_Y(e.coords::geometry) BETWEEN ${minLat} AND ${maxLat}
       AND ST_X(e.coords::geometry) BETWEEN ${minLng} AND ${maxLng}
+      ${categoryFilter}
   )
   SELECT 
     geohash,
@@ -288,6 +291,54 @@ export async function getGeoHashedClusters({
       count: Number(cluster.count),
       lat: parseFloat(String(cluster.lat)),
       lng: parseFloat(String(cluster.lng)),
+    }));
+
+  return pins;
+}
+
+export async function getEventPins({
+  minLat,
+  maxLat,
+  minLng,
+  maxLng,
+  categoryIds,
+}: {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+  categoryIds: string[];
+}) {
+  const categoryFilter = categoryIds.length > 0 
+    ? Prisma.sql`AND ce."A" = ANY(${Prisma.join(categoryIds)})`
+    : Prisma.sql``;
+
+  const query = Prisma.sql`
+    SELECT 
+      e.id,
+      ST_Y(e.coords::geometry) AS lat,
+      ST_X(e.coords::geometry) AS lng
+    FROM "Event" e
+    INNER JOIN "_CategoryToEvent" ce ON ce."B" = e.id
+    WHERE e.coords IS NOT NULL
+      AND ST_Y(e.coords::geometry) BETWEEN ${minLat} AND ${maxLat}
+      AND ST_X(e.coords::geometry) BETWEEN ${minLng} AND ${maxLng}
+      ${categoryFilter}
+  `;
+
+  const result = await prisma.$queryRaw<Array<{
+    id: string;
+    lat: number;
+    lng: number;
+  }>>(query);
+
+  // Map directly to pins, count is always 1 since individual events
+  const pins = result
+    .filter(pin => pin.lat != null && pin.lng != null)
+    .map(pin => ({
+      id: pin.id,
+      lat: pin.lat,
+      lng: pin.lng,
     }));
 
   return pins;

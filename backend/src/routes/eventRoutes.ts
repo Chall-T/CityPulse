@@ -34,7 +34,9 @@ const router = express.Router();
 router.post('/', authenticate, eventController.createEvent);
 
 
-router.get('/clusters', eventController.getEventPinsWithFilters);
+router.get('/clusters', eventController.getClusterEventPinsWithFilters);
+
+router.get('/pins', eventController.getEventPinsWithFilters);
 /**
  * @swagger
  * /events/{eventId}:

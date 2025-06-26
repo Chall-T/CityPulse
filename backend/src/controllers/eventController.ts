@@ -87,7 +87,7 @@ export const getPaginatedEvents = catchAsync(async (req: Request, res: Response)
     });
 });
 
-export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+export const getClusterEventPinsWithFilters = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     // const { minLat, maxLat, minLng, maxLng, categoryIds, zoom } = req.query;
     const minLat = parseFloat(req.query.minLat as string);
     const maxLat = parseFloat(req.query.maxLat as string);
@@ -117,6 +117,37 @@ export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Resp
         return next(new AppError('Internal error', 500, ErrorCodes.SERVER_INTERNAL_ERROR));
     }
     return res.json({clusters: pins});
+})
+
+export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    // const { minLat, maxLat, minLng, maxLng, categoryIds, zoom } = req.query;
+    const minLat = parseFloat(req.query.minLat as string);
+    const maxLat = parseFloat(req.query.maxLat as string);
+    const minLng = parseFloat(req.query.minLng as string);
+    const maxLng = parseFloat(req.query.maxLng as string);
+    const categoryIds = (req.query.categoryIds as string);
+
+    if (isNaN(minLat) || isNaN(maxLat) || isNaN(minLng) || isNaN(maxLng)) {
+        return next(new AppError("Missing required query parameters: minLat, maxLat, minLng, maxLng", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    }
+    if (typeof minLat !== 'number' || typeof maxLat !== 'number' || typeof minLng !== 'number' || typeof maxLng !== 'number') {
+        return next(new AppError("Query parameters must be numbers", 400, ErrorCodes.VALIDATION_INVALID_TYPE));
+    }
+    let categories: string[] = []
+    if (Array.isArray(categoryIds)) {
+        categories = categoryIds
+            .filter((id): id is string => typeof id === 'string')
+            .map(id => id.trim());
+    } else if (typeof categoryIds === 'string') {
+        categories = [categoryIds.trim()];
+    }
+
+    const pins = await eventService.getEventPins({ minLat, maxLat, minLng, maxLng, categoryIds: categories })
+
+    if (!pins) {
+        return next(new AppError('Internal error', 500, ErrorCodes.SERVER_INTERNAL_ERROR));
+    }
+    return res.json({pins: pins});
 })
 
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {

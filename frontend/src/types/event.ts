@@ -45,3 +45,9 @@ export type ClusterPin = {
   lat: number;
   lng: number;
 };
+
+export type MapPin = {
+  id: string;
+  lat: number;
+  lng: number;
+}
