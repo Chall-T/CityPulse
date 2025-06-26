@@ -118,7 +118,7 @@ class ApiClient {
   }
 
   private async requestWithCache<T = any>(
-    method: 'get' | 'post',
+    method: 'get' | 'post' | 'patch',
     url: string,
     options: {
       params?: any;
@@ -150,10 +150,16 @@ class ApiClient {
 
     const requestPromise = (async () => {
       try {
-        const res: AxiosResponse<T> =
-          method === 'get'
-            ? await this.api.get(url, { params, ...config })
-            : await this.api.post(url, data, config);
+        const methodMap = {
+          get: () => this.api.get(url, { params, ...config }),
+          post: () => this.api.post(url, data, config),
+          patch: () => this.api.patch(url, data, config),
+        };
+        if (!methodMap[method]) {
+          throw new Error(`Unsupported method: ${method}`);
+        }
+
+        const res: AxiosResponse<T> = await methodMap[method]();
 
         if (cacheable) {
           this.cache.set(key, {
@@ -228,7 +234,7 @@ class ApiClient {
   async getEventsCluster(params: { minLat: number; maxLat: number, minLng: number, maxLng: number, categoryIds: string, zoom: number, fromDate?: string, toDate?: string }) {
     return this.requestWithCache('get', '/events/clusters', { params, config: { meta: { authRequired: true } } });
   }
-  async getMapPins(params: { minLat: number; maxLat: number, minLng: number, maxLng: number, categoryIds: string, fromDate?: string, toDate?: string }){
+  async getMapPins(params: { minLat: number; maxLat: number, minLng: number, maxLng: number, categoryIds: string, fromDate?: string, toDate?: string }) {
     return this.requestWithCache('get', '/events/pins', { params, config: { meta: { authRequired: true } } });
   }
 
@@ -238,6 +244,13 @@ class ApiClient {
 
   async getEventById(eventId: string) {
     return this.requestWithCache('get', `/events/${eventId}`, {
+      cacheable: false,
+    });
+  }
+  async updateEvent(eventId: string, data: any) {
+    return this.requestWithCache('patch', `/events/${eventId}`, {
+      data,
+      config: { meta: { authRequired: true } },
       cacheable: false,
     });
   }

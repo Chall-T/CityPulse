@@ -10,6 +10,7 @@ import EventDetailPage from './pages/DetailedEventPage';
 import EventPage from './pages/EventsPage';
 import EventMapPage from './pages/EventsMapPage';
 import CreateEventPage from './pages/CreateEventPage';
+import EditEventPage from './pages/EditEventPage';
 
 import LoginPage from './pages/LoginPage';
 import RegistrationPage from './pages/RegisterPage';
@@ -35,6 +36,11 @@ const App = () => {
           <Route path="/events" element={<EventPage />} />
           <Route path="/events/map" element={<EventMapPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/events/:eventId/edit" element={
+            <PrivateOnlyRoute>
+              <EditEventPage />
+            </PrivateOnlyRoute>} 
+            />
           <Route path="/events/create" element={
             <PrivateOnlyRoute>
               <CreateEventPage />

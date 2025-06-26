@@ -129,7 +129,6 @@ const EventFilters: React.FC = () => {
     }
     const fromDate = start ? start.toISOString().split("T")[0] : "";
     const toDate = end ? end.toISOString().split("T")[0] : "";
-    console.log(fromDate, toDate);
     setSearch(localSearch);
     setSearchFilter(localSearch);
     setSelectedCategories(localSelectedCategories);

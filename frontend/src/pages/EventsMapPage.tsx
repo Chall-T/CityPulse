@@ -20,7 +20,7 @@ const EventPage: React.FC = () => {
     const [coords, setCoords] = useState<LatLngExpression>([52.510885, 13.3989367]); // Berlin
     const [zoom, setZoom] = useState(12);
     const mapRef = useRef<LeafletMap | null>(null);
-
+    // console.log(pins)
 
     const handleBoundsFetch = (bounds: any, newZoom: number) => {
         const southWest = bounds.getSouthWest();
@@ -131,10 +131,21 @@ const EventPage: React.FC = () => {
                                     click: async () => {
                                         const event = await fetchEventById(pin.id);
                                         if (event) {
-                                            setSelectedEvent(event); // ✅ No error now
+                                            // If coords are missing, try to get them from the pin
+                                            if (!event.coords || !event.coords.coordinates) {
+                                                const fallbackPin = pins.find(p => p.id === pin.id);
+                                                if (fallbackPin) {
+                                                    event.coords = {
+                                                        type: 'Point',
+                                                        coordinates: [fallbackPin.lng, fallbackPin.lat],
+                                                    };
+                                                }
+                                            }
+                                            setSelectedEvent(event);
                                         }
                                     }
                                 }}
+
                             />
                         ))}
                     </MarkerClusterGroup>

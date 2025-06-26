@@ -565,16 +565,6 @@ const CreateEventPage: React.FC = () => {
           Create Event
         </button>
       </div>
-
-      {/* JSON Result Output */}
-      {/* {jsonResult && (
-        <div className="mt-6 p-4 bg-gray-100 border rounded">
-          <h2 className="font-semibold mb-2">Event JSON Data:</h2>
-          <pre className="text-sm bg-white p-2 border rounded">
-            {JSON.stringify(jsonResult, null, 2)}
-          </pre>
-        </div>
-      )} */}
     </div>
   );
 };
