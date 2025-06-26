@@ -309,8 +309,9 @@ export async function getEventPins({
   maxLng: number;
   categoryIds: string[];
 }) {
+  console.log(categoryIds)
   const categoryFilter = categoryIds.length > 0 
-    ? Prisma.sql`AND ce."A" = ANY(${Prisma.join(categoryIds)})`
+    ? Prisma.sql`AND ce."A" = ANY(${categoryIds})`
     : Prisma.sql``;
 
   const query = Prisma.sql`
@@ -332,14 +333,9 @@ export async function getEventPins({
     lng: number;
   }>>(query);
 
-  // Map directly to pins, count is always 1 since individual events
-  const pins = result
-    .filter(pin => pin.lat != null && pin.lng != null)
-    .map(pin => ({
-      id: pin.id,
-      lat: pin.lat,
-      lng: pin.lng,
-    }));
-
-  return pins;
+  return result.map(pin => ({
+    id: pin.id,
+    lat: pin.lat,
+    lng: pin.lng,
+  }));
 }

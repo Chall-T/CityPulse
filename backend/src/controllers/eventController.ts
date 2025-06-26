@@ -102,21 +102,21 @@ export const getClusterEventPinsWithFilters = catchAsync(async (req: Request, re
     if (typeof minLat !== 'number' || typeof maxLat !== 'number' || typeof minLng !== 'number' || typeof maxLng !== 'number' || typeof zoom !== 'number') {
         return next(new AppError("Query parameters must be numbers", 400, ErrorCodes.VALIDATION_INVALID_TYPE));
     }
-    let categories: string[] = []
+    let categories: string[] = [];
     if (Array.isArray(categoryIds)) {
         categories = categoryIds
-            .filter((id): id is string => typeof id === 'string')
-            .map(id => id.trim());
+            .flatMap((id: string) => id.split(',').map((s) => s.trim()));
     } else if (typeof categoryIds === 'string') {
-        categories = [categoryIds.trim()];
+        categories = categoryIds.split(',').map((id: string) => id.trim());
     }
+
 
     const pins = await eventService.getGeoHashedClusters({ minLat, maxLat, minLng, maxLng, zoom, categoryIds: categories })
 
     if (!pins) {
         return next(new AppError('Internal error', 500, ErrorCodes.SERVER_INTERNAL_ERROR));
     }
-    return res.json({clusters: pins});
+    return res.json({ clusters: pins });
 })
 
 export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -136,18 +136,18 @@ export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Resp
     let categories: string[] = []
     if (Array.isArray(categoryIds)) {
         categories = categoryIds
-            .filter((id): id is string => typeof id === 'string')
-            .map(id => id.trim());
+            .flatMap((id: string) => id.split(',').map((s) => s.trim()));
     } else if (typeof categoryIds === 'string') {
-        categories = [categoryIds.trim()];
+        categories = categoryIds.split(',').map((id: string) => id.trim());
     }
+
 
     const pins = await eventService.getEventPins({ minLat, maxLat, minLng, maxLng, categoryIds: categories })
 
     if (!pins) {
         return next(new AppError('Internal error', 500, ErrorCodes.SERVER_INTERNAL_ERROR));
     }
-    return res.json({pins: pins});
+    return res.json({ pins: pins });
 })
 
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {

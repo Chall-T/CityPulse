@@ -1,33 +1,37 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useClusterStore, useFilterStore, useMapPinsStore } from '../store/eventStore';
+import { useEventStore, useFilterStore, useMapPinsStore } from '../store/eventStore';
 import { EventCard } from '../components/EventCard';
 import EventMapFilters from '../components/EventMapFilters';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import type { LatLngExpression, Map as LeafletMap } from 'leaflet';
+import type { Event } from '../types/event';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
 const EventPage: React.FC = () => {
     const { pins, fetchPins, loading } = useMapPinsStore();
-    const { selectedCategories } = useFilterStore();
+    const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+    const { fetchEventById } = useEventStore();
+
+    const { selectedCategories, dateRange } = useFilterStore();
 
     const [coords, setCoords] = useState<LatLngExpression>([52.510885, 13.3989367]); // Berlin
-    const [zoom, setZoom] = useState(10);
+    const [zoom, setZoom] = useState(12);
     const mapRef = useRef<LeafletMap | null>(null);
 
 
     const handleBoundsFetch = (bounds: any, newZoom: number) => {
         const southWest = bounds.getSouthWest();
         const northEast = bounds.getNorthEast();
-        // console.log(selectedCategories)
         fetchPins({
             minLat: southWest.lat,
             maxLat: northEast.lat,
             minLng: southWest.lng,
             maxLng: northEast.lng,
             categoryIds: selectedCategories,
+
         });
     };
 
@@ -60,7 +64,26 @@ const EventPage: React.FC = () => {
 
         return null;
     };
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
 
+        if (selectedEvent) {
+            map.scrollWheelZoom.disable();
+            map.dragging.disable();
+            map.doubleClickZoom.disable();
+            map.boxZoom.disable();
+            map.keyboard.disable();
+            map.touchZoom.disable();
+        } else {
+            map.scrollWheelZoom.enable();
+            map.dragging.enable();
+            map.doubleClickZoom.enable();
+            map.boxZoom.enable();
+            map.keyboard.enable();
+            map.touchZoom.enable();
+        }
+    }, [selectedEvent]);
 
     return (
         <main className="max-w-7xl mx-auto px-4 py-10">
@@ -79,6 +102,8 @@ const EventPage: React.FC = () => {
                     center={coords}
                     zoom={zoom}
                     scrollWheelZoom={true}
+                    maxBounds={[[51.0, 10.0], [55.0, 15.5]]} // Berlin area bounds
+                    minZoom={7}
                     className="h-full w-full rounded-lg"
                     ref={(mapInstance) => {
                         if (mapInstance) {
@@ -100,15 +125,29 @@ const EventPage: React.FC = () => {
                             <Marker
                                 key={pin.id}
                                 position={[pin.lat, pin.lng] as LatLngExpression}
-                            >
-                                {/* <Popup>
-                                    <div className="max-w-xs">
-                                        <h3 className="font-bold">{pin.count}</h3>
-                                    </div>
-                                </Popup> */}
-                            </Marker>
+                                eventHandlers={{
+                                    click: async () => {
+                                        const event = await fetchEventById(pin.id);
+                                        if (event) {
+                                            setSelectedEvent(event); // ✅ No error now
+                                        }
+                                    }
+                                }}
+                            />
                         ))}
                     </MarkerClusterGroup>
+                    {selectedEvent && selectedEvent.coords && selectedEvent.coords.coordinates && (
+                        <Popup
+                            position={[selectedEvent.coords?.coordinates[1], selectedEvent.coords?.coordinates[0]] as LatLngExpression}
+                            eventHandlers={{
+                                remove: () => setSelectedEvent(null), // When popup is closed
+                            }}
+                        >
+                            <div className="max-w-xs">
+                                <EventCard event={selectedEvent} />
+                            </div>
+                        </Popup>
+                    )}
                 </MapContainer>
             </div>
         </main>

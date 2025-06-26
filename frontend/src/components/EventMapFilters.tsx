@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useFilterStore, useClusterStore } from "../store/eventStore";
+import { useFilterStore, useMapPinsStore } from "../store/eventStore";
 import { useSearchParams } from "react-router-dom";
 import { DateRangePicker } from "rsuite";
 import { CheckPicker } from "rsuite";
@@ -54,7 +54,9 @@ const EventFilters: React.FC = () => {
   const {
     categoriesFilter,
     setCategoriesFilter,
-  } = useClusterStore();
+    fetchPins,
+    currentBounds
+  } = useMapPinsStore();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -77,7 +79,7 @@ const EventFilters: React.FC = () => {
     setDateRangeFilter({ from: urlFrom, to: urlTo });
   }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const [start, end] = dateRange ?? [null, null];
 
     if ((start && start < today) || (end && end < today)) {
@@ -91,12 +93,27 @@ const EventFilters: React.FC = () => {
     setDateRangeFilter({ from: fromDate, to: toDate });
 
     const params: Record<string, string> = {};
-    if (categories.length)
-      params.categories = categoriesFilter.join(",");
+    if (categories.length > 0)
+      params.categoryIds = categoriesFilter.join(",");
     if (fromDate) params.fromDate = fromDate;
     if (toDate) params.toDate = toDate;
 
     setSearchParams(params, { replace: true });
+    if (currentBounds?.minLat
+      && currentBounds?.maxLat
+      && currentBounds?.minLng
+      && currentBounds?.maxLng
+    ) {
+      await fetchPins({
+        minLat: currentBounds?.minLat,
+        maxLat: currentBounds?.maxLat,
+        minLng: currentBounds?.minLng,
+        maxLng: currentBounds?.maxLng,
+        categoryIds: categoriesFilter,
+        fromDate: fromDate,
+        toDate: toDate,
+      });
+    }
   };
 
   const handleClear = () => {
@@ -107,6 +124,7 @@ const EventFilters: React.FC = () => {
     setDateRangeFilter({ from: "", to: "" });
 
     setSearchParams({}, { replace: true });
+
   };
 
   return (

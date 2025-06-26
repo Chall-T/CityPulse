@@ -15,6 +15,7 @@ type EventStore = {
     loading: boolean;
     nextCursor: string | null;
     fetchEvents: (reset?: boolean, filters?: { categoryIds?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string }) => Promise<void>;
+    fetchEventById: (id: string) => Promise<Event | null>;
     reset: () => void;
 };
 
@@ -59,6 +60,23 @@ export const useEventStore = create<EventStore>((set, get) => ({
         } catch (error) {
             console.error('Failed to fetch events', error);
             set({ loading: false });
+        }
+    },
+    fetchEventById: async (id: string) => {
+        const { events } = get();
+
+        const existing = events.find(event => event.id === id);
+        if (existing) return existing;
+
+        try {
+            const response = await apiClient.getEventById(id);
+            const event = response.data;
+
+            set({ events: [...events, event] });
+            return event;
+        } catch (error) {
+            console.error(`Failed to fetch event with ID: ${id}`, error);
+            return null;
         }
     },
     reset: () => set({
@@ -174,7 +192,7 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
 }));
 
 export interface ClusterPinWithZoom extends ClusterPin {
-  zoom: number;
+    zoom: number;
 }
 
 type ClusterStore = {
@@ -215,76 +233,76 @@ const getClusterKey = (cluster: ClusterPin): string => {
 
 
 export const useClusterStore = create<ClusterStore>((set, get) => ({
-  clusters: [],
-  loading: false,
-  fetchedAreas: new Set<string>(),
-  categoriesFilter: [],
+    clusters: [],
+    loading: false,
+    fetchedAreas: new Set<string>(),
+    categoriesFilter: [],
 
-  fetchClusters: async ({ minLat, maxLat, minLng, maxLng, zoom, categoryIds, force = false }) => {
-    const boundsKey = generateBoundsKey(minLat, maxLat, minLng, maxLng, zoom, categoryIds);
-    const { fetchedAreas, clusters } = get();
+    fetchClusters: async ({ minLat, maxLat, minLng, maxLng, zoom, categoryIds, force = false }) => {
+        const boundsKey = generateBoundsKey(minLat, maxLat, minLng, maxLng, zoom, categoryIds);
+        const { fetchedAreas, clusters } = get();
 
-    if (!force && fetchedAreas.has(boundsKey)) return;
+        if (!force && fetchedAreas.has(boundsKey)) return;
 
-    set({ loading: true });
+        set({ loading: true });
 
-    try {
-      const params: any = {
-        minLat: Number(minLat),
-        maxLat: Number(maxLat),
-        minLng: Number(minLng),
-        maxLng: Number(maxLng),
-      };
+        try {
+            const params: any = {
+                minLat: Number(minLat),
+                maxLat: Number(maxLat),
+                minLng: Number(minLng),
+                maxLng: Number(maxLng),
+            };
 
-      if (categoryIds?.length) {
-        params.categoryIds = categoryIds.join(',');
-      }
+            if (categoryIds?.length) {
+                params.categoryIds = categoryIds.join(',');
+            }
 
-      const res = await apiClient.getEventsCluster(params);
-      const newClusters = res.data?.clusters ?? [];
+            const res = await apiClient.getEventsCluster(params);
+            const newClusters = res.data?.clusters ?? [];
 
-      const clusterMap = new Map<string, ClusterPinWithZoom>();
+            const clusterMap = new Map<string, ClusterPinWithZoom>();
 
-      // Keep only clusters at current zoom level
-      for (const cluster of clusters) {
-        if (cluster.zoom !== zoom) continue;
-        const key = getClusterKey(cluster);
-        clusterMap.set(key, cluster);
-      }
+            // Keep only clusters at current zoom level
+            for (const cluster of clusters) {
+                if (cluster.zoom !== zoom) continue;
+                const key = getClusterKey(cluster);
+                clusterMap.set(key, cluster);
+            }
 
-      // Add/overwrite with new clusters
-      for (const cluster of newClusters) {
-        const key = getClusterKey(cluster);
-        clusterMap.set(key, cluster);
-      }
+            // Add/overwrite with new clusters
+            for (const cluster of newClusters) {
+                const key = getClusterKey(cluster);
+                clusterMap.set(key, cluster);
+            }
 
-      set({
-        clusters: Array.from(clusterMap.values()),
-        loading: false,
-        fetchedAreas: new Set([...fetchedAreas, boundsKey]),
-      });
-    } catch (error) {
-      console.error('Failed to fetch clusters', error);
-      set({ loading: false });
-    }
-  },
+            set({
+                clusters: Array.from(clusterMap.values()),
+                loading: false,
+                fetchedAreas: new Set([...fetchedAreas, boundsKey]),
+            });
+        } catch (error) {
+            console.error('Failed to fetch clusters', error);
+            set({ loading: false });
+        }
+    },
 
-  setCategoriesFilter: (categories) => {
-    set({
-      categoriesFilter: categories,
-      clusters: [],
-      fetchedAreas: new Set(),
-    });
-  },
+    setCategoriesFilter: (categories) => {
+        set({
+            categoriesFilter: categories,
+            clusters: [],
+            fetchedAreas: new Set(),
+        });
+    },
 
-  reset: () => {
-    set({
-      clusters: [],
-      loading: false,
-      fetchedAreas: new Set(),
-      categoriesFilter: [],
-    });
-  },
+    reset: () => {
+        set({
+            clusters: [],
+            loading: false,
+            fetchedAreas: new Set(),
+            categoriesFilter: [],
+        });
+    },
 }));
 
 
@@ -292,8 +310,9 @@ export const useClusterStore = create<ClusterStore>((set, get) => ({
 type MapPinsStore = {
     pins: MapPin[];
     loading: boolean;
-    fetchedAreas: Map<string, { bounds: Bounds; categoryIds: string[] }>;
+    fetchedAreas: FetchedArea[];
     categoriesFilter: string[];
+    currentBounds: Bounds | null;
     fetchPins: (params: FetchParams) => Promise<void>;
     setCategoriesFilter: (categories: string[]) => void;
     reset: () => void;
@@ -306,9 +325,16 @@ type Bounds = {
     maxLng: number;
 };
 
+type FetchedArea = {
+    bounds: Bounds;
+    categoryIds: string[];
+};
+
 type FetchParams = Bounds & {
     categoryIds?: string[];
     force?: boolean;
+    fromDate?: string;
+    toDate?: string
 };
 
 function boundsToKey(bounds: Bounds, categoryIds?: string[]): string {
@@ -318,177 +344,275 @@ function boundsToKey(bounds: Bounds, categoryIds?: string[]): string {
 
 function getMissingAreas(
     requested: Bounds,
-    existingAreas: { bounds: Bounds; categoryIds: string[] }[],
+    existingAreas: FetchedArea[],
     currentCategoryIds?: string[]
 ): Bounds[] {
     if (!existingAreas.length || !currentCategoryIds) return [requested];
-
-    const requestedKey = currentCategoryIds.sort().join(',');
+    console.log(existingAreas)
+    const requestedKey = currentCategoryIds.slice().sort().join(',');
     const matchingAreas = existingAreas.filter(
-        area => area.categoryIds.sort().join(',') === requestedKey
+        area => area.categoryIds.slice().sort().join(',') === requestedKey
     );
 
     if (!matchingAreas.length) return [requested];
 
-    let missingAreas: Bounds[] = [requested];
+    // ADD THIS: check if requested is fully contained inside any fetched area for this category filter
+    for (const fetched of matchingAreas) {
+        if (
+            requested.minLat >= fetched.bounds.minLat &&
+            requested.maxLat <= fetched.bounds.maxLat &&
+            requested.minLng >= fetched.bounds.minLng &&
+            requested.maxLng <= fetched.bounds.maxLng
+        ) {
+            // Requested is fully covered, no missing areas
+            return [];
+        }
+    }
+
+    let remainingAreas: Bounds[] = [requested];
 
     for (const fetched of matchingAreas) {
-        const nextMissing: Bounds[] = [];
+        const nextRemaining: Bounds[] = [];
 
-        for (const area of missingAreas) {
-            // No overlap at all? Keep this area.
-            const doesNotOverlap =
-                fetched.bounds.maxLat <= area.minLat ||
-                fetched.bounds.minLat >= area.maxLat ||
-                fetched.bounds.maxLng <= area.minLng ||
-                fetched.bounds.minLng >= area.maxLng;
+        for (const area of remainingAreas) {
+            // Check overlap
+            const overlapMinLat = Math.max(area.minLat, fetched.bounds.minLat);
+            const overlapMaxLat = Math.min(area.maxLat, fetched.bounds.maxLat);
+            const overlapMinLng = Math.max(area.minLng, fetched.bounds.minLng);
+            const overlapMaxLng = Math.min(area.maxLng, fetched.bounds.maxLng);
 
-            if (doesNotOverlap) {
-                nextMissing.push(area);
+            const overlaps =
+                overlapMinLat < overlapMaxLat &&
+                overlapMinLng < overlapMaxLng;
+
+            if (!overlaps) {
+                nextRemaining.push(area);
                 continue;
             }
 
-            // Break the remaining area into parts outside the fetched one
-            const { minLat, maxLat, minLng, maxLng } = area;
+            // Cut out the overlapping part — could result in up to 4 rectangles
 
             // Top strip
-            if (fetched.bounds.minLat > minLat) {
-                nextMissing.push({
-                    minLat,
-                    maxLat: Math.min(fetched.bounds.minLat, maxLat),
-                    minLng,
-                    maxLng,
+            if (area.minLat < overlapMinLat) {
+                nextRemaining.push({
+                    minLat: area.minLat,
+                    maxLat: overlapMinLat,
+                    minLng: area.minLng,
+                    maxLng: area.maxLng,
                 });
             }
 
             // Bottom strip
-            if (fetched.bounds.maxLat < maxLat) {
-                nextMissing.push({
-                    minLat: Math.max(fetched.bounds.maxLat, minLat),
-                    maxLat,
-                    minLng,
-                    maxLng,
+            if (area.maxLat > overlapMaxLat) {
+                nextRemaining.push({
+                    minLat: overlapMaxLat,
+                    maxLat: area.maxLat,
+                    minLng: area.minLng,
+                    maxLng: area.maxLng,
                 });
             }
 
             // Left strip
-            if (fetched.bounds.minLng > minLng) {
-                const stripMinLat = Math.max(minLat, fetched.bounds.minLat);
-                const stripMaxLat = Math.min(maxLat, fetched.bounds.maxLat);
-                if (stripMinLat < stripMaxLat) {
-                    nextMissing.push({
-                        minLat: stripMinLat,
-                        maxLat: stripMaxLat,
-                        minLng,
-                        maxLng: fetched.bounds.minLng,
-                    });
-                }
+            if (area.minLng < overlapMinLng) {
+                nextRemaining.push({
+                    minLat: Math.max(area.minLat, overlapMinLat),
+                    maxLat: Math.min(area.maxLat, overlapMaxLat),
+                    minLng: area.minLng,
+                    maxLng: overlapMinLng,
+                });
             }
 
             // Right strip
-            if (fetched.bounds.maxLng < maxLng) {
-                const stripMinLat = Math.max(minLat, fetched.bounds.minLat);
-                const stripMaxLat = Math.min(maxLat, fetched.bounds.maxLat);
-                if (stripMinLat < stripMaxLat) {
-                    nextMissing.push({
-                        minLat: stripMinLat,
-                        maxLat: stripMaxLat,
-                        minLng: fetched.bounds.maxLng,
-                        maxLng,
-                    });
-                }
+            if (area.maxLng > overlapMaxLng) {
+                nextRemaining.push({
+                    minLat: Math.max(area.minLat, overlapMinLat),
+                    maxLat: Math.min(area.maxLat, overlapMaxLat),
+                    minLng: overlapMaxLng,
+                    maxLng: area.maxLng,
+                });
             }
         }
 
-        missingAreas = nextMissing;
+        remainingAreas = nextRemaining;
+    }
+
+    return remainingAreas;
+}
+
+function subtractAreas(
+    requested: Bounds,
+    fetchedAreas: FetchedArea[],
+    currentCategoryIds: string[]
+): Bounds[] {
+    // Filter fetchedAreas by matching categoryIds exactly (order-independent)
+    const requestedCatKey = currentCategoryIds.slice().sort().join(',');
+
+    const matchingAreas = fetchedAreas.filter(area =>
+        area.categoryIds.slice().sort().join(',') === requestedCatKey
+    );
+
+    // Start with full requested area as missing
+    let missingAreas: Bounds[] = [requested];
+
+    // For each fetched area, subtract its bounds from all missing areas
+    for (const fetched of matchingAreas) {
+        const newMissing: Bounds[] = [];
+
+        for (const area of missingAreas) {
+            // Calculate overlap
+            const overlapMinLat = Math.max(area.minLat, fetched.bounds.minLat);
+            const overlapMaxLat = Math.min(area.maxLat, fetched.bounds.maxLat);
+            const overlapMinLng = Math.max(area.minLng, fetched.bounds.minLng);
+            const overlapMaxLng = Math.min(area.maxLng, fetched.bounds.maxLng);
+
+            const overlaps = overlapMinLat < overlapMaxLat && overlapMinLng < overlapMaxLng;
+
+            if (!overlaps) {
+                // No overlap, keep whole area
+                newMissing.push(area);
+                continue;
+            }
+
+            // Cut out overlap rectangle from area, resulting in up to 4 rectangles:
+
+            // Top strip
+            if (area.minLat < overlapMinLat) {
+                newMissing.push({
+                    minLat: area.minLat,
+                    maxLat: overlapMinLat,
+                    minLng: area.minLng,
+                    maxLng: area.maxLng,
+                });
+            }
+
+            // Bottom strip
+            if (area.maxLat > overlapMaxLat) {
+                newMissing.push({
+                    minLat: overlapMaxLat,
+                    maxLat: area.maxLat,
+                    minLng: area.minLng,
+                    maxLng: area.maxLng,
+                });
+            }
+
+            // Left strip
+            if (area.minLng < overlapMinLng) {
+                newMissing.push({
+                    minLat: Math.max(area.minLat, overlapMinLat),
+                    maxLat: Math.min(area.maxLat, overlapMaxLat),
+                    minLng: area.minLng,
+                    maxLng: overlapMinLng,
+                });
+            }
+
+            // Right strip
+            if (area.maxLng > overlapMaxLng) {
+                newMissing.push({
+                    minLat: Math.max(area.minLat, overlapMinLat),
+                    maxLat: Math.min(area.maxLat, overlapMaxLat),
+                    minLng: overlapMaxLng,
+                    maxLng: area.maxLng,
+                });
+            }
+        }
+
+        missingAreas = newMissing;
     }
 
     return missingAreas;
 }
 
+
 export const useMapPinsStore = create<MapPinsStore>((set, get) => ({
-    pins: [],
-    loading: false,
-    fetchedAreas: new Map(),
-    categoriesFilter: [],
+  pins: [],
+  loading: false,
+  fetchedAreas: [], // Array now
+  categoriesFilter: [],
+  currentBounds: null,
 
-    fetchPins: async (params) => {
-        const { minLat, maxLat, minLng, maxLng, categoryIds, force = false } = params;
-        const bounds = { minLat, maxLat, minLng, maxLng };
-        const { fetchedAreas, pins: existingPins } = get();
-        console.log("really fetching pins for bounds:", bounds, "with categories:", categoryIds);
-        // Convert existing fetched areas to array for comparison
-        const fetchedAreasArray = Array.from(fetchedAreas.values());
+  fetchPins: async (params) => {
+    const { minLat, maxLat, minLng, maxLng, categoryIds, force = false, fromDate, toDate } = params;
+    const bounds = { minLat, maxLat, minLng, maxLng };
+    const { fetchedAreas, pins: existingPins } = get();
+    set({ currentBounds: bounds });
 
-        // Get areas that need to be fetched
-        const areasToFetch = force 
-            ? [bounds] 
-            : getMissingAreas(bounds, fetchedAreasArray, categoryIds);
-        console.log("areas to fetch:", areasToFetch);
-        console.table(areasToFetch);
+    // fetchedAreas is already an array, no need to convert
+    const areasToFetch = force
+      ? [bounds]
+      : subtractAreas(bounds, fetchedAreas, categoryIds || []);
+    console.log("areas to fetch:");
+    console.table(areasToFetch);
 
-        if (areasToFetch.length === 0) return;
+    if (areasToFetch.length === 0) return;
 
-        set({ loading: true });
+    set({ loading: true });
 
-        try {
-            const allNewPins: MapPin[] = [];
-            const newFetchedAreas = new Map(fetchedAreas);
+    try {
+      const allNewPins: MapPin[] = [];
 
-            for (const area of areasToFetch) {
-                const areaKey = boundsToKey(area, categoryIds);
-                const fetchParams: any = {
-                    minLat: Number(area.minLat),
-                    maxLat: Number(area.maxLat),
-                    minLng: Number(area.minLng),
-                    maxLng: Number(area.maxLng),
-                };
+      for (const area of areasToFetch) {
+        const fetchParams: any = {
+          minLat: Number(area.minLat),
+          maxLat: Number(area.maxLat),
+          minLng: Number(area.minLng),
+          maxLng: Number(area.maxLng),
+        };
 
-                if (categoryIds?.length) {
-                    fetchParams.categoryIds = categoryIds.join(',');
-                }
-
-                const res = await apiClient.getMapPins(fetchParams);
-                const newPins = res.data?.pins ?? [];
-                allNewPins.push(...newPins);
-
-                // Record this fetched area
-                newFetchedAreas.set(areaKey, {
-                    bounds: area,
-                    categoryIds: categoryIds || [],
-                });
-            }
-
-            // Merge new pins with existing ones, removing duplicates
-            const pinMap = new Map<string, MapPin>();
-            existingPins.forEach(pin => pinMap.set(pin.id, pin));
-            allNewPins.forEach(pin => pinMap.set(pin.id, pin));
-
-            set({
-                pins: Array.from(pinMap.values()),
-                loading: false,
-                fetchedAreas: newFetchedAreas,
-            });
-        } catch (error) {
-            console.error('Failed to fetch pins', error);
-            set({ loading: false });
+        if (categoryIds?.length) {
+          fetchParams.categoryIds = categoryIds.join(',');
         }
-    },
+        if (fromDate) fetchParams.fromDate = fromDate;
+        if (toDate) fetchParams.toDate = toDate;
 
-    setCategoriesFilter: (categories) => {
-        set({
-            categoriesFilter: categories,
-            pins: [],
-            fetchedAreas: new Map(), // Clear fetched areas when categories change
-        });
-    },
+        const res = await apiClient.getMapPins(fetchParams);
+        const newPins = res.data?.pins ?? [];
+        allNewPins.push(...newPins);
+      }
 
-    reset: () => {
+      // Merge new pins with existing ones, removing duplicates
+      const pinMap = new Map<string, MapPin>();
+      existingPins.forEach(pin => pinMap.set(pin.id, pin));
+      allNewPins.forEach(pin => pinMap.set(pin.id, pin));
+      const newPinsArray = Array.from(pinMap.values());
+
+      // Append newly fetched areas to fetchedAreas array
+      const newFetchedAreas = [...fetchedAreas];
+      areasToFetch.forEach(area => {
+        newFetchedAreas.push({ bounds: area, categoryIds: categoryIds || [] });
+      });
+
+      const pinsChanged = newPinsArray.length !== existingPins.length ||
+        newPinsArray.some((pin, i) => pin.id !== existingPins[i]?.id);
+
+      if (pinsChanged) {
         set({
-            pins: [],
-            loading: false,
-            fetchedAreas: new Map(),
-            categoriesFilter: [],
+          pins: newPinsArray,
+          fetchedAreas: newFetchedAreas,
+          loading: false,
         });
-    },
+      } else {
+        set({ loading: false, fetchedAreas: newFetchedAreas });
+      }
+    } catch (error) {
+      console.error('Failed to fetch pins', error);
+      set({ loading: false });
+    }
+  },
+
+  setCategoriesFilter: (categories) => {
+    set({
+      categoriesFilter: categories,
+      pins: [],
+      fetchedAreas: [], 
+    });
+  },
+
+  reset: () => {
+    set({
+      pins: [],
+      loading: false,
+      fetchedAreas: [],
+      categoriesFilter: [],
+    });
+  },
 }));
