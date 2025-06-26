@@ -31,6 +31,8 @@ const EventPage: React.FC = () => {
             minLng: southWest.lng,
             maxLng: northEast.lng,
             categoryIds: selectedCategories,
+            fromDate: dateRange.from,
+            toDate: dateRange.to,
 
         });
     };

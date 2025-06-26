@@ -249,9 +249,9 @@ export async function getGeoHashedClusters({
   categoryIds: string[];
 }) {
   const precision = getGeoHashPrecision(zoom);
-  const categoryFilter = categoryIds.length > 0 
-  ? Prisma.sql`AND ce."A" = ANY(${Prisma.join(categoryIds)})`
-  : Prisma.sql``;
+  const categoryFilter = categoryIds.length > 0
+    ? Prisma.sql`AND ce."A" = ANY(${Prisma.join(categoryIds)})`
+    : Prisma.sql``;
   const query = Prisma.sql`
   WITH filtered_events AS (
     SELECT 
@@ -302,30 +302,46 @@ export async function getEventPins({
   minLng,
   maxLng,
   categoryIds,
+  fromDate,
+  toDate,
 }: {
   minLat: number;
   maxLat: number;
   minLng: number;
   maxLng: number;
   categoryIds: string[];
+  fromDate?: Date;
+  toDate?: Date;
 }) {
-  console.log(categoryIds)
-  const categoryFilter = categoryIds.length > 0 
-    ? Prisma.sql`AND ce."A" = ANY(${categoryIds})`
-    : Prisma.sql``;
+  // Build array of filters as Prisma.sql parts
+  const filters: Prisma.Sql[] = [];
+
+  // category filter
+  if (categoryIds.length > 0) {
+    filters.push(Prisma.sql`AND ce."A" = ANY(${categoryIds})`);
+  }
+
+  // date filters
+  if (fromDate) {
+    filters.push(Prisma.sql`AND e."dateTime" >= ${fromDate}`);
+  }
+  if (toDate) {
+    filters.push(Prisma.sql`AND e."dateTime" <= ${toDate}`);
+  }
 
   const query = Prisma.sql`
-    SELECT 
-      e.id,
-      ST_Y(e.coords::geometry) AS lat,
-      ST_X(e.coords::geometry) AS lng
-    FROM "Event" e
-    INNER JOIN "_CategoryToEvent" ce ON ce."B" = e.id
-    WHERE e.coords IS NOT NULL
-      AND ST_Y(e.coords::geometry) BETWEEN ${minLat} AND ${maxLat}
-      AND ST_X(e.coords::geometry) BETWEEN ${minLng} AND ${maxLng}
-      ${categoryFilter}
-  `;
+  SELECT 
+    e.id,
+    ST_Y(e.coords::geometry) AS lat,
+    ST_X(e.coords::geometry) AS lng
+  FROM "Event" e
+  INNER JOIN "_CategoryToEvent" ce ON ce."B" = e.id
+  WHERE e.coords IS NOT NULL
+    AND ST_Y(e.coords::geometry) BETWEEN ${minLat} AND ${maxLat}
+    AND ST_X(e.coords::geometry) BETWEEN ${minLng} AND ${maxLng}
+    ${Prisma.join(filters, ' ')}
+`;
+
 
   const result = await prisma.$queryRaw<Array<{
     id: string;

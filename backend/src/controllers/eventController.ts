@@ -126,6 +126,8 @@ export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Resp
     const minLng = parseFloat(req.query.minLng as string);
     const maxLng = parseFloat(req.query.maxLng as string);
     const categoryIds = (req.query.categoryIds as string);
+    const fromDate = req.query.fromDate as string | undefined;
+    const toDate = req.query.toDate as string | undefined;
 
     if (isNaN(minLat) || isNaN(maxLat) || isNaN(minLng) || isNaN(maxLng)) {
         return next(new AppError("Missing required query parameters: minLat, maxLat, minLng, maxLng", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
@@ -141,8 +143,18 @@ export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Resp
         categories = categoryIds.split(',').map((id: string) => id.trim());
     }
 
+    let parsedFromDate = fromDate ? new Date(fromDate as string) : undefined;
+    let parsedToDate = toDate ? new Date(toDate as string) : undefined;
 
-    const pins = await eventService.getEventPins({ minLat, maxLat, minLng, maxLng, categoryIds: categories })
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (parsedFromDate !== undefined && parsedFromDate < today) {
+        parsedFromDate = today
+    } else if (parsedFromDate === undefined) {
+        parsedFromDate = today
+    }
+
+    const pins = await eventService.getEventPins({ minLat, maxLat, minLng, maxLng, categoryIds: categories, fromDate: parsedFromDate, toDate: parsedToDate })
 
     if (!pins) {
         return next(new AppError('Internal error', 500, ErrorCodes.SERVER_INTERNAL_ERROR));

@@ -45,6 +45,7 @@ const EventFilters: React.FC = () => {
 
   const {
     categories,
+    selectedCategories,
     setSelectedCategories,
     setDateRangeFilter,
     reset,
@@ -52,10 +53,9 @@ const EventFilters: React.FC = () => {
   } = useFilterStore();
 
   const {
-    categoriesFilter,
-    setCategoriesFilter,
     fetchPins,
-    currentBounds
+    currentBounds,
+    reset: resetPins,
   } = useMapPinsStore();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -75,7 +75,6 @@ const EventFilters: React.FC = () => {
       setDateRange([new Date(urlFrom), new Date(urlTo)]);
     }
     setSelectedCategories(parsedCats);
-    setCategoriesFilter(parsedCats);
     setDateRangeFilter({ from: urlFrom, to: urlTo });
   }, []);
 
@@ -94,22 +93,24 @@ const EventFilters: React.FC = () => {
 
     const params: Record<string, string> = {};
     if (categories.length > 0)
-      params.categoryIds = categoriesFilter.join(",");
+      params.categoryIds = selectedCategories.join(",");
     if (fromDate) params.fromDate = fromDate;
     if (toDate) params.toDate = toDate;
 
     setSearchParams(params, { replace: true });
+
     if (currentBounds?.minLat
       && currentBounds?.maxLat
       && currentBounds?.minLng
       && currentBounds?.maxLng
     ) {
+      await resetPins();
       await fetchPins({
         minLat: currentBounds?.minLat,
         maxLat: currentBounds?.maxLat,
         minLng: currentBounds?.minLng,
         maxLng: currentBounds?.maxLng,
-        categoryIds: categoriesFilter,
+        categoryIds: selectedCategories,
         fromDate: fromDate,
         toDate: toDate,
       });
@@ -120,7 +121,7 @@ const EventFilters: React.FC = () => {
     setDateRange(null);
 
     reset();
-    setCategoriesFilter([]);
+    setSelectedCategories([]);
     setDateRangeFilter({ from: "", to: "" });
 
     setSearchParams({}, { replace: true });
@@ -157,8 +158,8 @@ const EventFilters: React.FC = () => {
             value: cat.id,
           }))}
           menuStyle={{ zIndex: 20000 }}
-          value={categoriesFilter}
-          onChange={setCategoriesFilter}
+          value={selectedCategories}
+          onChange={setSelectedCategories}
           onOpen={() => {
             if (categories.length === 0) fetchCategories();
           }}
