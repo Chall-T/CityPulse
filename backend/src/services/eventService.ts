@@ -330,7 +330,7 @@ export async function getEventPins({
   }
 
   const query = Prisma.sql`
-  SELECT 
+  SELECT DISTINCT
     e.id,
     ST_Y(e.coords::geometry) AS lat,
     ST_X(e.coords::geometry) AS lng
