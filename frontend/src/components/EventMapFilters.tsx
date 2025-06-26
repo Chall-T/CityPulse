@@ -91,7 +91,6 @@ const EventFilters: React.FC = () => {
     const toDate = end
       ? `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`
       : "";
-    console.log(fromDate, toDate);
     setDateRangeFilter({ from: fromDate, to: toDate });
 
     const params: Record<string, string> = {};
