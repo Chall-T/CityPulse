@@ -3,7 +3,7 @@ import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { ErrorCodes } from '../constants/errorCodes';
 import config from './config';
-import type { EventCreate } from '../types';
+import type { EventCreate, UpdateUser } from '../types';
 interface AxiosRequestConfigWithMeta extends InternalAxiosRequestConfig {
   meta?: {
     authRequired?: boolean;
@@ -215,6 +215,13 @@ class ApiClient {
 
   async getCurrentUser() {
     return this.requestWithCache('get', '/users/me', {
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async updateUserProfile(data: UpdateUser) {
+    return this.requestWithCache('patch', '/users/me', {  
+      data,
       config: { meta: { authRequired: true } },
       cacheable: false,
     });

@@ -14,6 +14,7 @@ import EditEventPage from './pages/EditEventPage';
 
 import LoginPage from './pages/LoginPage';
 import RegistrationPage from './pages/RegisterPage';
+import UserProfilePage from './pages/UserProfilePage';
 
 const App = () => {
   const user = useAuthStore(state => state.user);
@@ -33,6 +34,11 @@ const App = () => {
             <PublicOnlyRoute>
               <RegistrationPage />
             </PublicOnlyRoute>} />
+          <Route path="/profile/me" element={
+            <PrivateOnlyRoute>
+              <UserProfilePage />
+            </PrivateOnlyRoute>}
+          />
           <Route path="/events" element={<EventPage />} />
           <Route path="/events/map" element={<EventMapPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
