@@ -18,7 +18,7 @@ export const getUser = catchAsync(async (req: Request, res: Response, next: Next
 export const returnLoggedInUser = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.userId) return next(new AppError("No UserId found", 500, ErrorCodes.SERVER_INTERNAL_ERROR));
 
-  const user = await userService.getUserById(req.userId);
+  const user = await userService.getUserPersonalProfileById(req.userId);
 
   res.json({ user });
 });
@@ -52,3 +52,5 @@ export const deleteUser = catchAsync(async (req: Request, res: Response, next: N
     }
     res.status(204).send();
 });
+
+

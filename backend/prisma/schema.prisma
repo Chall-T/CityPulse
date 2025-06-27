@@ -24,6 +24,10 @@ model User {
   rsvps       RSVP[]
   messages    Message[]
 }
+enum EventStatus {
+  ACTIVE
+  CANCELED
+}
 
 model Event {
   id          String     @id @default(cuid())
@@ -44,6 +48,9 @@ model Event {
 
   rsvps       RSVP[]
   messages    Message[]
+  
+  status      EventStatus @default(ACTIVE)
+
   @@index([coords], name: "location_idx", type: Gist)
 }
 

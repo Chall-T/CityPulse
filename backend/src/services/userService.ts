@@ -16,6 +16,10 @@ export const getUserById = async (id: string) => {
   return prisma.user.findUnique({ where: { id } });
 };
 
+export const getUserPersonalProfileById = async (id: string) => {
+  return prisma.user.findUnique({ where: { id }, include: {events: true} });
+};
+
 export const updateUser = async (id: string, userUpdateData: Prisma.UserUpdateInput) => {
   return prisma.user.update({ where: { id }, data: userUpdateData });
 };

@@ -356,3 +356,11 @@ export async function getEventPins({
     lng: pin.lng,
   }));
 }
+
+export async function cancelEventById(eventId: string) {
+  return await prisma.event.update({
+    where: { id: eventId },
+    data: { status: 'CANCELED' },
+  });
+
+}

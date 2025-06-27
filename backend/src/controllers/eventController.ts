@@ -243,6 +243,16 @@ export const updateEvent = catchAsync(async (req: Request, res: Response, next: 
     res.json(event);
 });
 
+export const cancelEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const eventId = req.params.eventId;
+
+    const event = await eventService.cancelEventById(eventId);
+    if (!event) {
+        return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
+    }
+    res.json(event);
+});
+
 export const deleteEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const event = await eventService.deleteEvent(req.params.eventId);
     if (!event) {

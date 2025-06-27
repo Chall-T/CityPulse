@@ -37,6 +37,7 @@ router.post('/', authenticate, eventController.createEvent);
 router.get('/clusters', eventController.getClusterEventPinsWithFilters);
 
 router.get('/pins', eventController.getEventPinsWithFilters);
+
 /**
  * @swagger
  * /events/{eventId}:
