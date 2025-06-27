@@ -10,14 +10,15 @@ export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
       className="bg-white rounded-2xl shadow p-4 flex flex-col hover:shadow-lg transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer overflow-hidden max-w-xs"
       draggable={false}
     >
-      {event && (
+      {/* Image wrapper with aspect ratio */}
+      <div className="relative w-full aspect-[16/10] mb-4 rounded-xl overflow-hidden">
         <img
           src={event.imageUrl || '/missingEvent.png'}
           alt={event.title}
-          className="w-full h-48 object-cover rounded-xl mb-4 pointer-events-none select-none"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
           draggable={false}
         />
-      )}
+      </div>
 
       {Array.isArray(event.categories) && event.categories.length > 0 && (
         <div className="text-sm text-gray-500 mb-2 flex gap-2 flex-wrap overflow-hidden">
@@ -28,7 +29,6 @@ export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
           ))}
         </div>
       )}
-
 
       <h3 className="text-xl font-semibold text-gray-900 mb-2 truncate" title={event.title}>
         {event.title}

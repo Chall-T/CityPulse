@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import type { User, UpdateUser } from '../types/user';
 import type { Event } from '../types/event';
 import { EventCard } from '../components/EventCard';
+import Swal from 'sweetalert2'
 
 const UserProfilePage: React.FC = () => {
     const navigate = useNavigate();
@@ -81,12 +82,34 @@ const UserProfilePage: React.FC = () => {
     };
 
     const handleCancelEvent = async (eventId: string) => {
-        try {
-            await apiClient.cancelEvent(eventId);
-            const userResponse = await apiClient.getCurrentUser();
-            setUserEvents(userResponse.data.user.events);
-        } catch (error) {
-            console.error('Failed to cancel event:', error);
+        const result = await Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, cancel it!"
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await apiClient.cancelEvent(eventId);
+                Swal.fire({
+                    title: "Canceled!",
+                    text: "Your event has been canceled.",
+                    icon: "success"
+                });
+                const userResponse = await apiClient.getCurrentUser();
+                setUserEvents(userResponse.data.user.events);
+            } catch (error) {
+                console.error('Failed to cancel event:', error);
+                Swal.fire({
+                    title: "Error!",
+                    text: "Failed to cancel the event. Please try again.",
+                    icon: "error"
+                });
+            }
         }
     };
 
