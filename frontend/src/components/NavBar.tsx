@@ -102,10 +102,10 @@ const NavBar = () => {
             return;
         }
         if (user.avatarUrl && avatarCacheKey && avatarCacheTimeKey) {
-        if (!cachedAvatar) {
-            loadAndCacheAvatar(user.avatarUrl, avatarCacheKey, avatarCacheTimeKey);
+            if (!cachedAvatar) {
+                loadAndCacheAvatar(user.avatarUrl, avatarCacheKey, avatarCacheTimeKey);
+            }
         }
-    }
     }, [user, hydrateAuth]);
 
     useEffect(() => {
@@ -164,10 +164,10 @@ const NavBar = () => {
                                         </a>
                                         {user ? (
                                             <a className="p-2 flex items-center text-sm bg-gray-100 text-gray-800 hover:bg-gray-100 rounded-lg focus:outline-hidden focus:bg-gray-100 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-700 dark:focus:bg-neutral-700 cursor-pointer" onClick={() => navigate("/events/create")} aria-current="page">
-                                            <svg className="shrink-0 size-4 me-3 md:me-2 block md:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
-                                            Create event
-                                        </a>
-                                        ):(<div />)}
+                                                <svg className="shrink-0 size-4 me-3 md:me-2 block md:hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" /><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+                                                Create event
+                                            </a>
+                                        ) : (<div />)}
 
 
                                         {/* Dropdown */}
@@ -245,7 +245,7 @@ const NavBar = () => {
                                     {user ? (
                                         <div className="relative">
                                             <div>
-                                                <UserProfileIcon avatarUrl={cachedAvatar} username={user.username} onClick={handleAvatarClick} refProp={avatarRef}/>
+                                                <UserProfileIcon avatarUrl={cachedAvatar} username={user.username} onClick={handleAvatarClick} refProp={avatarRef} />
                                             </div>
                                         </div>
                                     ) : (
@@ -281,6 +281,15 @@ const NavBar = () => {
                     className="w-32 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-neutral-800 dark:border-neutral-700"
                 >
                     <button
+                        onClick={() => {
+                            navigate('/profile/me')
+                            setMenuOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-neutral-700"
+                    >
+                        Profile
+                    </button>
+                    <button
                         onClick={handleLogout}
                         className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-neutral-700"
                     >
@@ -288,6 +297,7 @@ const NavBar = () => {
                     </button>
                 </div>
             )}
+
         </>
     );
 };

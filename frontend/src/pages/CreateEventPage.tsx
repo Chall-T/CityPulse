@@ -8,7 +8,7 @@ import { searchStockImages } from '../assets/images/';
 import 'leaflet/dist/leaflet.css';
 import { apiClient } from '../lib/ApiClient';
 import OneLineLoader from '../components/Loader/OneLine';
-
+import Swal from 'sweetalert2'
 
 
 function MapUpdater({ coords, zoom }: { coords: [number, number] | null, zoom: number }) {
@@ -142,7 +142,7 @@ const CreateEventPage: React.FC = () => {
   const [originalCoords, setOriginalCoords] = useState<[number, number] | null>(null);
   const [maxPinMovable, setMaxPinMovable] = useState<number>(100);
 
-  
+
   const { categories, fetchCategories } = useFilterStore();
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
 
@@ -166,7 +166,7 @@ const CreateEventPage: React.FC = () => {
             randomSeed
           );
           const uniqueImages = [...new Set(images)];
-          
+
           setStockImages(uniqueImages);
         } catch (error) {
           console.error("Error fetching stock images:", error);
@@ -275,9 +275,29 @@ const CreateEventPage: React.FC = () => {
       categoryIds: selectedCats,
       imageUrl: selectedImage || null
     };
-    const result = await apiClient.createEvent(eventData)
-    if (result.status == 200 || result.status == 201) {
-      navigate(`/events/${result.data.id}`)
+    try {
+      const result = await apiClient.createEvent(eventData)
+      if (result.status == 200 || result.status == 201) {
+        navigate(`/events/${result.data.id}`)
+      } else {
+        console.log(result.data)
+        if (result.data && result.data.error) {
+          Swal.fire({
+            icon: "error",
+            title: result.data.error.errorCode,
+            text: result.data.error.message,
+          });
+        }
+      }
+    } catch (error: any) {
+      console.log(error)
+      if (error.response.data && error.response.data.error) {
+        Swal.fire({
+          icon: "error",
+          title: error.response.data.error.message,
+          text: error.response.data.error.errorCode,
+        });
+      }
     }
     // setJsonResult(eventData);
   };

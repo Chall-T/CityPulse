@@ -19,13 +19,16 @@ export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
         />
       )}
 
-      <div className="text-sm text-gray-500 mb-2 flex gap-2 flex-wrap overflow-hidden">
-        {event.categories.map((category) => (
-          <span key={category.id} className="truncate max-w-full whitespace-nowrap">
-            {category.emoji} {category.name}
-          </span>
-        ))}
-      </div>
+      {Array.isArray(event.categories) && event.categories.length > 0 && (
+        <div className="text-sm text-gray-500 mb-2 flex gap-2 flex-wrap overflow-hidden">
+          {event.categories.map((category) => (
+            <span key={category.id} className="truncate max-w-full whitespace-nowrap">
+              {category.emoji} {category.name}
+            </span>
+          ))}
+        </div>
+      )}
+
 
       <h3 className="text-xl font-semibold text-gray-900 mb-2 truncate" title={event.title}>
         {event.title}

@@ -129,7 +129,7 @@ const EventDetailPage: React.FC = () => {
       </div>
 
       {/* Event Description */}
-      <p className="text-gray-700 leading-relaxed">{event.description}</p>
+      <p className="text-gray-700 leading-relaxed whitespace-pre-line">{event.description}</p>
 
       {/* Date & Time */}
       <p className="text-gray-600">
@@ -154,7 +154,7 @@ const EventDetailPage: React.FC = () => {
           </span>
         ))}
       </div>
-      
+
       {/* OpenStreetMap Map (if coords are available) */}
       {coords && (
         <div className="mt-6">
@@ -187,21 +187,23 @@ const EventDetailPage: React.FC = () => {
             </div>
 
             {/* Input + Send Button */}
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-grow px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
-              />
-              <button
-                onClick={handleSendMessage}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                Send
-              </button>
-            </div>
+            { event.status === 'ACTIVE' &&
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type a message..."
+                  className="flex-grow px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                >
+                  Send
+                </button>
+              </div>
+            }
           </div>
         </div>
       )}

@@ -219,8 +219,8 @@ class ApiClient {
       cacheable: false,
     });
   }
-  async updateUserProfile(data: UpdateUser) {
-    return this.requestWithCache('patch', '/users/me', {  
+  async updateUserProfile(userId: string, data: UpdateUser) {
+    return this.requestWithCache('patch', `/users/${userId}`, {  
       data,
       config: { meta: { authRequired: true } },
       cacheable: false,
@@ -233,7 +233,12 @@ class ApiClient {
       meta: { authRequired: true },
     });
   }
-
+  async getUserEvents(userId: string) {
+    return this.requestWithCache('get', `/users/${userId}/events`, {
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
   async getEvents(params: { cursor?: string; limit?: number, categoryIds?: string, search?: string, sort?: string, fromDate?: string, toDate?: string } = {}) {
     return this.requestWithCache('get', '/events', { params, config: { meta: { authRequired: true } } });
   }
@@ -251,6 +256,12 @@ class ApiClient {
 
   async getEventById(eventId: string) {
     return this.requestWithCache('get', `/events/${eventId}`, {
+      cacheable: false,
+    });
+  }
+  async cancelEvent(eventId: string) {
+    return this.requestWithCache('post', `/events/${eventId}/cancel`, {
+      config: { meta: { authRequired: true } },
       cacheable: false,
     });
   }

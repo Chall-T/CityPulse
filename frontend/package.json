@@ -28,6 +28,7 @@
     "react-router-dom": "^7.6.0",
     "rsuite": "^5.82.0",
     "socket.io-client": "^4.8.1",
+    "sweetalert2": "^11.22.1",
     "vanilla-calendar-pro": "^3.0.4",
     "zustand": "^5.0.4"
   },

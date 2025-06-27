@@ -15,6 +15,7 @@ type Coords = {
 
 export type Event = {
   id: string;
+  status: 'ACTIVE' | 'CANCELD';
   title: string;
   description: string;
   imageUrl: string | null;

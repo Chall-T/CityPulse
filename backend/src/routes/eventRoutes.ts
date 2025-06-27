@@ -278,6 +278,8 @@ router.get('/:eventId/messages', authenticate, eventController.getPaginatedMessa
  */
 router.post('/:eventId/rsvps', authenticate, rsvpController.createRSVP);
 
+router.post('/:eventId/cancel', authenticate, eventController.cancelEvent);
+
 /**
  * @swagger
  * /events/{eventId}/rsvps:

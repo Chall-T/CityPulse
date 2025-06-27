@@ -7,16 +7,27 @@ import { Prisma } from '@prisma/client';
 import { isISO8601 } from "validator";
 import { isWithinBerlin } from "../utils/validators";
 import { isSafeURL } from '../utils/validators';
+import { EVENT_LIMITS } from '../config/limits';
+
+
 interface AuthRequest extends Request {
     userId: string;
 }
 
 export const createEvent = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
     const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryIds } = req.body;
-    if (!title || title.trim().length < 3) return next(new AppError("Title is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
-    if (!description || description.trim().length < 30) return next(new AppError("Description is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    
+    if (!title) return next(new AppError("Title is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (title.trim().length < EVENT_LIMITS.TITLE_MIN_LENGTH || title.trim().length > EVENT_LIMITS.TITLE_MAX_LENGTH) return next(new AppError("Title is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
+    
+    if (!description) return next(new AppError("Description is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (description.trim().length < EVENT_LIMITS.DESCRIPTION_MIN_LENGTH || description.trim().length > EVENT_LIMITS.DESCRIPTION_MAX_LENGTH) return next(new AppError("Description is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
+    
     if (!isISO8601(dateTime)) return next(new AppError("Date and time are required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
-    if (typeof location !== "string" || location.trim().length < 3) return next(new AppError("Location is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    
+    if (typeof location !== "string") return next(new AppError("Location is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (location.trim().length < EVENT_LIMITS.LOCATION_MIN_LENGTH || location.trim().length > EVENT_LIMITS.LOCATION_MAX_LENGTH) return next(new AppError("Location is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
+    
     if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
         return next(new AppError("At least one category ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     }

@@ -52,6 +52,7 @@ export const getEventById = async (id: string, fetchCategories: boolean) => {
 
   );
 };
+
 export const getEventByIdWithCords = async (id: string, fetchCategories: boolean) => {
   const rawEvent: any = await prisma.$queryRaw(Prisma.sql`
   SELECT 
@@ -121,6 +122,9 @@ export const getEventsPaginated = async (
         },
       },
     },
+    where:{
+      status: 'ACTIVE',
+    }
   });
 };
 
@@ -134,7 +138,9 @@ export const getEventsPaginatedWithFilters = async (
   fromDate?: Date,
   toDate?: Date
 ) => {
-  const andFilters: Prisma.EventWhereInput[] = [];
+  const andFilters: Prisma.EventWhereInput[] = [{
+    status: 'ACTIVE',
+  }];
 
   if (categoryFilter.length > 0) {
     andFilters.push({
@@ -266,6 +272,7 @@ export async function getGeoHashedClusters({
     WHERE e.coords IS NOT NULL
       AND ST_Y(e.coords::geometry) BETWEEN ${minLat} AND ${maxLat}
       AND ST_X(e.coords::geometry) BETWEEN ${minLng} AND ${maxLng}
+      AND e.status = 'ACTIVE'
       ${categoryFilter}
   )
   SELECT 
@@ -340,6 +347,7 @@ export async function getEventPins({
   WHERE e.coords IS NOT NULL
     AND ST_Y(e.coords::geometry) BETWEEN ${minLat} AND ${maxLat}
     AND ST_X(e.coords::geometry) BETWEEN ${minLng} AND ${maxLng}
+    AND e.status = 'ACTIVE'
     ${Prisma.join(filters, ' ')}
 `;
 
@@ -362,5 +370,4 @@ export async function cancelEventById(eventId: string) {
     where: { id: eventId },
     data: { status: 'CANCELED' },
   });
-
 }

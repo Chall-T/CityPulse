@@ -11,11 +11,11 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 3000,
+    port: 8080,
     strictPort: true,
   },
   preview: {
-    port: 3000,
+    port: 8080,
     strictPort: true,
   },
   resolve: {
