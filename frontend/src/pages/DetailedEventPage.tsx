@@ -129,7 +129,7 @@ const EventDetailPage: React.FC = () => {
       </div>
 
       {/* Event Description */}
-      <p className="text-gray-700 leading-relaxed whitespace-pre-line">{event.description}</p>
+      <p className="text-gray-700 leading-relaxed">{event.description}</p>
 
       {/* Date & Time */}
       <p className="text-gray-600">
