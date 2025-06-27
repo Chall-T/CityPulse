@@ -141,6 +141,7 @@ const CreateEventPage: React.FC = () => {
   const [zoom, setZoom] = useState(12);
   const [originalCoords, setOriginalCoords] = useState<[number, number] | null>(null);
   const [maxPinMovable, setMaxPinMovable] = useState<number>(100);
+  const [defaultImage] = useState("/missingEvent.png");
 
 
   const { categories, fetchCategories } = useFilterStore();
@@ -148,11 +149,20 @@ const CreateEventPage: React.FC = () => {
 
   const [locations, loading, fetchLocations] = useLocations();
 
-  const [stockImages, setStockImages] = useState<string[]>([]);
+  const [stockImages, setStockImages] = useState<string[]>([defaultImage]);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
 
   const [randomSeed] = useState(() => Math.random().toString(36).substring(2, 15));
   const [typingLocation, setTypingLocation] = useState<boolean>(false);
+
+
+  useEffect(() => {
+    // Always set the first image as selected when stockImages changes
+    if (stockImages.length > 0 && !selectedImage) {
+      setSelectedImage(stockImages[0]);
+    }
+  }, [stockImages]);
+
 
   // Images mapping
   useEffect(() => {
@@ -166,26 +176,29 @@ const CreateEventPage: React.FC = () => {
             randomSeed
           );
           const uniqueImages = [...new Set(images)];
-
-          setStockImages(uniqueImages);
+          const displayImages = [defaultImage, ...uniqueImages];
+          setStockImages(displayImages);
         } catch (error) {
           console.error("Error fetching stock images:", error);
+          setStockImages([defaultImage]);
         } finally {
           setIsLoadingImages(false);
         }
       };
-
       fetchImages();
     } else {
-      setStockImages([]);
+      setStockImages([defaultImage]);
     }
   }, [selectedCats, title, categories]);
+
   const [selectedImage, setSelectedImage] = useState<string>('');
 
   // Fetch categories on mount
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
+
+
 
   const handleMarkerDrag = (event: any) => {
 
@@ -264,7 +277,7 @@ const CreateEventPage: React.FC = () => {
     }
 
     // Prepare JSON result
-    const eventData = {
+    const eventData: any = {
       title,
       description,
       dateTime: dateTime?.toISOString() ?? '',
@@ -273,8 +286,9 @@ const CreateEventPage: React.FC = () => {
       lng: coords![1],
       capacity: capacity || null,
       categoryIds: selectedCats,
-      imageUrl: selectedImage || null
+      imageUrl: null
     };
+    if (selectedImage && selectedImage !== defaultImage) eventData.imageUrl = selectedImage
     try {
       const result = await apiClient.createEvent(eventData)
       if (result.status == 200 || result.status == 201) {
@@ -539,7 +553,7 @@ const CreateEventPage: React.FC = () => {
 
       {/* Image Selection (from stock images of chosen categories) */}
       {/* Image Selection (from stock images of chosen categories) */}
-      {selectedCats.length > 0 && (
+      {stockImages.length > 0 && (
         <div>
           <span className="block text-sm font-medium text-gray-700">
             Select an Image
@@ -549,7 +563,7 @@ const CreateEventPage: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
             </div>
           ) : stockImages.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 mt-2">
+            <div className="grid grid-cols-3 gap-4 mt-2">
               {Array.from(new Set(stockImages)).map((image, index) => (
                 <div
                   key={`${image}-${index}`}
