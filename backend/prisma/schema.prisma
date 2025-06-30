@@ -1,66 +1,68 @@
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets   = "native"
+  provider      = "prisma-client-js"
+  binaryTargets = "native"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id          String    @id @default(cuid())
-  email       String    @unique
-  password    String?   // Password is nullable for OAuth users
-  googleId    String?   @unique
-  name        String?
-  username    String    @unique
-  avatarUrl   String?
-  bio         String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String? // Password is nullable for OAuth users
+  googleId  String?  @unique
+  name      String?
+  username  String   @unique
+  avatarUrl String?
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  events      Event[]   @relation("CreatorEvents")
-  rsvps       RSVP[]
-  messages    Message[]
+  events   Event[]   @relation("CreatorEvents")
+  rsvps    RSVP[]
+  messages Message[]
 }
+
 enum EventStatus {
   ACTIVE
   CANCELED
 }
 
 model Event {
-  id          String     @id @default(cuid())
+  id          String                                @id @default(cuid())
   title       String
   description String
   imageUrl    String?
   dateTime    DateTime
   location    String
-  coords    Unsupported("geometry(Point, 4326)")? // Using PostGIS for geospatial data
+  coords      Unsupported("geometry(Point, 4326)")? // Using PostGIS for geospatial data
   capacity    Int?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime                              @default(now())
+  updatedAt   DateTime                              @updatedAt
 
-  creator     User       @relation("CreatorEvents", fields: [creatorId], references: [id])
-  creatorId   String
+  creator   User   @relation("CreatorEvents", fields: [creatorId], references: [id])
+  creatorId String
 
-  categories  Category[]
+  categories Category[]
 
-  rsvps       RSVP[]
-  messages    Message[]
-  
-  status      EventStatus @default(ACTIVE)
+  rsvps    RSVP[]
+  messages Message[]
+
+  status EventStatus @default(ACTIVE)
 
   @@index([coords], name: "location_idx", type: Gist)
 }
 
-model RSVP { // RSVP stands for "Répondez s'il vous plaît" (French for "Please respond")
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
+model RSVP {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String
 
   createdAt DateTime @default(now())
 
@@ -68,21 +70,21 @@ model RSVP { // RSVP stands for "Répondez s'il vous plaît" (French for "Please
 }
 
 model Category {
-  id      String   @id @default(cuid())
-  name    String   @unique
-  emoji   String? 
+  id    String  @id @default(cuid())
+  name  String  @unique
+  emoji String?
 
-  events  Event[]
+  events Event[]
 }
 
 model Message {
   id        String   @id @default(cuid())
   content   String
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
 
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId String
 }

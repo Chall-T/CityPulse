@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom/client';
 import { useParams } from 'react-router-dom';
 import { apiClient } from '../lib/ApiClient';
 import { useAuthStore } from '../store/authStore';
 import type { Event, Message } from '../types';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import UserProfileIcon from '../components/UserProfileIcon';
-
+import Swal from 'sweetalert2';
 import 'leaflet/dist/leaflet.css';
 
 
@@ -22,7 +23,12 @@ const EventDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const [attendanceStatus, setAttendanceStatus] = useState<boolean>(false);
+  const [attendingLoading, setAttendingLoading] = useState(false);
+  const [showAttendeesPopup, setShowAttendeesPopup] = useState(false);
+
+
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -35,7 +41,11 @@ const EventDetailPage: React.FC = () => {
       try {
         const res = await apiClient.getEventById(id);
         const eventData: Event = res.data;
-        setEvent(res.data);
+        setEvent(eventData);
+        if (eventData.rsvps && user && user.id) {
+          const isAttending = eventData.rsvps.some(rsvp => rsvp.user.id === user.id);
+          setAttendanceStatus(isAttending); // true or false
+        }
 
         // Handle coordinates
         if (eventData.coords !== null && eventData.coords !== undefined) {
@@ -66,6 +76,45 @@ const EventDetailPage: React.FC = () => {
     fetchEvent();
   }, [id]);
 
+  const handleAttendanceUpdate = async (status: boolean) => {
+    if (!id) return;
+
+    try {
+      setAttendingLoading(true);
+      await apiClient.updateAttendance(id, status);
+      setAttendanceStatus(status);
+
+      setEvent((prevEvent) => {
+        if (!prevEvent) return prevEvent;
+        if (!prevEvent.rsvps) return prevEvent;
+        if (!user) return prevEvent;
+
+        const userAlreadyRSVPed = prevEvent.rsvps.some(rsvp => rsvp.user.id === user.id);
+
+        let newRsvps;
+        if (status) {
+          // If user wants to attend & not already in the list, add them
+          if (!userAlreadyRSVPed) {
+            newRsvps = [...prevEvent.rsvps, { user: { id: user.id, name: user.name || '', username: user.username, avatarUrl: user.avatarUrl || '' } }];
+          } else {
+            newRsvps = prevEvent.rsvps;
+          }
+        } else {
+          // If user wants to leave, remove their RSVP
+          newRsvps = prevEvent.rsvps.filter(rsvp => rsvp.user.id !== user.id);
+        }
+
+        return {
+          ...prevEvent,
+          rsvps: newRsvps,
+        };
+      });
+    } catch (err) {
+      console.error("Failed to update attendance:", err);
+    } finally {
+      setAttendingLoading(false);
+    }
+  };
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !id) return;
 
@@ -77,6 +126,9 @@ const EventDetailPage: React.FC = () => {
       console.error('Failed to send message:', err);
     }
   };
+
+
+
 
   if (loading) {
     return (
@@ -142,6 +194,16 @@ const EventDetailPage: React.FC = () => {
         <span className="font-semibold">Location:</span> {event.location}
       </p>
 
+      <p
+        onClick={() => setShowAttendeesPopup(true)}
+        className="text-gray-600 cursor-pointer hover:underline select-none"
+        title="Click to see attendees"
+      >
+        <span className="font-semibold">Attendees:</span>{' '}
+        {event.rsvps?.length || 0} {event.capacity ? `/ ${event.capacity}` : ''}
+      </p>
+      
+
       {/* Categories */}
       <div className="flex flex-wrap gap-2">
         {event.categories.map((cat) => (
@@ -174,20 +236,86 @@ const EventDetailPage: React.FC = () => {
           </MapContainer>
         </div>
       )}
-
-      {/* Chat Placeholder (shown only if user is authenticated) */}
       {isAuthenticated() && (
+        <div className="flex gap-4 justify-center">
+          <button
+            onClick={() => handleAttendanceUpdate(true)}
+            disabled={
+              attendanceStatus === true ||
+              attendingLoading ||
+              !!(event.capacity && event.rsvps && event.rsvps.length >= event.capacity)
+            }
+            className={`px-5 py-2 rounded-full font-medium transition ${attendanceStatus === true
+              ? "bg-green-600 text-white cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+          >
+            I'll be there
+          </button>
+
+          <button
+            onClick={() => handleAttendanceUpdate(false)}
+            disabled={attendanceStatus === false || attendingLoading}
+            className={`px-5 py-2 rounded-full font-medium transition ${attendanceStatus === false
+              ? "bg-red-600 text-white cursor-not-allowed"
+              : "bg-gray-300 text-gray-800 hover:bg-gray-400"
+              }`}
+          >
+            I won't be there
+          </button>
+        </div>
+      )}
+      {event.rsvps && event.rsvps.length > 0 && (
+        <div className="flex justify-center">
+          <button
+            onClick={() => setShowAttendeesPopup(true)}
+            className="text-blue-600 underline hover:text-blue-800"
+          >
+            See who's coming ({event.rsvps.length})
+          </button>
+        </div>
+      )}
+
+      {showAttendeesPopup && event.rsvps && (
+        <div className="fixed inset-0 z-1000 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">
+                Attendees ({event.rsvps.length})
+              </h2>
+              <button
+                onClick={() => setShowAttendeesPopup(false)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="space-y-4">
+              {event.rsvps.map(({ user }) => (
+                <div key={user.id} className="flex items-center space-x-3">
+                  <UserProfileIcon
+                    avatarUrl={user.avatarUrl}
+                    username={user.username}
+                    onClick={() => console.log(`Clicked ${user.username}`)}
+                  />
+                  <div>
+                    <p className="font-medium text-gray-800">{user.name || user.username}</p>
+                    <p className="text-sm text-gray-500">@{user.username}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* {isAuthenticated() && (
         <div className="mt-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Chat</h2>
           <div className="border rounded-lg bg-gray-50 p-4 space-y-4">
-            {/* Messages Container (empty for now) */}
             <div className="h-48 overflow-y-auto p-2 bg-white border rounded">
-              {/* Real chat messages will be appended here once WebSocket is implemented */}
               <p className="text-gray-500 italic">No messages yet.</p>
             </div>
-
-            {/* Input + Send Button */}
-            { event.status === 'ACTIVE' &&
+            {event.status === 'ACTIVE' &&
               <div className="flex space-x-2">
                 <input
                   type="text"
@@ -206,7 +334,7 @@ const EventDetailPage: React.FC = () => {
             }
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

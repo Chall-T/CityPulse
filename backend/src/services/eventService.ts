@@ -47,6 +47,11 @@ export const getEventById = async (id: string, fetchCategories: boolean) => {
             avatarUrl: true,
           },
         },
+        rsvps: {
+          select: {
+            userId: true
+          }
+        }
       },
     },
 
@@ -55,30 +60,26 @@ export const getEventById = async (id: string, fetchCategories: boolean) => {
 
 export const getEventByIdWithCords = async (id: string, fetchCategories: boolean) => {
   const rawEvent: any = await prisma.$queryRaw(Prisma.sql`
-  SELECT 
-    id, 
-    title, 
-    description, 
-    "imageUrl",
-    "dateTime",
-    location, 
-    capacity, 
-    "createdAt", 
-    "updatedAt", 
-    "creatorId",
-    ST_AsGeoJSON(coords)::TEXT AS coords
-  FROM "Event"
-  WHERE id = ${id}
-`);
+    SELECT 
+      id, 
+      title, 
+      description, 
+      "imageUrl",
+      "dateTime",
+      location, 
+      capacity, 
+      "createdAt", 
+      "updatedAt", 
+      "creatorId",
+      ST_AsGeoJSON(coords)::TEXT AS coords
+    FROM "Event"
+    WHERE id = ${id}
+  `);
 
   const event = rawEvent[0];
 
   if (event?.coords) {
     event.coords = JSON.parse(event.coords);
-  }
-  if (event && event.coords_geojson) {
-    event.coords = JSON.parse(event.coords_geojson);
-    delete event.coords_geojson;
   }
 
   const fullEvent = await prisma.event.findUnique({
@@ -93,10 +94,25 @@ export const getEventByIdWithCords = async (id: string, fetchCategories: boolean
           avatarUrl: true,
         },
       },
+      rsvps: {
+        select: {
+          user: {
+            select: {
+              id: true,
+              avatarUrl: true,
+              username: true,
+              name: true
+            },
+          },
+        },
+      },
     },
   });
 
-  return { ...fullEvent, coords: event.coords };
+  return {
+    ...fullEvent,
+    coords: event.coords,
+  };
 };
 
 export const getEventsPaginated = async (
@@ -122,7 +138,7 @@ export const getEventsPaginated = async (
         },
       },
     },
-    where:{
+    where: {
       status: 'ACTIVE',
     }
   });

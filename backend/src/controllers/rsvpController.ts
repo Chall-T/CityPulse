@@ -29,6 +29,45 @@ export const createRSVP = catchAsync(async (req: AuthRequest, res: Response, nex
     res.status(201).json(rsvp);
 });
 
+export const setRSVPStatus = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const eventId = req.params.eventId;
+  const userId = req.userId;
+  const { attending } = req.body;
+
+  if (!eventId) {
+    return next(new AppError('Event ID is required', 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+  }
+
+  const event = await eventService.getEventById(eventId, true);
+  if (!event) {
+    return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
+  }
+
+  const existingRSVP = await rsvpService.getRSVPByUserAndEvent(userId, eventId);
+
+  if (attending) {
+    if (existingRSVP) {
+      return res.status(200).json({ message: 'Already attending', rsvp: existingRSVP });
+    }
+
+    const newRSVP: Prisma.RSVPCreateInput = {
+      user: { connect: { id: userId } },
+      event: { connect: { id: eventId } },
+    };
+
+    const rsvp = await rsvpService.createRSVP(newRSVP);
+    return res.status(201).json({ message: 'RSVP created', rsvp });
+  } else {
+    if (!existingRSVP) {
+      return res.status(200).json({ message: 'Not attending (no RSVP exists)' });
+    }
+
+    await rsvpService.deleteRSVPById(existingRSVP.id);
+    return res.status(200).json({ message: 'RSVP removed' });
+  }
+});
+
+
 export const getRSVPsOfLoggedInUser = catchAsync(async (req: AuthRequest, res: Response) => {
     const userId = req.userId;
     const rsvp = await rsvpService.getRSVPsByUserId(userId);

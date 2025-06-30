@@ -276,7 +276,7 @@ router.get('/:eventId/messages', authenticate, eventController.getPaginatedMessa
  *       409:
  *         description: User has already RSVPed
  */
-router.post('/:eventId/rsvps', authenticate, rsvpController.createRSVP);
+router.post('/:eventId/rsvps', authenticate, rsvpController.setRSVPStatus);
 
 router.post('/:eventId/cancel', authenticate, eventController.cancelEvent);
 

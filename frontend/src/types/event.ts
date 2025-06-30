@@ -13,6 +13,15 @@ type Coords = {
   coordinates: [number, number]
 }
 
+type Rsvps = {
+  user: {
+    id: string;
+    avatarUrl: string;
+    name: string;
+    username: string;
+  }
+}
+
 export type Event = {
   id: string;
   status: 'ACTIVE' | 'CANCELD';
@@ -26,6 +35,7 @@ export type Event = {
   categories: Category[];
   creator?: Creator;
   coords?: Coords;
+  rsvps?: Rsvps[];
 };
 
 export type EventCreate = {

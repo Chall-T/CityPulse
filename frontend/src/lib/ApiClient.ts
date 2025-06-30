@@ -272,7 +272,13 @@ class ApiClient {
       cacheable: false,
     });
   }
-
+  async updateAttendance(eventId: string, status: boolean){
+    return this.requestWithCache('post', `/events/${eventId}/rsvps`, {
+      data: {attending: status},
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
   async createMessage(eventId: string, content: string) {
     return this.requestWithCache('post', `/events/${eventId}/messages`, {
       data: { message: content },
