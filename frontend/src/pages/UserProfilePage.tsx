@@ -225,7 +225,7 @@ const UserProfilePage: React.FC = () => {
                     <h3 className="text-2xl font-semibold mb-4">Events You’re Going To</h3>
                     <div className="overflow-x-auto flex gap-4 pb-2">
                         {user.rsvps.map(rsvp => (
-                            <div key={rsvp.id} className="min-w-[300px] flex-shrink-0">
+                            <div key={rsvp.id} className="min-w-[336px] flex-shrink-0">
                                 <EventCard event={rsvp.event} />
                             </div>
                         ))}
@@ -242,12 +242,14 @@ const UserProfilePage: React.FC = () => {
                     <>
                         {/* Active */}
                         <div className="mb-8">
-                            <h4 className="text-xl font-semibold text-green-700 mb-4">Active Events</h4>
+                            {activeEvents.length > 0 && (
+                                <h4 className="text-xl font-semibold text-green-700 mb-4">Active Events</h4>
+                            )}
                             <div className="flex flex-wrap gap-4">
                                 {activeEvents.map((event) => (
-                                    <div key={event.id} className="relative">
+                                    <div key={event.id} className="relative min-w-[336px]" >
                                         <EventCard event={event} />
-                                        <div className="absolute top-2 right-2 flex gap-1">
+                                        <div className="absolute top-2 right-5 flex gap-1">
                                             <Button
                                                 appearance="primary"
                                                 size="md"
@@ -281,7 +283,8 @@ const UserProfilePage: React.FC = () => {
                                 {inactiveEvents.map((event) => (
                                     <div
                                         key={event.id}
-                                        className="opacity-70"
+                                        className="opacity-70 min-w-[336px]"
+                                        
                                     >
                                         <EventCard event={event} />
                                     </div>

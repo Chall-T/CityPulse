@@ -7,7 +7,7 @@ export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
   return (
     <Link
       to={`/events/${event.id}`}
-      className="bg-white rounded-2xl shadow p-4 flex flex-col hover:shadow-lg transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer overflow-hidden max-w-xs"
+      className="bg-white rounded-2xl shadow p-4 flex flex-col hover:shadow-lg transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer overflow-hidden max-w-xs min-h-[320px]"
       draggable={false}
     >
       {/* Image wrapper with aspect ratio */}
