@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef  } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useParams } from 'react-router-dom';
 import { apiClient } from '../lib/ApiClient';
@@ -28,7 +28,22 @@ const EventDetailPage: React.FC = () => {
   const [attendingLoading, setAttendingLoading] = useState(false);
   const [showAttendeesPopup, setShowAttendeesPopup] = useState(false);
 
+  const popupRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+        setShowAttendeesPopup(false);
+      }
+    };
 
+    if (showAttendeesPopup) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showAttendeesPopup]);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -59,6 +74,17 @@ const EventDetailPage: React.FC = () => {
               },
             }
           );
+          if (!geoRes.ok) {
+            throw new Error(`Geocoding API error: ${geoRes.status} ${geoRes.statusText}`);
+          }
+
+          const contentType = geoRes.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            const text = await geoRes.text();
+            console.error('Non-JSON response from geocoding API:', text);
+            throw new Error('Unexpected response from geocoding API');
+          }
+
           const geoData = await geoRes.json();
           if (Array.isArray(geoData) && geoData.length > 0) {
             setCoords([parseFloat(geoData[0].lat), parseFloat(geoData[0].lon)]);
@@ -202,7 +228,7 @@ const EventDetailPage: React.FC = () => {
         <span className="font-semibold">Attendees:</span>{' '}
         {event.rsvps?.length || 0} {event.capacity ? `/ ${event.capacity}` : ''}
       </p>
-      
+
 
       {/* Categories */}
       <div className="flex flex-wrap gap-2">
@@ -277,8 +303,11 @@ const EventDetailPage: React.FC = () => {
       )}
 
       {showAttendeesPopup && event.rsvps && (
-        <div className="fixed inset-0 z-1000 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 z-1000 bg-black bg-opacity-10 flex items-center justify-center">
+          <div
+            ref={popupRef}
+            className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto"
+          >
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">
                 Attendees ({event.rsvps.length})
@@ -308,6 +337,7 @@ const EventDetailPage: React.FC = () => {
           </div>
         </div>
       )}
+
       {/* {isAuthenticated() && (
         <div className="mt-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Chat</h2>

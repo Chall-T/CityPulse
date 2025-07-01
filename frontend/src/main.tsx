@@ -13,12 +13,10 @@ if (!container) throw new Error('Failed to find the root element');
 const root = ReactDOM.createRoot(container);
 
 root.render(
-  <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
         <Preline />
         <App />
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>
 );

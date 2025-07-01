@@ -24,6 +24,19 @@ export const getUserPersonalProfileById = async (id: string) => {
         include: {
           categories: true
         }
+      },
+      rsvps:{ // get only future and active rsvps
+        where:{
+          event: {
+            status: 'ACTIVE',
+            dateTime: {
+              gte: new Date(), 
+            },
+          }
+        },
+        include: {
+          event: true
+        }
       }
     }
   });

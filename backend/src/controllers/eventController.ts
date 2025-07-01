@@ -79,7 +79,6 @@ export const getEvent = catchAsync(async (req: Request, res: Response, next: Nex
     if (!event) {
         return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
     }
-    console.log(event)
     res.json(event);
 });
 

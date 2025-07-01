@@ -219,6 +219,19 @@ const UserProfilePage: React.FC = () => {
                 </div>
             </div>
 
+            {/* RSVP Events Carousel */}
+            {user?.rsvps && user.rsvps.length > 0 && (
+                <div className="mt-12">
+                    <h3 className="text-2xl font-semibold mb-4">Events You’re Going To</h3>
+                    <div className="overflow-x-auto flex gap-4 pb-2">
+                        {user.rsvps.map(rsvp => (
+                            <div key={rsvp.id} className="min-w-[300px] flex-shrink-0">
+                                <EventCard event={rsvp.event} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
             {/* My Events Section */}
             <div className="mt-12">
                 <h3 className="text-2xl font-semibold mb-4">My Events</h3>

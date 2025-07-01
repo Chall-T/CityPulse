@@ -1,4 +1,11 @@
-
+import type {Event} from "./event"
+type Rsvps = {
+  id: string
+  userId: string
+  eventId: string
+  event: Event
+  createdAt: string;
+}
 
 export type User = {
   id: string;
@@ -9,6 +16,7 @@ export type User = {
   bio: string | null;
   createdAt: string;
   updatedAt: string;
+  rsvps: Rsvps[];
 };
 
 export type UpdateUser = {
