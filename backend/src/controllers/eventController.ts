@@ -262,6 +262,11 @@ export const updateEvent = catchAsync(async (req: Request, res: Response, next: 
     if (!event) {
         return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
     }
+    
+    if (event.status == 'CANCELED' || event.dateTime < new Date()) {
+        return next(new AppError('Event is cancelled or in the past', 400, ErrorCodes.RESOURCE_IS_IMMUTABLE));
+    }
+
     if (event && lat !== undefined && lng !== undefined) {
         const setCordsResult = await eventService.setCordsEvent(req.params.eventId, lat, lng);
     }
@@ -271,11 +276,18 @@ export const updateEvent = catchAsync(async (req: Request, res: Response, next: 
 
 export const cancelEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const eventId = req.params.eventId;
+    const eventCheck = await eventService.getEventById(eventId, false);
 
-    const event = await eventService.cancelEventById(eventId);
-    if (!event) {
+    if (!eventCheck) {
         return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
     }
+
+    if (eventCheck.status == 'CANCELED' && eventCheck.dateTime < new Date()) {
+        return next(new AppError('Event is cancelled or in the past', 400, ErrorCodes.RESOURCE_IS_IMMUTABLE));
+    }
+
+    const event = await eventService.cancelEventById(eventId);
+
     res.json(event);
 });
 
@@ -289,10 +301,16 @@ export const deleteEvent = catchAsync(async (req: Request, res: Response, next: 
 
 export const sendMessageInEvent = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
     const eventId = req.params.eventId
+    const userId = req.userId;
+    if (!userId) return next(new AppError("No UserId found", 500, ErrorCodes.SERVER_INTERNAL_ERROR));
     const { message } = req.body;
     if (!message) return next(new AppError("Message is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     if (containsProfanity(message)) return next(new AppError("Message contains profanity", 400, ErrorCodes.VALIDATION_PROFANITY));
     if (!eventId) return next(new AppError("Event ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    const event = await eventService.getEventById(eventId, false);
+    if (event && (event.creatorId != userId && (event.status == 'CANCELED' || event.dateTime < new Date())) ) {
+        return next(new AppError('Event is cancelled or in the past', 400, ErrorCodes.RESOURCE_IS_IMMUTABLE));
+    }
     const newMessage = {
         content: message,
         event: { connect: { id: eventId } },
