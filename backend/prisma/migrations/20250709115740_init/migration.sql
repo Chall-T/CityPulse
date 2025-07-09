@@ -1,5 +1,5 @@
--- Plugins
-CREATE EXTENSION IF NOT EXISTS postgis;
+-- CreateEnum
+CREATE TYPE "EventStatus" AS ENUM ('ACTIVE', 'CANCELED');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -25,11 +25,13 @@ CREATE TABLE "Event" (
     "imageUrl" TEXT,
     "dateTime" TIMESTAMP(3) NOT NULL,
     "location" TEXT NOT NULL,
-    "coords" geometry(Point, 4326),
+    "lat" DOUBLE PRECISION,
+    "lng" DOUBLE PRECISION,
     "capacity" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "creatorId" TEXT NOT NULL,
+    "status" "EventStatus" NOT NULL DEFAULT 'ACTIVE',
 
     CONSTRAINT "Event_pkey" PRIMARY KEY ("id")
 );
@@ -80,7 +82,7 @@ CREATE UNIQUE INDEX "User_googleId_key" ON "User"("googleId");
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
-CREATE INDEX "location_idx" ON "Event" USING GIST ("coords");
+CREATE INDEX "Event_lat_lng_idx" ON "Event"("lat", "lng");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "RSVP_userId_eventId_key" ON "RSVP"("userId", "eventId");

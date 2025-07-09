@@ -6,7 +6,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -38,7 +37,8 @@ model Event {
   imageUrl    String?
   dateTime    DateTime
   location    String
-  coords      Unsupported("geometry(Point, 4326)")? // Using PostGIS for geospatial data
+  lat         Float?
+  lng         Float?
   capacity    Int?
   createdAt   DateTime                              @default(now())
   updatedAt   DateTime                              @updatedAt
@@ -53,7 +53,7 @@ model Event {
 
   status EventStatus @default(ACTIVE)
 
-  @@index([coords], name: "location_idx", type: Gist)
+  @@index([lat, lng])
 }
 
 model RSVP {
