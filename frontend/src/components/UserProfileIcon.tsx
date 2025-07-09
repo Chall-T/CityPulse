@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 function stringToColor(str: string): string {
   let hash = 0;
@@ -11,26 +11,40 @@ function stringToColor(str: string): string {
 
 interface UserProfileIconProps {
   avatarUrl?: string | null;
-  username: string; 
+  username: string;
   onClick?: () => void;
   refProp?: React.Ref<HTMLDivElement>;
 }
 
-const UserProfileIcon: React.FC<UserProfileIconProps> = ({ avatarUrl, username, onClick, refProp }) => {
+const UserProfileIcon: React.FC<UserProfileIconProps> = ({
+  avatarUrl,
+  username,
+  onClick,
+  refProp,
+}) => {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const handleError = () => {
+    setImageFailed(true);
+  };
+
+  const shouldShowImage = avatarUrl && !imageFailed;
+
   return (
     <div
       ref={refProp}
       onClick={onClick}
-      className="w-9 h-9 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center text-sm font-semibold text-white select-none cursor-pointer"
+      className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-sm font-semibold text-white select-none cursor-pointer"
       style={{
         backgroundColor: stringToColor(username),
       }}
     >
-      {avatarUrl ? (
+      {shouldShowImage ? (
         <img
           src={avatarUrl}
           alt="Profile"
           className="w-full h-full object-cover"
+          onError={handleError}
         />
       ) : (
         username[0].toUpperCase()
