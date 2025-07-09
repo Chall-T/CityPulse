@@ -130,12 +130,6 @@ const EventPage: React.FC = () => {
                         click: async () => {
                             const event = await fetchEventById(pin.id);
                             if (event) {
-                                if (!event.coords || !event.coords.coordinates) {
-                                    event.coords = {
-                                        type: 'Point',
-                                        coordinates: [pin.lng, pin.lat],
-                                    };
-                                }
                                 setSelectedEvent(event);
                             }
                         },
@@ -183,9 +177,9 @@ const EventPage: React.FC = () => {
 
                     {memoizedMarkers}
 
-                    {selectedEvent && selectedEvent.coords && selectedEvent.coords.coordinates && (
+                    {selectedEvent && selectedEvent.lat && selectedEvent.lng && (
                         <Popup
-                            position={[selectedEvent.coords?.coordinates[1], selectedEvent.coords?.coordinates[0]] as LatLngExpression}
+                            position={[selectedEvent.lat, selectedEvent.lng] as LatLngExpression}
                             eventHandlers={{
                                 remove: () => setSelectedEvent(null), // When popup is closed
                             }}

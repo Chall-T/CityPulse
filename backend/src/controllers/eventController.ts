@@ -8,7 +8,7 @@ import { isISO8601 } from "validator";
 import { isWithinBerlin } from "../utils/validators";
 import { isSafeURL } from '../utils/validators';
 import { EVENT_LIMITS } from '../config/limits';
-
+import {containsProfanity} from '../utils/profanityFilter';
 
 interface AuthRequest extends Request {
     userId: string;
@@ -42,6 +42,13 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
         return next(
             new AppError("Event location must be within Berlin.", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS)
         );
+    }
+
+    if (containsProfanity(title)) {
+        return next(new AppError("Title contains profanity", 400, ErrorCodes.VALIDATION_PROFANITY));
+    }
+    if (containsProfanity(description)) {
+        return next(new AppError("Description contains profanity", 400, ErrorCodes.VALIDATION_PROFANITY));
     }
     const newEvent: Prisma.EventCreateInput = {
         title,
@@ -233,11 +240,19 @@ export const updateEvent = catchAsync(async (req: Request, res: Response, next: 
     if (imageUrl) updates.imageUrl = imageUrl;
     if (capacity) updates.capacity = capacity;
     if (title) updates.title = title;
+    if (title.trim().length < EVENT_LIMITS.TITLE_MIN_LENGTH || title.trim().length > EVENT_LIMITS.TITLE_MAX_LENGTH) return next(new AppError("Title is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
     if (description) updates.description = description;
+    if (description.trim().length < EVENT_LIMITS.DESCRIPTION_MIN_LENGTH || description.trim().length > EVENT_LIMITS.DESCRIPTION_MAX_LENGTH) return next(new AppError("Description is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
     if (dateTime) updates.dateTime = dateTime;
     if (location) updates.location = location;
     if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
         return next(new AppError("At least one category ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    }
+    if (title && containsProfanity(title)) {
+        return next(new AppError("Title contains profanity", 400, ErrorCodes.VALIDATION_PROFANITY));
+    }
+    if (description && containsProfanity(description)) {
+        return next(new AppError("Description contains profanity", 400, ErrorCodes.VALIDATION_PROFANITY));
     }
 
     if (Object.keys(updates).length === 0) {
@@ -276,6 +291,7 @@ export const sendMessageInEvent = catchAsync(async (req: AuthRequest, res: Respo
     const eventId = req.params.eventId
     const { message } = req.body;
     if (!message) return next(new AppError("Message is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    if (containsProfanity(message)) return next(new AppError("Message contains profanity", 400, ErrorCodes.VALIDATION_PROFANITY));
     if (!eventId) return next(new AppError("Event ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     const newMessage = {
         content: message,

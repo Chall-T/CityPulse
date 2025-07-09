@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useRef  } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import { useParams } from 'react-router-dom';
 import { apiClient } from '../lib/ApiClient';
 import { useAuthStore } from '../store/authStore';
 import type { Event, Message } from '../types';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import UserProfileIcon from '../components/UserProfileIcon';
 import Swal from 'sweetalert2';
 import 'leaflet/dist/leaflet.css';
@@ -27,6 +27,7 @@ const EventDetailPage: React.FC = () => {
   const [attendanceStatus, setAttendanceStatus] = useState<boolean>(false);
   const [attendingLoading, setAttendingLoading] = useState(false);
   const [showAttendeesPopup, setShowAttendeesPopup] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(true);
 
   const popupRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -63,32 +64,8 @@ const EventDetailPage: React.FC = () => {
         }
 
         // Handle coordinates
-        if (eventData.coords !== null && eventData.coords !== undefined) {
-          setCoords([eventData.coords.coordinates[1], eventData.coords.coordinates[0]]);
-        } else {
-          const geoRes = await fetch(
-            `${baseUrl}?format=json&q=${encodeURIComponent(eventData.location)}`,
-            {
-              headers: {
-                'User-Agent': `CityPulse/${appVersion} (${contactEmail})`,
-              },
-            }
-          );
-          if (!geoRes.ok) {
-            throw new Error(`Geocoding API error: ${geoRes.status} ${geoRes.statusText}`);
-          }
-
-          const contentType = geoRes.headers.get('content-type');
-          if (!contentType || !contentType.includes('application/json')) {
-            const text = await geoRes.text();
-            console.error('Non-JSON response from geocoding API:', text);
-            throw new Error('Unexpected response from geocoding API');
-          }
-
-          const geoData = await geoRes.json();
-          if (Array.isArray(geoData) && geoData.length > 0) {
-            setCoords([parseFloat(geoData[0].lat), parseFloat(geoData[0].lon)]);
-          }
+        if (eventData.lat != null && eventData.lng != null) {
+          setCoords([eventData.lat, eventData.lng]);
         }
       } catch (err: any) {
         console.error('Error fetching event:', err);
@@ -101,6 +78,66 @@ const EventDetailPage: React.FC = () => {
 
     fetchEvent();
   }, [id]);
+
+  useEffect(() => {
+  if (!event) {
+    return;
+  }
+
+  // If event already has coordinates, set them & mark loading done
+  if (event.lat != null && event.lng != null) {
+    setCoords([event.lat, event.lng]);
+    return;
+  }
+
+  if (event.location) {
+
+    setGeoLoading(true);
+
+    fetch(`${baseUrl}?format=json&q=${encodeURIComponent(event.location)}`, {
+      headers: {
+        'User-Agent': `CityPulse/${appVersion} (${contactEmail})`,
+      },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Geocoding API error: ${res.status} ${res.statusText}`);
+
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await res.text();
+          console.error('Non-JSON response from geocoding API:', text);
+          throw new Error('Unexpected response from geocoding API');
+        }
+
+        return res.json();
+      })
+      .then((geoData) => {
+        if (Array.isArray(geoData) && geoData.length > 0) {
+          setCoords([parseFloat(geoData[0].lat), parseFloat(geoData[0].lon)]);
+        } else {
+          console.warn('No geocoding results found');
+          setCoords(null);  // Make sure coords is null if none found
+        }
+      })
+      .catch((err) => {
+        console.error('Geocoding error:', err);
+        setCoords(null);
+      })
+  }
+}, [event]);
+
+
+  function Recenter({ coords }: { coords: [number, number] | null }) {
+    const map = useMap();
+
+    useEffect(() => {
+      if (coords) {
+        map.setView(coords, map.getZoom(), { animate: true });
+      }
+    }, [coords, map]);
+
+    return null;
+  }
 
   const handleAttendanceUpdate = async (status: boolean) => {
     if (!id) return;
@@ -243,25 +280,33 @@ const EventDetailPage: React.FC = () => {
         ))}
       </div>
 
-      {/* OpenStreetMap Map (if coords are available) */}
-      {coords && (
-        <div className="mt-6">
-          <MapContainer
-            center={coords}
-            zoom={13}
-            scrollWheelZoom={false}
-            className="w-full h-64 rounded-lg shadow"
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+      <div className="mt-6 relative w-full h-64 rounded-lg shadow">
+        {geoLoading && (
+    <div className="absolute inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+      <p className="text-white text-xl font-bold">Loading map coordinates...</p>
+    </div>
+  )}
+        <MapContainer
+          center={coords ?? [52.52, 13.405]}  // Berlin fallback
+          zoom={13}                           // Fixed zoom, no zoom change on coords update
+          scrollWheelZoom={false}
+          className="w-full h-full rounded-lg"
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {coords && (
             <Marker position={coords}>
               <Popup>{event.title}</Popup>
             </Marker>
-          </MapContainer>
-        </div>
-      )}
+          )}
+          <Recenter coords={coords} />
+        </MapContainer>
+
+      </div>
+
+
       {isAuthenticated() && (
         <div className="flex gap-4 justify-center">
           <button

@@ -8,10 +8,6 @@ export type Creator = {
   avatarUrl: string | null;
 };
 
-type Coords = {
-  type: string
-  coordinates: [number, number]
-}
 
 type Rsvps = {
   user: {
@@ -34,7 +30,8 @@ export type Event = {
   createdAt: string;
   categories: Category[];
   creator?: Creator;
-  coords?: Coords;
+  lat: number | null;
+  lng: number | null;
   rsvps?: Rsvps[];
 };
 

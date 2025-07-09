@@ -4,7 +4,7 @@ import { catchAsync, AppError, ErrorCodes } from '../utils/errorHandler';
 import logger from '../utils/logger';
 import { isProd } from '../utils/secrets';
 import { USER_LIMITS } from '../config/limits';
-
+import { containsProfanity } from '../utils/profanityFilter';
 
 export const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   logger.info('Register endpoint called');
@@ -16,6 +16,7 @@ export const register = catchAsync(async (req: Request, res: Response, next: Nex
   if (!password) return next(new AppError("Password is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
   if (password.length < USER_LIMITS.PASSWORD_MIN_LENGTH) return next(new AppError(`Password must be at least ${USER_LIMITS.PASSWORD_MIN_LENGTH} characters long`, 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
   if (name && name > USER_LIMITS.NAME_MAX_LENGTH) return next(new AppError("Name is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
+  if (name && containsProfanity(name)) return next(new AppError("Name contains profanity", 400, ErrorCodes.VALIDATION_PROFANITY));
   // if (!name) return next(new AppError("Name is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
   const username = await authService.generateUsername(email, name);
   const user = await authService.register(email, password, username, name);
