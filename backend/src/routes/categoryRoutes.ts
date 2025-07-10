@@ -3,6 +3,8 @@
 import express from 'express';
 import * as categoryController from '../controllers/categoryController';
 import { authenticate } from '../middleware/authMiddleware';
+import { authorizeRoles } from '../middleware/roleMiddleware';
+
 const router = express.Router();
 
 /**
@@ -32,7 +34,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Category'
  */
-router.post('/', authenticate, categoryController.createCategory);
+router.post('/', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), categoryController.createCategory);
 
 /**
  * @swagger
@@ -113,7 +115,7 @@ router.get('/:id', categoryController.getCategoryById);
  *       404:
  *         description: Category not found
  */
-router.patch('/:id', authenticate, categoryController.updateCategory);
+router.patch('/:id', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), categoryController.updateCategory);
 
 /**
  * @swagger
@@ -136,6 +138,6 @@ router.patch('/:id', authenticate, categoryController.updateCategory);
  *       404:
  *         description: Category not found
  */
-router.delete('/:id', authenticate, categoryController.deleteCategory);
+router.delete('/:id', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), categoryController.deleteCategory);
 
 export default router;

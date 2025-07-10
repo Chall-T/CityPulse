@@ -2,7 +2,7 @@ import express from 'express';
 import * as userController from '../controllers/userController';
 import * as rsvpController from '../controllers/rsvpController';
 import { authenticate, authorizeSelf } from '../middleware/authMiddleware';
-
+import { authorizeRoles } from '../middleware/roleMiddleware';
 const router = express.Router();
 
 
@@ -58,7 +58,7 @@ router.get('/:userId/rsvps', authenticate, authorizeSelf, rsvpController.getRSVP
  *       404:
  *         description: User not found
  */
-router.get('/:userId', authenticate, userController.getUser);
+router.get('/:userId', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), userController.getUser);
 
 /**
  * @swagger
@@ -121,7 +121,7 @@ router.patch('/:userId', authenticate, authorizeSelf, userController.updateUser)
  *       500:
  *         description: Failed to delete post
  */
-router.delete('/:userId', authenticate, authorizeSelf, userController.deleteUser);
+router.delete('/:userId', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), userController.deleteUser);
 
 
 export default router;

@@ -90,7 +90,7 @@ export const login = async (email: string, password: string) => {
     logger.warn(`Login failed: Invalid login method for user - ${email}`);
     throw new AppError('Invalid login method', 400, ErrorCodes.AUTH_WRONG_LOGIN_METHOD);
   }
-  const { accessToken, refreshToken } = generateAccessTokens(user.id);
+  const { accessToken, refreshToken } = generateAccessTokens(user.id, user.role);
 
   logger.info(`User logged in successfully: ${user.id}`);
 
@@ -106,7 +106,7 @@ export const refreshAccessToken = async (refreshToken: string): Promise<string> 
     if (!user) {
       throw new AppError('User no longer exists', 404, ErrorCodes.RESOURCE_NOT_FOUND);
     }
-    const { accessToken } = generateAccessTokens(user.id);
+    const { accessToken } = generateAccessTokens(user.id, user.role);
 
     logger.info(`New access token issued for user ${user.id}`);
 
@@ -118,17 +118,17 @@ export const refreshAccessToken = async (refreshToken: string): Promise<string> 
   }
 };
 
-export const generateAccessTokens = (userId: string) => {
+export const generateAccessTokens = (userId: string, role: string) => {
   // Generate access token (short-lived)
   const accessToken = jwt.sign(
-    { userId: userId },
+    { userId: userId, role },
     process.env.JWT_SECRET!,
     { expiresIn: '15m' }
   );
 
   // Generate refresh token (longer-lived)
   const refreshToken = jwt.sign(
-    { userId: userId },
+    { userId: userId, role },
     process.env.REFRESH_TOKEN_SECRET!,
     { expiresIn: '7d' }
   );
@@ -170,7 +170,7 @@ export const handleGoogleLogin = async (googleProfile: any) => {
       });
     }
   }
-  const { accessToken, refreshToken } = generateAccessTokens(user.id);
+  const { accessToken, refreshToken } = generateAccessTokens(user.id, user.role);
 
   return { user, accessToken, refreshToken };
 };

@@ -2,7 +2,7 @@ import express from 'express';
 import * as eventController from '../controllers/eventController';
 import * as rsvpController from '../controllers/rsvpController';
 import { authenticate, authorizeEventOwner } from '../middleware/authMiddleware';
-
+import { authorizeRoles } from '../middleware/roleMiddleware';
 const router = express.Router();
 
 /**
@@ -159,7 +159,7 @@ router.patch('/:eventId', authenticate, authorizeEventOwner, eventController.upd
  *       500:
  *         description: Failed to delete event
  */
-router.delete('/:eventId', authenticate, authorizeEventOwner, eventController.deleteEvent);
+router.delete('/:eventId', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), eventController.deleteEvent);
 
 /**
 * @swagger
