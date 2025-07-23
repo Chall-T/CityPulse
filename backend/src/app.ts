@@ -7,6 +7,7 @@ import eventRoutes from './routes/eventRoutes';
 import userRoutes from './routes/userRoutes';
 import rsvpRoutes from './routes/rsvpRoutes';
 import categoryRoutes from './routes/categoryRoutes';
+import otherRoutes from './routes/otherRoutes';
 import swaggerSpec from './config/swagger';
 import logger from './utils/logger';
 import { globalErrorHandler } from './utils/errorHandler';
@@ -38,6 +39,8 @@ app.use('/api/events', eventRoutes);
 app.use('/api/rsvps', rsvpRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api', otherRoutes);
+
 
 // Global error handler
 app.use(globalErrorHandler);

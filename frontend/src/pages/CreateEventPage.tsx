@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useFilterStore } from '../store/eventStore';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, Polyline, Polygon } from 'react-leaflet';
 import { InputPicker, DatePicker, InputNumber, TagPicker } from 'rsuite';
 import { useNavigate } from 'react-router-dom';
 import debounce from 'lodash/debounce';
@@ -9,6 +9,8 @@ import 'leaflet/dist/leaflet.css';
 import { apiClient } from '../lib/ApiClient';
 import OneLineLoader from '../components/Loader/OneLine';
 import Swal from 'sweetalert2'
+import MD5 from 'crypto-js/md5';
+import { all } from 'axios';
 
 
 function MapUpdater({ coords, zoom }: { coords: [number, number] | null, zoom: number }) {
@@ -55,6 +57,8 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
           const props = feature.properties;
 
           const type = props.type || '';
+          const osm_id = props.osm_id || 0;
+          const osm_type = props.osm_type || '';
           const osm_key = props.osm_key || '';
           const osm_value = props.osm_value || '';
 
@@ -87,6 +91,8 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
               feature.geometry.coordinates[0],
             ] as [number, number],
             type,
+            osm_type,
+            osm_id,
             osm_key,
             osm_value
           };
@@ -100,6 +106,38 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
 
   return [locations, loading, fetchLocations] as const;
 };
+
+function fetchOverpassData(osm_type: string, osm_id: number): Promise<any> {
+  let osm_type_name = ''
+  switch (osm_type) {
+    case 'N':
+      osm_type_name = 'node';
+      break;
+    case 'W':
+      osm_type_name = 'way';
+      break;
+    case 'R':
+      osm_type_name = 'relation';
+      break;
+    default:
+      console.error('Unsupported OSM type:', osm_type);
+      return Promise.resolve(null);
+  }
+  const query = `[out:json];${osm_type_name}(${osm_id});(._;>;);out body;`;
+  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+
+  return fetch(url)
+    .then(res => res.json())
+    .catch(err => {
+      console.error('Failed fetching Overpass data:', err);
+      return null;
+    });
+}
+
+async function fetchWikiData(id: string): Promise<any> {
+  const response = await apiClient.getWikiData(id);
+  return response.data;
+}
 
 
 function getDistanceMeters(
@@ -136,6 +174,7 @@ const CreateEventPage: React.FC = () => {
   const [dateTime, setDateTime] = useState<Date | undefined>(undefined);
   const [capacity, setCapacity] = useState<number | undefined>(undefined);
   const [location, setLocation] = useState('');
+  const [locationDetailed, setLocationDetailed] = useState<{ [key: string]: any }>({});
   const [coords, setCoords] = useState<[number, number] | null>([52.510885, 13.3989367]); // Berlin
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [zoom, setZoom] = useState(12);
@@ -155,6 +194,66 @@ const CreateEventPage: React.FC = () => {
   const [randomSeed] = useState(() => Math.random().toString(36).substring(2, 15));
   const [typingLocation, setTypingLocation] = useState<boolean>(false);
 
+
+  const [wayCoords, setWayCoords] = useState([]);
+  const [wikiDataImages, setWikiDataImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (locationDetailed.osm_type && locationDetailed.osm_id) {
+      const overpassData = fetchOverpassData(locationDetailed.osm_type, locationDetailed.osm_id);
+      overpassData.then(data => {
+        if (data && data.elements && data.elements.length > 0) {
+          for (const element of data.elements) {
+            if (element.type === 'way' && element.tags) {
+              if (element.tags['wikidata']) {
+                fetchWikiData(element.tags['wikidata']).then(wikiData => {
+                  if (wikiData && wikiData.entities) {
+                    const entity = wikiData.entities[element.tags['wikidata']];
+                    const allImages: string[] = [];
+
+                    for (const key in entity.claims) {
+                      const claims = entity.claims[key];
+
+                      if (!Array.isArray(claims)) continue;
+
+                      const mediaClaims = claims
+                        .filter((claim: any) =>
+                          claim.mainsnak?.datatype === 'commonsMedia' &&
+                          typeof claim.mainsnak.datavalue?.value === 'string'
+                        )
+                        .map((claim: any) => claim.mainsnak.datavalue.value as string)
+                        .filter((img: string) => {
+                          if (!img) return false;
+                          const lower = img.toLowerCase();
+                          return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
+                        })
+                        .map((img: string) => {
+                          const cleanName = img.replace(/\s+/g, '_');
+                          const hash = MD5(cleanName).toString();
+                          return `https://upload.wikimedia.org/wikipedia/commons/${hash.substring(0, 1)}/${hash.substring(0, 2)}/${cleanName}`;
+                        });
+
+                      allImages.push(...mediaClaims);
+                    }
+
+                    console.log("WikiData images:", allImages);
+                    setWikiDataImages(allImages);
+                  }
+                });
+
+
+              }
+
+            }
+          }
+          const element = data.elements[0];
+          if (element.type === 'way' && element.geometry) {
+
+          }
+        }
+      });
+    }
+  }, [locationDetailed]);
 
   useEffect(() => {
     // Always set the first image as selected when stockImages changes
@@ -176,18 +275,17 @@ const CreateEventPage: React.FC = () => {
             randomSeed
           );
           const uniqueImages = [...new Set(images)];
-          const displayImages = [defaultImage, ...uniqueImages];
-          setStockImages(displayImages);
+          setStockImages([defaultImage, ...wikiDataImages, ...uniqueImages]);
         } catch (error) {
           console.error("Error fetching stock images:", error);
-          setStockImages([defaultImage]);
+          setStockImages([defaultImage, ...wikiDataImages]);
         } finally {
           setIsLoadingImages(false);
         }
       };
       fetchImages();
     } else {
-      setStockImages([defaultImage]);
+      setStockImages([defaultImage, ...wikiDataImages]);
     }
   }, [selectedCats, title, categories]);
 
@@ -391,6 +489,7 @@ const CreateEventPage: React.FC = () => {
               const selectedLocation = locations.find(loc => loc.value === val);
               if (selectedLocation) {
                 setLocation(selectedLocation.label);
+                setLocationDetailed(selectedLocation);
                 setCoords(selectedLocation.coords);
                 setOriginalCoords(selectedLocation.coords);
 
@@ -466,12 +565,30 @@ const CreateEventPage: React.FC = () => {
               </Marker>
             )}
             {originalCoords && (
+              wayCoords.length > 2 && (
+                // Check if shape is closed
+                JSON.stringify(wayCoords[0]) === JSON.stringify(wayCoords[wayCoords.length - 1]) ? (
+                  <Polygon
+                    positions={wayCoords}
+                    pathOptions={{ color: 'blue', fillColor: 'lightblue', fillOpacity: 0.2 }}
+                  />
+                ) : (
+                  <Polyline
+                    positions={wayCoords}
+                    pathOptions={{ color: 'blue' }}
+                  />
+                )
+              )
+            )}
+
+            {originalCoords && wayCoords.length === 0 && (
               <Circle
                 center={originalCoords}
                 radius={maxPinMovable}
                 pathOptions={{ color: 'blue', fillColor: 'lightblue', fillOpacity: 0.2 }}
               />
             )}
+
             <MapUpdater coords={coords} zoom={zoom} />
           </MapContainer>
         </div>

@@ -28,6 +28,7 @@ export enum ErrorCodes {
   
   // Server Errors
   SERVER_INTERNAL_ERROR = 'SERVER_INTERNAL_ERROR',
+  TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
 }
 
 export class AppError extends Error {

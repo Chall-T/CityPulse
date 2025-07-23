@@ -294,6 +294,14 @@ class ApiClient {
       cacheable: false,
     });
   }
+
+  async getWikiData(id: string) {
+    return this.requestWithCache('get', `/wikidata`, {
+      params: { query: id },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
