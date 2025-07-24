@@ -302,6 +302,14 @@ class ApiClient {
       cacheable: false,
     });
   }
+
+  async getImagesFromWebsite(url: string) {
+    return this.requestWithCache('get', `/images`, {
+      params: { url },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -246,6 +246,11 @@ async function fetchWikiData(id: string): Promise<any> {
 }
 
 
+async function fetchWebsiteData(website: string): Promise<any> {
+  const response = await apiClient.getImagesFromWebsite(website);
+  return response.data;
+}
+
 function getDistanceMeters(
   lat1: number,
   lon1: number,
@@ -428,7 +433,10 @@ const CreateEventPage: React.FC = () => {
                 for (const element of data.elements) {
                   if (element.tags) {
                     const website = element.tags["website"] || element.tags["contact:website"] || element.tags["url"];
-                    
+                    if (!website) return;
+                    fetchWebsiteData(website).then(webImages => {
+                      console.log(webImages)
+                    })
 
                   }
                 }
