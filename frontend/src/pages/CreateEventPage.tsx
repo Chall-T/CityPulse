@@ -370,65 +370,85 @@ const CreateEventPage: React.FC = () => {
   // }, [locationDetailed]);
 
   useEffect(() => {
-  if (locationDetailed.osm_type && locationDetailed.osm_id && !isLoadingImages) {
-    setWikiDataImages([]);
-    setIsLoadingImages(true);
-    console.log("Fetching OSM data for:", locationDetailed.osm_type, locationDetailed.osm_id);
+    if (locationDetailed.osm_type && locationDetailed.osm_id && !isLoadingImages) {
+      setWikiDataImages([]);
+      setIsLoadingImages(true);
+      console.log("Fetching OSM data for:", locationDetailed.osm_type, locationDetailed.osm_id);
 
-    fetchOSMData(locationDetailed.osm_type as 'node' | 'way' | 'relation', locationDetailed.osm_id)
-      .then(osmObject => {
-        console.log("OSM Object:", osmObject);
-        if (osmObject && osmObject.tags && osmObject.tags['wikidata']) {
-          const wikidataId = osmObject.tags['wikidata'];
-          fetchWikiData(wikidataId).then(wikiData => {
-            if (wikiData && wikiData.entities) {
-              const entity = wikiData.entities[wikidataId];
-              const allImages: string[] = [];
+      fetchOSMData(locationDetailed.osm_type as 'node' | 'way' | 'relation', locationDetailed.osm_id)
+        .then(osmObject => {
+          console.log("OSM Object:", osmObject);
+          if (osmObject && osmObject.tags && osmObject.tags['wikidata']) {
+            const wikidataId = osmObject.tags['wikidata'];
+            fetchWikiData(wikidataId).then(wikiData => {
+              if (wikiData && wikiData.entities) {
+                const entity = wikiData.entities[wikidataId];
+                const allImages: string[] = [];
 
-              for (const key in entity.claims) {
-                const claims = entity.claims[key];
-                if (!Array.isArray(claims)) continue;
+                for (const key in entity.claims) {
+                  const claims = entity.claims[key];
+                  if (!Array.isArray(claims)) continue;
 
-                const mediaClaims = claims
-                  .filter((claim: any) =>
-                    claim.mainsnak?.datatype === 'commonsMedia' &&
-                    typeof claim.mainsnak.datavalue?.value === 'string'
-                  )
-                  .map((claim: any) => claim.mainsnak.datavalue.value as string)
-                  .filter((img: string) => {
-                    if (!img) return false;
-                    const lower = img.toLowerCase();
-                    return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
-                  })
-                  .map((img: string) => {
-                    const cleanName = img.replace(/\s+/g, '_');
-                    const hash = MD5(cleanName).toString();
-                    return `https://upload.wikimedia.org/wikipedia/commons/${hash.substring(0, 1)}/${hash.substring(0, 2)}/${cleanName}`;
-                  });
+                  const mediaClaims = claims
+                    .filter((claim: any) =>
+                      claim.mainsnak?.datatype === 'commonsMedia' &&
+                      typeof claim.mainsnak.datavalue?.value === 'string'
+                    )
+                    .map((claim: any) => claim.mainsnak.datavalue.value as string)
+                    .filter((img: string) => {
+                      if (!img) return false;
+                      const lower = img.toLowerCase();
+                      return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
+                    })
+                    .map((img: string) => {
+                      const cleanName = img.replace(/\s+/g, '_');
+                      const hash = MD5(cleanName).toString();
+                      // return `https://upload.wikimedia.org/wikipedia/commons/${hash.substring(0, 1)}/${hash.substring(0, 2)}/${cleanName}`;
+                      return `https://upload.wikimedia.org/wikipedia/commons/thumb/${hash.substring(0, 1)}/${hash.substring(0, 2)}/${cleanName}/800px-${cleanName}`
+                    });
 
-                allImages.push(...mediaClaims);
+                  allImages.push(...mediaClaims);
+                }
+
+                console.log("WikiData images:", allImages);
+                setWikiDataImages(allImages);
+                setIsLoadingImages(false)
               }
 
-              console.log("WikiData images:", allImages);
-              setWikiDataImages(allImages);
-            }
+            }).catch(err => {
+              console.error('Failed fetching WikiData:', err);
+              setIsLoadingImages(false);
+            });
+          } else {
+            // No wikidata tag found
+            const overpassData = fetchOverpassData(locationDetailed.osm_type, locationDetailed.osm_id);
+            console.log(`fetching overpassData`)
+            overpassData.then(data => {
+              if (data && data.elements && data.elements.length > 0) {
+                for (const element of data.elements) {
+                  if (element.tags) {
+                    const website = element.tags["website"] || element.tags["contact:website"] || element.tags["url"];
+                    
+
+                  }
+                }
+                const element = data.elements[0];
+                if (element.type === 'way' && element.geometry) {
+
+                }
+              }
+            });
+            setWikiDataImages([]);
             setIsLoadingImages(false);
-          }).catch(err => {
-            console.error('Failed fetching WikiData:', err);
-            setIsLoadingImages(false);
-          });
-        } else {
-          // No wikidata tag found
-          setWikiDataImages([]);
+          }
+        })
+        .catch(err => {
+          console.error('Failed fetching OSM object:', err);
           setIsLoadingImages(false);
-        }
-      })
-      .catch(err => {
-        console.error('Failed fetching OSM object:', err);
-        setIsLoadingImages(false);
-      });
-  }
-}, [locationDetailed]);
+        });
+    }
+
+  }, [locationDetailed]);
 
 
   useEffect(() => {
