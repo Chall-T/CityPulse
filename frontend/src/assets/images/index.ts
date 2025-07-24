@@ -532,96 +532,117 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
                 "milennial"
             ]
         },
+        {
+            url: `${urlPrefix}/meat-skewer-1440105_1280.jpg`,
+            tags: [
+                "meat Skewer",
+                "Grilling",
+                "Food",
+                "Dish",
+                "Meat",
+                "Vegetables",
+                "Gemuesepiess",
+                "Mushrooms",
+                "Pork",
+                "Barbecue",
+                "Bbq",
+                "Cooking",
+                "Grilled Meat",
+                "Grill",
+                "Tasty",
+                "Delicious",
+            ]
+        },
     ];
 }
 
 function createSeededRandom(seed: string) {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    const char = seed.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0; // Convert to 32-bit integer
-  }
-  return () => {
-    hash = Math.sin(hash) * 10000;
-    return hash - Math.floor(hash); // Returns value between 0 and 1
-  };
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+        const char = seed.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash |= 0; // Convert to 32-bit integer
+    }
+    return () => {
+        hash = Math.sin(hash) * 10000;
+        return hash - Math.floor(hash); // Returns value between 0 and 1
+    };
 }
 
 const shuffle = <T>(array: T[], seed?: string): T[] => {
-  const shuffledArray = [...array];
-  
-  if (seed) {
-    const seededRandom = createSeededRandom(seed);
-    for (let i = shuffledArray.length - 1; i > 0; i--) {
-      const j = Math.floor(seededRandom() * (i + 1));
-      [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+    const shuffledArray = [...array];
+
+    if (seed) {
+        const seededRandom = createSeededRandom(seed);
+        for (let i = shuffledArray.length - 1; i > 0; i--) {
+            const j = Math.floor(seededRandom() * (i + 1));
+            [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+        }
+    } else {
+        shuffledArray.sort(() => Math.random() - 0.5);
     }
-  } else {
-    shuffledArray.sort(() => Math.random() - 0.5);
-  }
-  
-  return shuffledArray;
+
+    return shuffledArray;
 };
 
 export const searchStockImages = (
-  searchQuery: string,
-  categories: Category[],
-  seed?: string,
+    searchQuery: string,
+    categories: Category[],
+    seed?: string,
 ): string[] => {
-  const searchTerms = categories.map((c) => c.name.toLowerCase())
-  const seenUrls = new Set<string>();
+    const searchTerms = categories.map((c) => c.name.toLowerCase())
+    const seenUrls = new Set<string>();
 
-  const matches: {
-    direct: string[];
-    match4: string[];
-    match3: string[];
-    match2: string[];
-    match1: string[];
-  } = {
-    direct: [],
-    match4: [],
-    match3: [],
-    match2: [],
-    match1: [],
-  };
+    const matches: {
+        direct: string[];
+        match4: string[];
+        match3: string[];
+        match2: string[];
+        match1: string[];
+    } = {
+        direct: [],
+        match4: [],
+        match3: [],
+        match2: [],
+        match1: [],
+    };
 
-  for (const img of stockImages(stockImageUrlPrefix)) {
-    if (seenUrls.has(img.url)) continue;
+    for (const img of stockImages(stockImageUrlPrefix)) {
+        if (seenUrls.has(img.url)) continue;
 
-    for (const searchWord of searchQuery.toLowerCase().split(/\s+/)) {
-        if (img.tags.includes(searchWord)) {
-            matches.direct.push(img.url);
+        for (const searchWord of searchQuery.toLowerCase().split(/\s+/)) {
+            if (img.tags.includes(searchWord)) {
+                matches.direct.push(img.url);
+                seenUrls.add(img.url);
+                continue;
+            }
+        }
+
+        const matchCount = searchTerms.reduce(
+            (count, term) => count + (img.tags.includes(term) ? 1 : 0),
+            0
+        );
+
+        if (matchCount >= 4) {
+            matches.match4.push(img.url);
             seenUrls.add(img.url);
-            continue;
+        } else if (matchCount === 3) {
+            matches.match3.push(img.url);
+            seenUrls.add(img.url);
+        } else if (matchCount === 2) {
+            matches.match2.push(img.url);
+            seenUrls.add(img.url);
+        } else if (matchCount === 1) {
+            matches.match1.push(img.url);
+            seenUrls.add(img.url);
         }
     }
 
-    const matchCount = searchTerms.reduce(
-      (count, term) => count + (img.tags.includes(term) ? 1 : 0),
-      0
-    );
-
-    if (matchCount >= 4) {
-      matches.match4.push(img.url);
-      seenUrls.add(img.url);
-    } else if (matchCount === 3) {
-      matches.match3.push(img.url);
-      seenUrls.add(img.url);
-    } else if (matchCount === 2) {
-      matches.match2.push(img.url);
-      seenUrls.add(img.url);
-    } else if (matchCount === 1) {
-      matches.match1.push(img.url);
-      seenUrls.add(img.url);
-    }
-  }
-
-  return [
-    ...shuffle(matches.direct, seed),
-    ...shuffle(matches.match4, seed),
-    ...shuffle(matches.match3, seed),
-    ...shuffle(matches.match2, seed),
-    ...shuffle(matches.match1, seed),
-  ];
+    return [
+        ...shuffle(matches.direct, seed),
+        ...shuffle(matches.match4, seed),
+        ...shuffle(matches.match3, seed),
+        ...shuffle(matches.match2, seed),
+        ...shuffle(matches.match1, seed),
+    ];
 };

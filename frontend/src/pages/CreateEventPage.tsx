@@ -11,6 +11,7 @@ import OneLineLoader from '../components/Loader/OneLine';
 import Swal from 'sweetalert2'
 import MD5 from 'crypto-js/md5';
 import { all } from 'axios';
+import { set } from 'lodash';
 
 
 function MapUpdater({ coords, zoom }: { coords: [number, number] | null, zoom: number }) {
@@ -123,7 +124,7 @@ function fetchOverpassData(osm_type: string, osm_id: number): Promise<any> {
       console.error('Unsupported OSM type:', osm_type);
       return Promise.resolve(null);
   }
-  const query = `[out:json];${osm_type_name}(${osm_id});(._;>;);out body;`;
+  const query = `[out:json];${osm_type_name}(${osm_id});out tags;`;
   const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
 
   return fetch(url)
@@ -132,6 +133,111 @@ function fetchOverpassData(osm_type: string, osm_id: number): Promise<any> {
       console.error('Failed fetching Overpass data:', err);
       return null;
     });
+}
+interface OsmMember {
+  type: string;
+  ref: string;
+  role: string;
+}
+
+interface OsmObject {
+  type: string;
+  id: string;
+  visible?: string;
+  version?: string;
+  changeset?: string;
+  timestamp?: string;
+  user?: string;
+  uid?: string;
+  tags: Record<string, string>;
+  nodes?: string[];
+  members?: OsmMember[];
+}
+
+function fetchOSMData(osm_type: string, osm_id: number): Promise<OsmObject | null> {
+  let osm_type_name = ''
+  switch (osm_type) {
+    case 'N':
+      osm_type_name = 'node';
+      break;
+    case 'W':
+      osm_type_name = 'way';
+      break;
+    case 'R':
+      osm_type_name = 'relation';
+      break;
+    default:
+      console.error('Unsupported OSM type:', osm_type);
+      return Promise.resolve(null);
+  }
+
+  const url = `https://api.openstreetmap.org/api/0.6/${osm_type_name}/${osm_id}`;
+
+  return fetch(url)
+    .then(res => res.text())
+    .then(str => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(str, "application/xml");
+      const osmObject = xml.querySelector(osm_type_name);
+      if (!osmObject) return null;
+
+      // Extract attributes
+      const attrs: Partial<OsmObject> = {};
+      for (const attr of Array.from(osmObject.attributes)) {
+        (attrs as any)[attr.name] = attr.value;
+      }
+
+      // Extract tags
+      const tags: Record<string, string> = {};
+      osmObject.querySelectorAll('tag').forEach(tag => {
+        const k = tag.getAttribute('k');
+        const v = tag.getAttribute('v');
+        if (k && v) tags[k] = v;
+      });
+
+      // Extract nodes if way
+      let nodes: string[] | undefined;
+      if (osm_type_name === 'way') {
+        nodes = [];
+        osmObject.querySelectorAll('nd').forEach(nd => {
+          const ref = nd.getAttribute('ref');
+          if (ref) nodes!.push(ref);
+        });
+      }
+
+      // Extract members if relation
+      let members: OsmMember[] | undefined;
+      if (osm_type_name === 'relation') {
+        members = [];
+        osmObject.querySelectorAll('member').forEach(m => {
+          const type = m.getAttribute('type');
+          const ref = m.getAttribute('ref');
+          const role = m.getAttribute('role');
+          if (type && ref && role !== null) {
+            members!.push({ type, ref, role });
+          }
+        });
+      }
+
+      return {
+        type: osm_type_name,
+        id: attrs.id!,
+        visible: attrs.visible,
+        version: attrs.version,
+        changeset: attrs.changeset,
+        timestamp: attrs.timestamp,
+        user: attrs.user,
+        uid: attrs.uid,
+        tags,
+        nodes,
+        members
+      };
+    })
+    .catch(err => {
+      console.error('Failed fetching OSM data:', err);
+      return null;
+    });
+
 }
 
 async function fetchWikiData(id: string): Promise<any> {
@@ -198,62 +304,132 @@ const CreateEventPage: React.FC = () => {
   const [wayCoords, setWayCoords] = useState([]);
   const [wikiDataImages, setWikiDataImages] = useState<string[]>([]);
 
+  // images with fetchOverpassData
+  // useEffect(() => {
+  //   if (locationDetailed.osm_type && locationDetailed.osm_id && isLoadingImages == false) {
+  //     setIsLoadingImages(true);
+  //     console.log("Fetching Overpass data for:", locationDetailed.osm_type, locationDetailed.osm_id);
+  //     fetchOSMData(locationDetailed.osm_type, locationDetailed.osm_id).then(data => {
+  //       console.log("OSM Data:", data);
+  //     });
+  //     const overpassData = fetchOverpassData(locationDetailed.osm_type, locationDetailed.osm_id);
+  //     overpassData.then(data => {
+  //       if (data && data.elements && data.elements.length > 0) {
+  //         for (const element of data.elements) {
+  //           if (element.tags) {
+  //             if (element.tags['wikidata']) {
+  //               fetchWikiData(element.tags['wikidata']).then(wikiData => {
+  //                 if (wikiData && wikiData.entities) {
+  //                   const entity = wikiData.entities[element.tags['wikidata']];
+  //                   const allImages: string[] = [];
+
+  //                   for (const key in entity.claims) {
+  //                     const claims = entity.claims[key];
+
+  //                     if (!Array.isArray(claims)) continue;
+
+  //                     const mediaClaims = claims
+  //                       .filter((claim: any) =>
+  //                         claim.mainsnak?.datatype === 'commonsMedia' &&
+  //                         typeof claim.mainsnak.datavalue?.value === 'string'
+  //                       )
+  //                       .map((claim: any) => claim.mainsnak.datavalue.value as string)
+  //                       .filter((img: string) => {
+  //                         if (!img) return false;
+  //                         const lower = img.toLowerCase();
+  //                         return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
+  //                       })
+  //                       .map((img: string) => {
+  //                         const cleanName = img.replace(/\s+/g, '_');
+  //                         const hash = MD5(cleanName).toString();
+  //                         return `https://upload.wikimedia.org/wikipedia/commons/${hash.substring(0, 1)}/${hash.substring(0, 2)}/${cleanName}`;
+  //                       });
+
+  //                     allImages.push(...mediaClaims);
+  //                   }
+
+  //                   console.log("WikiData images:", allImages);
+  //                   setWikiDataImages(allImages);
+  //                   setIsLoadingImages(false);
+  //                 }
+  //               });
+
+
+  //             }
+
+  //           }
+  //         }
+  //         const element = data.elements[0];
+  //         if (element.type === 'way' && element.geometry) {
+
+  //         }
+  //       }
+  //     });
+  //     setIsLoadingImages(false);
+  //   }
+  // }, [locationDetailed]);
+
   useEffect(() => {
-    if (locationDetailed.osm_type && locationDetailed.osm_id) {
-      const overpassData = fetchOverpassData(locationDetailed.osm_type, locationDetailed.osm_id);
-      overpassData.then(data => {
-        if (data && data.elements && data.elements.length > 0) {
-          for (const element of data.elements) {
-            if (element.type === 'way' && element.tags) {
-              if (element.tags['wikidata']) {
-                fetchWikiData(element.tags['wikidata']).then(wikiData => {
-                  if (wikiData && wikiData.entities) {
-                    const entity = wikiData.entities[element.tags['wikidata']];
-                    const allImages: string[] = [];
+  if (locationDetailed.osm_type && locationDetailed.osm_id && !isLoadingImages) {
+    setWikiDataImages([]);
+    setIsLoadingImages(true);
+    console.log("Fetching OSM data for:", locationDetailed.osm_type, locationDetailed.osm_id);
 
-                    for (const key in entity.claims) {
-                      const claims = entity.claims[key];
+    fetchOSMData(locationDetailed.osm_type as 'node' | 'way' | 'relation', locationDetailed.osm_id)
+      .then(osmObject => {
+        console.log("OSM Object:", osmObject);
+        if (osmObject && osmObject.tags && osmObject.tags['wikidata']) {
+          const wikidataId = osmObject.tags['wikidata'];
+          fetchWikiData(wikidataId).then(wikiData => {
+            if (wikiData && wikiData.entities) {
+              const entity = wikiData.entities[wikidataId];
+              const allImages: string[] = [];
 
-                      if (!Array.isArray(claims)) continue;
+              for (const key in entity.claims) {
+                const claims = entity.claims[key];
+                if (!Array.isArray(claims)) continue;
 
-                      const mediaClaims = claims
-                        .filter((claim: any) =>
-                          claim.mainsnak?.datatype === 'commonsMedia' &&
-                          typeof claim.mainsnak.datavalue?.value === 'string'
-                        )
-                        .map((claim: any) => claim.mainsnak.datavalue.value as string)
-                        .filter((img: string) => {
-                          if (!img) return false;
-                          const lower = img.toLowerCase();
-                          return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
-                        })
-                        .map((img: string) => {
-                          const cleanName = img.replace(/\s+/g, '_');
-                          const hash = MD5(cleanName).toString();
-                          return `https://upload.wikimedia.org/wikipedia/commons/${hash.substring(0, 1)}/${hash.substring(0, 2)}/${cleanName}`;
-                        });
+                const mediaClaims = claims
+                  .filter((claim: any) =>
+                    claim.mainsnak?.datatype === 'commonsMedia' &&
+                    typeof claim.mainsnak.datavalue?.value === 'string'
+                  )
+                  .map((claim: any) => claim.mainsnak.datavalue.value as string)
+                  .filter((img: string) => {
+                    if (!img) return false;
+                    const lower = img.toLowerCase();
+                    return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
+                  })
+                  .map((img: string) => {
+                    const cleanName = img.replace(/\s+/g, '_');
+                    const hash = MD5(cleanName).toString();
+                    return `https://upload.wikimedia.org/wikipedia/commons/${hash.substring(0, 1)}/${hash.substring(0, 2)}/${cleanName}`;
+                  });
 
-                      allImages.push(...mediaClaims);
-                    }
-
-                    console.log("WikiData images:", allImages);
-                    setWikiDataImages(allImages);
-                  }
-                });
-
-
+                allImages.push(...mediaClaims);
               }
 
+              console.log("WikiData images:", allImages);
+              setWikiDataImages(allImages);
             }
-          }
-          const element = data.elements[0];
-          if (element.type === 'way' && element.geometry) {
-
-          }
+            setIsLoadingImages(false);
+          }).catch(err => {
+            console.error('Failed fetching WikiData:', err);
+            setIsLoadingImages(false);
+          });
+        } else {
+          // No wikidata tag found
+          setWikiDataImages([]);
+          setIsLoadingImages(false);
         }
+      })
+      .catch(err => {
+        console.error('Failed fetching OSM object:', err);
+        setIsLoadingImages(false);
       });
-    }
-  }, [locationDetailed]);
+  }
+}, [locationDetailed]);
+
 
   useEffect(() => {
     // Always set the first image as selected when stockImages changes
@@ -287,7 +463,7 @@ const CreateEventPage: React.FC = () => {
     } else {
       setStockImages([defaultImage, ...wikiDataImages]);
     }
-  }, [selectedCats, title, categories]);
+  }, [selectedCats, title, categories, wikiDataImages]);
 
   const [selectedImage, setSelectedImage] = useState<string>('');
 
