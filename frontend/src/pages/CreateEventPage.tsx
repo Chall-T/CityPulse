@@ -426,6 +426,8 @@ const CreateEventPage: React.FC = () => {
             });
           } else {
             // No wikidata tag found
+            setWikiDataImages([]);
+            setIsLoadingImages(true);
             const overpassData = fetchOverpassData(locationDetailed.osm_type, locationDetailed.osm_id);
             console.log(`fetching overpassData`)
             overpassData.then(data => {
@@ -436,6 +438,9 @@ const CreateEventPage: React.FC = () => {
                     if (!website) return;
                     fetchWebsiteData(website).then(webImages => {
                       console.log(webImages)
+                      setWikiDataImages(webImages.images);
+                      setIsLoadingImages(false)
+                      return
                     })
 
                   }
@@ -445,9 +450,9 @@ const CreateEventPage: React.FC = () => {
 
                 }
               }
+            }).finally(() => {
+              setIsLoadingImages(false);
             });
-            setWikiDataImages([]);
-            setIsLoadingImages(false);
           }
         })
         .catch(err => {

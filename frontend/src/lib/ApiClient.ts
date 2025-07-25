@@ -305,7 +305,7 @@ class ApiClient {
 
   async getImagesFromWebsite(url: string) {
     return this.requestWithCache('get', `/images`, {
-      params: { url },
+      params: { url, limit: 10 },
       config: { meta: { authRequired: true } },
       cacheable: false,
     });
