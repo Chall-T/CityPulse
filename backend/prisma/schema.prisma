@@ -27,6 +27,8 @@ model User {
   updatedAt DateTime @updatedAt
   role      Role     @default(USER)
 
+  reportsMade  Report[]   @relation("ReporterUser")
+  reportsUser  Report[]   @relation("ReportedUser")
   events   Event[]   @relation("CreatorEvents")
   rsvps    RSVP[]
   messages Message[]
@@ -54,6 +56,8 @@ model Event {
   creatorId String
 
   categories Category[]
+
+  reports  Report[]
 
   rsvps    RSVP[]
   messages Message[]
@@ -94,4 +98,52 @@ model Message {
 
   event   Event  @relation(fields: [eventId], references: [id])
   eventId String
+}
+
+
+enum ReportReason {
+  SPAM
+  INAPPROPRIATE
+  HARASSMENT
+  MISINFORMATION
+  OTHER // use this to enable the custom reason
+}
+
+
+model Report {
+  id           String    @id @default(cuid())
+  reason       String    // Can store enum value or custom string
+  createdAt    DateTime  @default(now())
+
+  // Reporter
+  reporter     User      @relation("ReporterUser", fields: [reporterId], references: [id])
+  reporterId   String
+
+  // Target: exactly one of these should be set, enforce at app/DB level
+  reportedUser   User?    @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  reportedUserId String?
+
+  reportedEvent   Event?   @relation(fields: [reportedEventId], references: [id])
+  reportedEventId String?
+
+  // Moderation follow-up
+  reviewedBy    User?     @relation(fields: [reviewedById], references: [id])
+  reviewedById  String?
+  reviewedAt    DateTime?
+  actionTaken   String?   // e.g., "warned", "suspended", etc.
+}
+
+model EventVote {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  value     Int      // +1 upvote, -1 downvote
+  createdAt DateTime @default(now())
+
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId]) // no double voting
+  @@index([eventId])
+  @@index([userId])
 }
