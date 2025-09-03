@@ -272,7 +272,7 @@ const EventDetailPage: React.FC = () => {
 
       {/* Event Title */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <h1 className="text-3xl font-bold text-gray-800">{event.title}</h1>
+        <h1 className="text-3xl font-bold text-gray-800 max-w-[50%] break-words">{event.title}</h1>
 
 
         {/* Voting */}
