@@ -33,6 +33,7 @@ export type Event = {
   lat: number | null;
   lng: number | null;
   rsvps?: Rsvps[];
+  votes: { value: number; userId: string }[];
 };
 
 export type EventCreate = {

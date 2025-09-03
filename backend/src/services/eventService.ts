@@ -87,9 +87,16 @@ export const getEventByIdWithCords = async (id: string, fetchCategories: boolean
           },
         },
       },
+      votes: {
+        select: {
+          userId: true,
+          value: true,
+        },
+      },
     },
   });
 };
+
 
 
 export const getEventsPaginated = async (
@@ -364,3 +371,14 @@ export async function cancelEventById(eventId: string) {
     data: { status: 'CANCELED' },
   });
 }
+
+
+export const upsertEventVote = async (eventId: string, userId: string, value: number) => {
+    return prisma.eventVote.upsert({
+        where: { eventId_userId: { eventId, userId } },
+        update: { value },
+        create: { eventId, userId, value },
+    });
+};
+
+

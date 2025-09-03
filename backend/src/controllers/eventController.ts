@@ -8,7 +8,7 @@ import { isISO8601 } from "validator";
 import { isWithinBerlin } from "../utils/validators";
 import { isSafeURL } from '../utils/validators';
 import { EVENT_LIMITS } from '../config/limits';
-import {containsProfanity} from '../utils/profanityFilter';
+import { containsProfanity } from '../utils/profanityFilter';
 
 interface AuthRequest extends Request {
     userId: string;
@@ -16,18 +16,18 @@ interface AuthRequest extends Request {
 
 export const createEvent = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
     const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryIds } = req.body;
-    
+
     if (!title) return next(new AppError("Title is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     if (title.trim().length < EVENT_LIMITS.TITLE_MIN_LENGTH || title.trim().length > EVENT_LIMITS.TITLE_MAX_LENGTH) return next(new AppError("Title is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
-    
+
     if (!description) return next(new AppError("Description is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     if (description.trim().length < EVENT_LIMITS.DESCRIPTION_MIN_LENGTH || description.trim().length > EVENT_LIMITS.DESCRIPTION_MAX_LENGTH) return next(new AppError("Description is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
-    
+
     if (!isISO8601(dateTime)) return next(new AppError("Date and time are required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
-    
+
     if (typeof location !== "string") return next(new AppError("Location is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     if (location.trim().length < EVENT_LIMITS.LOCATION_MIN_LENGTH || location.trim().length > EVENT_LIMITS.LOCATION_MAX_LENGTH) return next(new AppError("Location is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
-    
+
     if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
         return next(new AppError("At least one category ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     }
@@ -262,7 +262,7 @@ export const updateEvent = catchAsync(async (req: Request, res: Response, next: 
     if (!event) {
         return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
     }
-    
+
     if (event.status == 'CANCELED' || event.dateTime < new Date()) {
         return next(new AppError('Event is cancelled or in the past', 400, ErrorCodes.RESOURCE_IS_IMMUTABLE));
     }
@@ -308,7 +308,7 @@ export const sendMessageInEvent = catchAsync(async (req: AuthRequest, res: Respo
     if (containsProfanity(message)) return next(new AppError("Message contains profanity", 400, ErrorCodes.VALIDATION_PROFANITY));
     if (!eventId) return next(new AppError("Event ID is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     const event = await eventService.getEventById(eventId, false);
-    if (event && (event.creatorId != userId && (event.status == 'CANCELED' || event.dateTime < new Date())) ) {
+    if (event && (event.creatorId != userId && (event.status == 'CANCELED' || event.dateTime < new Date()))) {
         return next(new AppError('Event is cancelled or in the past', 400, ErrorCodes.RESOURCE_IS_IMMUTABLE));
     }
     const newMessage = {
@@ -338,3 +338,78 @@ export const getPaginatedMessages = catchAsync(async (req: Request, res: Respons
         nextCursor: messages.length > userLimit ? messages[messages.length - 1].id : null,
     });
 });
+
+
+export const voteOnEvent = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const eventId = req.params.eventId;
+    const userId = req.userId;
+    const { value } = req.body;
+
+    if (![1, -1].includes(value)) {
+        return next(new AppError('Invalid vote value', 400, ErrorCodes.VALIDATION_INVALID_TYPE));
+    }
+
+    const event = await eventService.getEventById(eventId, false);
+    if (!event) {
+        return next(new AppError('Event not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
+    }
+
+    // Add or update vote
+    const vote = await eventService.upsertEventVote(eventId, userId, value);
+
+    res.json({ success: true, vote });
+});
+
+
+const validReasons = [
+  "SPAM",
+  "INAPPROPRIATE",
+  "HARASSMENT",
+  "MISINFORMATION",
+  "OTHER",
+] as const;
+
+type ReportReason = (typeof validReasons)[number];
+
+import prisma from '../config/database';
+
+export const reportEvent = catchAsync(
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const eventId = req.params.eventId;
+    const userId = req.userId;
+    const { reason: rawReason, details } = req.body;
+
+
+    // Validate reason
+    if (!rawReason || !validReasons.includes(rawReason)) {
+      return next(
+        new AppError("Invalid report reason", 400, ErrorCodes.VALIDATION_INVALID_TYPE)
+      );
+    }
+
+    const reason = rawReason as ReportReason;
+
+    // Check event exists
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!event) {
+      return next(
+        new AppError("Event not found", 404, ErrorCodes.RESOURCE_NOT_FOUND)
+      );
+    }
+
+    // Create the report
+    const report = await prisma.report.create({
+      data: {
+        reporterId: userId,
+        reportedEventId: eventId,
+        reason,
+        details: details?.slice(0, 100), // max 100 chars
+      },
+    });
+
+    res.json({ success: true, report });
+  }
+);

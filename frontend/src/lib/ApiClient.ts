@@ -295,6 +295,22 @@ class ApiClient {
     });
   }
 
+  async voteOnEvent(eventId: string, value: number) {
+    return this.requestWithCache('post', `/events/${eventId}/vote`, {
+      data: { value },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+
+  async reportEvent(eventId: string, reason: string, details?: string) {
+    return this.requestWithCache('post', `/events/${eventId}/report`, {
+      data: { reason, details },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+
   async getWikiData(id: string) {
     return this.requestWithCache('get', `/wikidata`, {
       params: { query: id },

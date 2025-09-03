@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import type { Event, Message } from '../types';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import UserProfileIcon from '../components/UserProfileIcon';
+import ReportButton from '../components/ReportButton';
 import Swal from 'sweetalert2';
 import 'leaflet/dist/leaflet.css';
 
@@ -29,6 +30,10 @@ const EventDetailPage: React.FC = () => {
   const [showAttendeesPopup, setShowAttendeesPopup] = useState(false);
   const [geoLoading, setGeoLoading] = useState(true);
 
+  const [showReportMenu, setShowReportMenu] = useState(false);
+  const reportMenuRef = useRef<HTMLDivElement | null>(null);
+  const [reportDetails, setReportDetails] = useState("");
+
   const popupRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -45,6 +50,27 @@ const EventDetailPage: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showAttendeesPopup]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (reportMenuRef.current && !reportMenuRef.current.contains(e.target as Node)) {
+        setShowReportMenu(false);
+      }
+    };
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowReportMenu(false);
+    };
+
+    if (showReportMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEsc);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [showReportMenu]);
+
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -80,51 +106,51 @@ const EventDetailPage: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-  if (!event) {
-    return;
-  }
+    if (!event) {
+      return;
+    }
 
-  // If event already has coordinates, set them & mark loading done
-  if (event.lat != null && event.lng != null) {
-    setCoords([event.lat, event.lng]);
-    return;
-  }
+    // If event already has coordinates, set them & mark loading done
+    if (event.lat != null && event.lng != null) {
+      setCoords([event.lat, event.lng]);
+      return;
+    }
 
-  if (event.location) {
+    if (event.location) {
 
-    setGeoLoading(true);
+      setGeoLoading(true);
 
-    fetch(`${baseUrl}?format=json&q=${encodeURIComponent(event.location)}`, {
-      headers: {
-        'User-Agent': `CityPulse/${appVersion} (${contactEmail})`,
-      },
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Geocoding API error: ${res.status} ${res.statusText}`);
-
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const text = await res.text();
-          console.error('Non-JSON response from geocoding API:', text);
-          throw new Error('Unexpected response from geocoding API');
-        }
-
-        return res.json();
+      fetch(`${baseUrl}?format=json&q=${encodeURIComponent(event.location)}`, {
+        headers: {
+          'User-Agent': `CityPulse/${appVersion} (${contactEmail})`,
+        },
       })
-      .then((geoData) => {
-        if (Array.isArray(geoData) && geoData.length > 0) {
-          setCoords([parseFloat(geoData[0].lat), parseFloat(geoData[0].lon)]);
-        } else {
-          console.warn('No geocoding results found');
-          setCoords(null);  // Make sure coords is null if none found
-        }
-      })
-      .catch((err) => {
-        console.error('Geocoding error:', err);
-        setCoords(null);
-      })
-  }
-}, [event]);
+        .then(async (res) => {
+          if (!res.ok) throw new Error(`Geocoding API error: ${res.status} ${res.statusText}`);
+
+          const contentType = res.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            const text = await res.text();
+            console.error('Non-JSON response from geocoding API:', text);
+            throw new Error('Unexpected response from geocoding API');
+          }
+
+          return res.json();
+        })
+        .then((geoData) => {
+          if (Array.isArray(geoData) && geoData.length > 0) {
+            setCoords([parseFloat(geoData[0].lat), parseFloat(geoData[0].lon)]);
+          } else {
+            console.warn('No geocoding results found');
+            setCoords(null);  // Make sure coords is null if none found
+          }
+        })
+        .catch((err) => {
+          console.error('Geocoding error:', err);
+          setCoords(null);
+        })
+    }
+  }, [event]);
 
 
   function Recenter({ coords }: { coords: [number, number] | null }) {
@@ -191,6 +217,35 @@ const EventDetailPage: React.FC = () => {
   };
 
 
+  const handleVote = async (value: number) => {
+  if (!id || !user) return;
+
+  try {
+    // Send vote to backend
+    await apiClient.voteOnEvent(id, value);
+
+    // Update local event state
+    setEvent((prev) => {
+      if (!prev) return prev;
+
+      // Ensure votes array exists
+      const votes = prev.votes ? [...prev.votes] : [];
+
+      // Remove any previous vote by this user
+      const filteredVotes = votes.filter((v) => v.userId !== user.id);
+
+      // Add new vote
+      filteredVotes.push({ userId: user.id, value });
+
+      return {
+        ...prev,
+        votes: filteredVotes,
+      };
+    });
+  } catch (err) {
+    console.error("Failed to vote:", err);
+  }
+};
 
 
   if (loading) {
@@ -210,9 +265,46 @@ const EventDetailPage: React.FC = () => {
   }
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+      {/* Report Event */}
+      {isAuthenticated() && (
+        <ReportButton id={event.id} />
+      )}
+
       {/* Event Title */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <h1 className="text-3xl font-bold text-gray-800">{event.title}</h1>
+
+
+        {/* Voting */}
+        <div className="flex items-center justify-center gap-3 mt-6">
+          {isAuthenticated() ? (
+            <>
+              <button
+                onClick={() => handleVote(1)}
+                className="p-2 rounded-full bg-gray-100 hover:bg-green-100 transition"
+                title="Upvote"
+              >
+                <span className="text-green-600 text-xl">👍</span>
+              </button>
+
+              <span className="text-lg font-bold text-gray-800">
+                {event.votes?.reduce((sum, v) => sum + v.value, 0) || 0}
+              </span>
+
+              <button
+                onClick={() => handleVote(-1)}
+                className="p-2 rounded-full bg-gray-100 hover:bg-red-100 transition"
+                title="Downvote"
+              >
+                <span className="text-red-600 text-xl">👎</span>
+              </button>
+            </>
+          ) : (
+            <span className="text-lg font-semibold text-gray-700">
+              {event.votes?.reduce((sum, v) => sum + v.value, 0) || 0} votes
+            </span>
+          )}
+        </div>
 
         {event.creator && (
           <div className="flex items-center space-x-3 bg-gray-100 px-3 py-2 rounded-lg shadow-sm">
@@ -282,10 +374,10 @@ const EventDetailPage: React.FC = () => {
 
       <div className="mt-6 relative w-full h-64 rounded-lg shadow">
         {geoLoading && (
-    <div className="absolute inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
-      <p className="text-white text-xl font-bold">Loading map coordinates...</p>
-    </div>
-  )}
+          <div className="absolute inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
+            <p className="text-white text-xl font-bold">Loading map coordinates...</p>
+          </div>
+        )}
         <MapContainer
           center={coords ?? [52.52, 13.405]}  // Berlin fallback
           zoom={13}                           // Fixed zoom, no zoom change on coords update

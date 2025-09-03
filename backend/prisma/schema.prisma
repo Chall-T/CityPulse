@@ -120,13 +120,14 @@ enum ReportReason {
   INAPPROPRIATE
   HARASSMENT
   MISINFORMATION
-  OTHER // use this to enable the custom reason
+  OTHER
 }
 
 
 model Report {
   id           String    @id @default(cuid())
-  reason       String    // Can store enum value or custom string
+  reason       ReportReason
+  details      String?
   createdAt    DateTime  @default(now())
 
   // Reporter

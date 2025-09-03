@@ -330,6 +330,11 @@ router.get('/:eventId/rsvps', authenticate, rsvpController.getRSVPsOfEvent);
  */
 router.delete('/:eventId/rsvps', authenticate, rsvpController.deleteRSVPByEvent);
 
+router.post('/:eventId/vote', authenticate, eventController.voteOnEvent);
+
+router.post('/:eventId/report', authenticate, eventController.reportEvent);
+
+
 /**
  * @swagger
  * /events:
