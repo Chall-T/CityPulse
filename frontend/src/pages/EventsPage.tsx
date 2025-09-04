@@ -10,9 +10,6 @@ const EventPage: React.FC = () => {
   return (
     <main className="max-w-7xl mx-auto px-4 py-10">
       {/* Title */}
-      <p className="gritty-text text-green-600 text-2xl font-bold font-body">
-        Gritty Text!
-      </p>
       <h1 className="text-4xl font-bold text-center mb-10">Find and Discover Events</h1>
 
       <EventFilters />

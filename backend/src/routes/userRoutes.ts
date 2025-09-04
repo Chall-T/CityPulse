@@ -2,7 +2,6 @@ import express from 'express';
 import * as userController from '../controllers/userController';
 import * as rsvpController from '../controllers/rsvpController';
 import { authenticate, authorizeSelf } from '../middleware/authMiddleware';
-import { authorizeRoles } from '../middleware/roleMiddleware';
 const router = express.Router();
 
 
@@ -35,30 +34,6 @@ router.get('/me', authenticate, userController.returnLoggedInUser);
  *         description: User not found
  */
 router.get('/:userId/rsvps', authenticate, authorizeSelf, rsvpController.getRSVPsOfUser);
-
-/**
- * @swagger
- * /users/{userId}:
- *   get:
- *     summary: Get user by ID
- *     tags: [Users]
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: User details
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       404:
- *         description: User not found
- */
-router.get('/:userId', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), userController.getUser);
 
 /**
  * @swagger
@@ -100,28 +75,6 @@ router.get('/:userId', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), userC
  *         description: User not found
  */
 router.patch('/:userId', authenticate, authorizeSelf, userController.updateUser);
-
-/**
- * @swagger
- * /users/{userId}:
- *   delete:
- *     summary: Delete a post
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       204:
- *         description: Post deleted successfully
- *       500:
- *         description: Failed to delete post
- */
-router.delete('/:userId', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), userController.deleteUser);
 
 
 export default router;

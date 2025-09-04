@@ -2,7 +2,6 @@ import express from 'express';
 import * as eventController from '../controllers/eventController';
 import * as rsvpController from '../controllers/rsvpController';
 import { authenticate, authorizeEventOwner } from '../middleware/authMiddleware';
-import { authorizeRoles } from '../middleware/roleMiddleware';
 const router = express.Router();
 
 /**
@@ -139,27 +138,6 @@ router.get('/:eventId', eventController.getEvent);
 
 router.patch('/:eventId', authenticate, authorizeEventOwner, eventController.updateEvent);
 
-/**
- * @swagger
- * /event/{eventId}:
- *   delete:
- *     summary: Delete a event
- *     tags: [Events]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: eventId
- *         required: true
- *         schema:
- *           type: integer
- *     responses:
- *       204:
- *         description: Post deleted successfully
- *       500:
- *         description: Failed to delete event
- */
-router.delete('/:eventId', authenticate, authorizeRoles('ADMIN', 'MODERATOR'), eventController.deleteEvent);
 
 /**
 * @swagger

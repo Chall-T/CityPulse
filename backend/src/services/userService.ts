@@ -50,3 +50,7 @@ export const updateUser = async (id: string, userUpdateData: Prisma.UserUpdateIn
 export const deleteUser = async (id: string) => {
   return prisma.user.delete({ where: { id } });
 };
+
+export const getAllUsers = async () => {
+    return prisma.user.findMany();
+};

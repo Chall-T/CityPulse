@@ -40,6 +40,7 @@ export const useAuthStore = create<AuthStore>()(
             username: user.username,
             avatarUrl: user.avatarUrl,
             bio: user.bio,
+            role: user.role,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
           };

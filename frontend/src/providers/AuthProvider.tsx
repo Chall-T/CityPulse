@@ -61,3 +61,25 @@ export function PublicOnlyRoute({ children }: PublicRouteProps) {
 
   return children;
 }
+
+type RoleRouteProps = {
+  children: ReactNode;
+  allowedRoles: string[];
+};
+
+/**
+ * Restricts access based on user role
+ */
+export function RoleRoute({ children, allowedRoles }: RoleRouteProps) {
+  const { user } = useAuthStore();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}

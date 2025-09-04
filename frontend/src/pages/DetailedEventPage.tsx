@@ -433,7 +433,13 @@ const EventDetailPage: React.FC = () => {
       {event.rsvps && event.rsvps.length > 0 && (
         <div className="flex justify-center">
           <button
-            onClick={() => setShowAttendeesPopup(true)}
+            onClick={() => {
+              if (!isAuthenticated()) {
+                navigate('/login');
+                return;
+              }
+              setShowAttendeesPopup(true);
+            }}
             className="text-blue-600 underline hover:text-blue-800"
           >
             See who's coming ({event.rsvps.length})

@@ -6,7 +6,8 @@
     "start": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "build": "tsc",
-    "prisma:seed": "ts-node-dev prisma/seed.ts"
+    "prisma:seed": "ts-node-dev prisma/seed.ts",
+    "prisma:admin": "npx ts-node prisma/promoteAdmin.ts"
   },
   "keywords": [],
   "author": "",

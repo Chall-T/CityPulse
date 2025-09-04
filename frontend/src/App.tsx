@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { PrivateOnlyRoute, PublicOnlyRoute } from './providers/AuthProvider';
+import { PrivateOnlyRoute, PublicOnlyRoute, RoleRoute } from './providers/AuthProvider';
 import { useEffect } from "react";
 import { cleanAllExpiredCaches } from "./utils/cleanupExpiredCache";
 import { useAuthStore } from './store/authStore';
@@ -15,6 +15,9 @@ import EditEventPage from './pages/EditEventPage';
 import LoginPage from './pages/LoginPage';
 import RegistrationPage from './pages/RegisterPage';
 import UserProfilePage from './pages/UserProfilePage';
+
+import AdminPanelPage from './pages/admin/AdminPanelPage';
+import ModeratorPanelPage from './pages/admin/ModeratorPanelPage';
 
 const App = () => {
   const user = useAuthStore(state => state.user);
@@ -45,14 +48,31 @@ const App = () => {
           <Route path="/events/:eventId/edit" element={
             <PrivateOnlyRoute>
               <EditEventPage />
-            </PrivateOnlyRoute>} 
-            />
+            </PrivateOnlyRoute>}
+          />
           <Route path="/events/create" element={
             <PrivateOnlyRoute>
               <CreateEventPage />
-            </PrivateOnlyRoute>} 
-            />
-          <Route path='/' element={<Navigate to="/events" replace />}/>
+            </PrivateOnlyRoute>}
+          />
+          <Route path='/' element={<Navigate to="/events" replace />} />
+
+          <Route path="/admin" element={
+            <PrivateOnlyRoute>
+              <RoleRoute allowedRoles={['ADMIN']}>
+                <AdminPanelPage />
+              </RoleRoute>
+            </PrivateOnlyRoute>
+          } />
+
+          <Route path="/moderator" element={
+            <PrivateOnlyRoute>
+              <RoleRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ModeratorPanelPage />
+              </RoleRoute>
+            </PrivateOnlyRoute>
+          } />
+
         </Routes>
       </Layout>
     </div>

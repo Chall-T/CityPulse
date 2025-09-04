@@ -14,6 +14,7 @@ export type User = {
   username: string;
   avatarUrl: string | null;
   bio: string | null;
+  role: "USER" | "MODERATOR" | "ADMIN";
   createdAt: string;
   updatedAt: string;
   rsvps: Rsvps[];
@@ -32,6 +33,7 @@ export type SafeUser = {
   username: string;
   avatarUrl: string | null;
   bio: string | null;
+  role: "USER" | "MODERATOR" | "ADMIN";
   createdAt: string;
   updatedAt: string;
 }

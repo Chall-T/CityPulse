@@ -326,6 +326,32 @@ class ApiClient {
       cacheable: false,
     });
   }
+  async adminGetAllUsers() {
+    return this.requestWithCache('get', `/admin/users`, {
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminUpdateUserRole(userId: string, role: string) {
+    return this.requestWithCache('patch', `/admin/users/${userId}/role`, {
+      data: { role },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminReportedContent() {
+    return this.requestWithCache('get', `/mod/reports`, {
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminTakeActionOnReport(reportId: string, moderatorId: string, actionTaken: string) {
+    return this.requestWithCache('patch', `/mod/reports`, {
+      data: { reportId, moderatorId, actionTaken },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -8,6 +8,10 @@ interface AuthRequest extends Request {
     userId: string;
 }
 
+export const getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const users = await userService.getAllUsers();
+    res.json(users);
+});
 
 export const getUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const user = await userService.getUserById(req.params.userId);
