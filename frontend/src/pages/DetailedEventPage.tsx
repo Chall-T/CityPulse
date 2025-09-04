@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactDOM from 'react-dom/client';
 import { useParams } from 'react-router-dom';
 import { apiClient } from '../lib/ApiClient';
@@ -23,6 +24,7 @@ const EventDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const navigate = useNavigate();
   const [newMessage, setNewMessage] = useState('');
   const { isAuthenticated, user } = useAuthStore();
   const [attendanceStatus, setAttendanceStatus] = useState<boolean>(false);
@@ -218,34 +220,37 @@ const EventDetailPage: React.FC = () => {
 
 
   const handleVote = async (value: number) => {
-  if (!id || !user) return;
+    if (isAuthenticated() === false) {
+      navigate('/login');
+    }
+    if (!id || !user) return;
 
-  try {
-    // Send vote to backend
-    await apiClient.voteOnEvent(id, value);
+    try {
+      // Send vote to backend
+      await apiClient.voteOnEvent(id, value);
 
-    // Update local event state
-    setEvent((prev) => {
-      if (!prev) return prev;
+      // Update local event state
+      setEvent((prev) => {
+        if (!prev) return prev;
 
-      // Ensure votes array exists
-      const votes = prev.votes ? [...prev.votes] : [];
+        // Ensure votes array exists
+        const votes = prev.votes ? [...prev.votes] : [];
 
-      // Remove any previous vote by this user
-      const filteredVotes = votes.filter((v) => v.userId !== user.id);
+        // Remove any previous vote by this user
+        const filteredVotes = votes.filter((v) => v.userId !== user.id);
 
-      // Add new vote
-      filteredVotes.push({ userId: user.id, value });
+        // Add new vote
+        filteredVotes.push({ userId: user.id, value });
 
-      return {
-        ...prev,
-        votes: filteredVotes,
-      };
-    });
-  } catch (err) {
-    console.error("Failed to vote:", err);
-  }
-};
+        return {
+          ...prev,
+          votes: filteredVotes,
+        };
+      });
+    } catch (err) {
+      console.error("Failed to vote:", err);
+    }
+  };
 
 
   if (loading) {
@@ -265,20 +270,30 @@ const EventDetailPage: React.FC = () => {
   }
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-      {/* Report Event */}
-      {isAuthenticated() && (
-        <ReportButton id={event.id} />
-      )}
 
       {/* Event Title */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <h1 className="text-3xl font-bold text-gray-800 max-w-[50%] break-words">{event.title}</h1>
+        <h1 className="text-5xl font-bold text-gray-800 max-w-[100%] break-words">{event.title}</h1>
+      </div>
 
-
+      {/* Report Event */}
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-center justify-between gap-4">
+        {event.creator && (
+          <div className="flex items-center space-x-3 rounded-lg ">
+            <UserProfileIcon
+              avatarUrl={event.creator.avatarUrl}
+              username={event.creator.username}
+              onClick={() => console.log('Creator profile clicked')}
+            />
+            <div>
+              <p className="text-gray-800 font-medium">{event.creator.name}</p>
+              <p className="text-gray-500 text-sm">@{event.creator.username}</p>
+            </div>
+          </div>
+        )}
         {/* Voting */}
-        <div className="flex items-center justify-center gap-3 mt-6">
-          {isAuthenticated() ? (
-            <>
+        <div className="flex items-center justify-center gap-3 mt-6 ">
+
               <button
                 onClick={() => handleVote(1)}
                 className="p-2 rounded-full bg-gray-100 hover:bg-green-100 transition"
@@ -298,28 +313,15 @@ const EventDetailPage: React.FC = () => {
               >
                 <span className="text-red-600 text-xl">👎</span>
               </button>
-            </>
-          ) : (
-            <span className="text-lg font-semibold text-gray-700">
-              {event.votes?.reduce((sum, v) => sum + v.value, 0) || 0} votes
-            </span>
-          )}
-        </div>
 
-        {event.creator && (
-          <div className="flex items-center space-x-3 bg-gray-100 px-3 py-2 rounded-lg shadow-sm">
-            <UserProfileIcon
-              avatarUrl={event.creator.avatarUrl}
-              username={event.creator.username}
-              onClick={() => console.log('Creator profile clicked')}
-            />
-            <div>
-              <p className="text-gray-800 font-medium">{event.creator.name}</p>
-              <p className="text-gray-500 text-sm">@{event.creator.username}</p>
-            </div>
-          </div>
+
+        </div>
+        {isAuthenticated() && (
+          <ReportButton id={event.id} />
         )}
+
       </div>
+    
 
       {/* Event Image */}
       <div className="w-full max-w-4xl mx-auto mb-6">
@@ -336,7 +338,7 @@ const EventDetailPage: React.FC = () => {
       </div>
 
       {/* Event Description */}
-      <p className="text-gray-700 leading-relaxed">{event.description}</p>
+      <p className="text-gray-700 leading-relaxed whitespace-pre-line">{event.description}</p>
 
       {/* Date & Time */}
       <p className="text-gray-600">
@@ -410,10 +412,10 @@ const EventDetailPage: React.FC = () => {
             }
             className={`px-5 py-2 rounded-full font-medium transition ${attendanceStatus === true
               ? "bg-green-600 text-white cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
+              : "bg-gray-300 text-gray-800 hover:bg-gray-400"
               }`}
           >
-            I'll be there
+            I'LL BE THERE
           </button>
 
           <button
@@ -424,7 +426,7 @@ const EventDetailPage: React.FC = () => {
               : "bg-gray-300 text-gray-800 hover:bg-gray-400"
               }`}
           >
-            I won't be there
+            NOPE
           </button>
         </div>
       )}

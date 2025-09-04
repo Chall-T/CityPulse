@@ -4,7 +4,7 @@ import type { SafeUser } from '../types/user';
 
 const Layout = ({ children, user }: { children: React.ReactNode, user: SafeUser | null }) => {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <NavBar />
       <main
         key={user?.id ?? 'guest'} 

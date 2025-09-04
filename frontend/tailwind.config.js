@@ -6,8 +6,16 @@ export default {
     './src/**/*.{js,ts,jsx,tsx}',
     'node_modules/preline/dist/*.js',
   ],
-  theme: { extend: {} },
+  theme: {
+    extend: {
+      fontFamily: {
+        headline: ["Oswald", "sans-serif"], // posters
+        body: ["Inter", "sans-serif"],      // clean body text
+      }
+    }
+  },
   plugins: [require('@tailwindcss/forms'),
-    
+
   ],
 };
+
