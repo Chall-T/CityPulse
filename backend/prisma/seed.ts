@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma  } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { createCategory } from '../src/services/categoryService';
 import { register } from '../src/services/authService';
 import { createEvent } from '../src/services/eventService';
@@ -6,78 +6,57 @@ const prisma = new PrismaClient();
 
 async function main() {
   const categoriesData = [
-  { name: 'Music', emoji: '🎵' },
-  { name: 'Art', emoji: '🎨' },
-  { name: 'Tech', emoji: '💻' },
-  { name: 'Sports', emoji: '🏀' },
-  { name: 'Education', emoji: '📚' },
-  { name: 'Health', emoji: '💪' },
-  { name: 'Food & Drink', emoji: '🍕' },
-  { name: 'Networking', emoji: '🤝' },
-  { name: 'Business', emoji: '💼' },
-  { name: 'Travel', emoji: '✈️' },
-  { name: 'Fashion', emoji: '👗' },
-  { name: 'Comedy', emoji: '😂' },
-  { name: 'Gaming', emoji: '🎮' },
-  { name: 'Fitness', emoji: '🏋️' },
-  { name: 'Science', emoji: '🔬' },
-  { name: 'Theatre', emoji: '🎭' },
-  { name: 'Writing', emoji: '✍️' },
-  { name: 'Movies', emoji: '🎬' },
-  { name: 'Dance', emoji: '💃' },
-  { name: 'Photography', emoji: '📸' },
-  { name: 'Nature', emoji: '🌿' },
-  { name: 'History', emoji: '🏛️' },
-  { name: 'Spirituality', emoji: '🧘' },
-  { name: 'Pets & Animals', emoji: '🐶' },
-  { name: 'Volunteering', emoji: '🙌' },
-  { name: 'Environment', emoji: '🌎' },
-  { name: 'Startup', emoji: '🚀' },
-  { name: 'Politics', emoji: '🏛️' },
-  { name: 'Parenting', emoji: '🍼' },
-  { name: 'Relationships', emoji: '❤️' },
-  { name: 'Mental Health', emoji: '🧠' },
-  { name: 'Crafts & DIY', emoji: '🧵' },
-  { name: 'Cars & Motorsports', emoji: '🏎️' },
-  { name: 'Books & Literature', emoji: '📖' },
-  { name: 'Astronomy', emoji: '🌌' },
-  { name: 'Finance', emoji: '💰' },
-  { name: 'Coding', emoji: '👨‍💻' },
-  { name: 'Language Learning', emoji: '🗣️' },
-  { name: 'Board Games', emoji: '🎲' },
-  { name: 'BBQ & Grill Parties', emoji: '🔥' },
-  { name: 'House Parties', emoji: '🏠' },
-  { name: 'Game Nights', emoji: '🎲' },
-  { name: 'Coffee Meetups', emoji: '☕' },
-  { name: 'Picnics in the Park', emoji: '🧺' },
-  { name: 'Potlucks', emoji: '🍲' },
-  { name: 'Wine & Cheese Nights', emoji: '🍷' },
-  { name: 'Birthday Parties', emoji: '🎂' },
-  { name: 'Dance Gatherings', emoji: '🕺' },
-  { name: 'Live Music Jams', emoji: '🎶' },
-  { name: 'Book Clubs', emoji: '📖' },
-  { name: 'Craft Nights', emoji: '🎨' },
-  { name: 'Outdoor Chillouts', emoji: '🌅' },
-  { name: 'Karaoke Nights', emoji: '🎤' },
-  { name: 'Neighborhood Hangouts', emoji: '🏘️' },
-  { name: 'Board Game Nights', emoji: '♟️' },
-  { name: 'Study Groups', emoji: '📚' },
-  { name: 'Yoga in the Park', emoji: '🧘‍♀️' },
-  { name: 'Chill & Talk', emoji: '🛋️' },
-  { name: 'Campfire Circles', emoji: '🔥' },
-  { name: 'Pet Playdates', emoji: '🐾' },
-  { name: 'Movie Nights', emoji: '🎬' },
-  { name: 'Singles Mixers', emoji: '💞' },
-  { name: 'Sober Socials', emoji: '💧' },
-  { name: 'Themed Costume Parties', emoji: '🥸' },
-  { name: 'Food Tastings', emoji: '🍽️' },
-  { name: 'Cultural Potlucks', emoji: '🍱' },
-  { name: 'Trivia Nights', emoji: '🧠' },
-  { name: 'Startup Lounges', emoji: '🍻' },
-  { name: 'Lawn Games', emoji: '🏸' },
-  { name: 'Open Mic Nights', emoji: '🎙️' }
-];
-const categories = [];
+    { name: 'Street Food', emoji: '🍜' },
+    { name: 'Café Crawl', emoji: '☕' },
+    { name: 'Beer Garden', emoji: '🍻' },
+    { name: 'Wine Bar', emoji: '🍷' },
+    { name: 'Cocktail Evening', emoji: '🍸' },
+
+    { name: 'Music', emoji: '🎵' },
+    { name: 'Jazz', emoji: '🎷' },
+    { name: 'Karaoke', emoji: '🎤' },
+    { name: 'Stand-up Comedy', emoji: '😂' },
+
+    { name: 'Gallery', emoji: '🖼️' },
+    { name: 'Street Art', emoji: '🎨' },
+    { name: 'Exhibition', emoji: '🖌️' },
+    { name: 'DIY Workshop', emoji: '🛠️' },
+
+    { name: 'Movie', emoji: '🎬' },
+    { name: 'Cinema', emoji: '📽️' },
+
+    { name: 'Tempelhofer Feld Hangout', emoji: '🛩️' },
+    { name: 'Park Picnic & Grill', emoji: '🌭' },
+    { name: 'Bike Ride', emoji: '🚴' },
+    { name: 'Yoga in the Park', emoji: '🧘' },
+
+    { name: 'Flea Market', emoji: '🛍️' },
+
+    { name: 'Small Club Night', emoji: '🎶' },
+    { name: 'Underground Party', emoji: '🎛️' },
+    { name: 'Techno Party', emoji: '🔊' },
+    { name: 'Themed Party & Rave', emoji: '🕺' },
+    { name: 'LGBTQ+ Night & Queer Space', emoji: '🏳️‍🌈' },
+    { name: 'Dance Social', emoji: '💃' },
+    { name: 'Chill-Out Space', emoji: '🌙' },
+
+    { name: 'Walking Tour', emoji: '🚶' },
+    { name: 'Underground Berlin', emoji: '🚇' },
+
+    { name: 'Festival', emoji: '🎉' },
+    { name: 'Community Meetup', emoji: '🤝' },
+
+    { name: 'Board Game', emoji: '🎲' },
+    { name: 'Trivia', emoji: '❓' },
+    { name: 'Video Game', emoji: '🎮' },
+    { name: 'Tabletop', emoji: '🐉' },
+    { name: 'Puzzles', emoji: '🗝️' },
+
+    { name: 'Boat Party', emoji: '🚤' },
+    { name: 'Rooftop Bar', emoji: '🌇' },
+    { name: 'Experimental Performances', emoji: '🎭' },
+  ]
+  const categories = [];
   for (const catData of categoriesData) {
     const category = await createCategory(catData.name, catData.emoji);
     categories.push(category);
@@ -137,7 +116,7 @@ const categories = [];
       creator: { connect: { id: user.id } },
       categories: {
         connect: [{ id: categories.find((c) => c.name === 'Sports')!.id },
-            { id: categories.find((c) => c.name === 'Health')!.id },
+        { id: categories.find((c) => c.name === 'Health')!.id },
 
         ],
       },
@@ -151,9 +130,9 @@ const categories = [];
       creator: { connect: { id: user.id } },
       categories: {
         connect: [{ id: categories.find((c) => c.name === 'Board Games')!.id },
-            { id: categories.find((c) => c.name === 'Gaming')!.id },
-            { id: categories.find((c) => c.name === 'Education')!.id },
-            { id: categories.find((c) => c.name === 'Networking')!.id },
+        { id: categories.find((c) => c.name === 'Gaming')!.id },
+        { id: categories.find((c) => c.name === 'Education')!.id },
+        { id: categories.find((c) => c.name === 'Networking')!.id },
         ],
       },
     },
