@@ -108,7 +108,7 @@ async function main() {
       imageUrl: 'https://www.laartshow.com/wp-content/uploads/20190127-la-artshow-19-1179.jpg',
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: getCategoryId('Art')}],
+        connect: [{ id: getCategoryId('Street Art')}],
       },
     },
     {
@@ -119,8 +119,8 @@ async function main() {
       imageUrl: 'https://wmimg.azureedge.net/public/img/marathons/bmw-berlin-marathon/bDMIHP_bmw-berlin-marathon.jpg?c=1504021533',
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: getCategoryId('Sports') },
-        { id: getCategoryId('Health')!.id },
+        connect: [{ id: getCategoryId('Bike Ride') },
+        { id: getCategoryId('Chill-Out Space')!.id },
 
         ],
       },
@@ -133,10 +133,10 @@ async function main() {
 
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: getCategoryId('Board Games') },
-        { id: getCategoryId('Gaming') },
-        { id: getCategoryId('Education') },
-        { id: getCategoryId('Networking') },
+        connect: [{ id: getCategoryId('Tabletop') },
+        { id: getCategoryId('Board Game') },
+        { id: getCategoryId('Rooftop Bar') },
+        { id: getCategoryId('Puzzles') },
         ],
       },
     },
