@@ -1,6 +1,6 @@
 services:
   db:
-    image: 'postgres:16.9'
+    image: postgres:16.9
     container_name: citypulse-db
     restart: always
     ports:
@@ -12,5 +12,15 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  backend:
+    build: .
+    command: sh -c "npx prisma migrate deploy && npm start"
+    environment:
+      DATABASE_URL: "postgresql://postgres:51PJtN7Nv4uF53Lc@db:5432/citypulse?schema=public"
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+
 volumes:
-  pgdata: {}
+  pgdata:

@@ -56,7 +56,7 @@ async function main() {
     { name: 'Rooftop Bar', emoji: '🌇' },
     { name: 'Experimental Performances', emoji: '🎭' },
   ]
-  const categories = [];
+  const categories: any[] = [];
   for (const catData of categoriesData) {
     const category = await createCategory(catData.name, catData.emoji);
     categories.push(category);
@@ -83,7 +83,11 @@ async function main() {
     throw new Error('User creation failed');
   }
   console.log(`User id: ${user.id}`);
-
+  const getCategoryId = (name: string) => {
+    const cat = categories.find(c => c.name === name);
+    if (!cat) throw new Error(`Category "${name}" not found`);
+    return cat.id;
+  };
   const eventsData: Prisma.EventCreateInput[] = [
     {
       title: 'Summer Music Fest',
@@ -93,7 +97,7 @@ async function main() {
       imageUrl: 'https://www.icmp.ac.uk/sites/default/files/styles/page_background/public/slider-image/festival_1.jpg?itok=znbQfiko',
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: categories.find((c) => c.name === 'Music')!.id }],
+        connect: [{ id: getCategoryId('Music')}],
       },
     },
     {
@@ -104,7 +108,7 @@ async function main() {
       imageUrl: 'https://www.laartshow.com/wp-content/uploads/20190127-la-artshow-19-1179.jpg',
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: categories.find((c) => c.name === 'Art')!.id }],
+        connect: [{ id: getCategoryId('Art')}],
       },
     },
     {
@@ -115,8 +119,8 @@ async function main() {
       imageUrl: 'https://wmimg.azureedge.net/public/img/marathons/bmw-berlin-marathon/bDMIHP_bmw-berlin-marathon.jpg?c=1504021533',
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: categories.find((c) => c.name === 'Sports')!.id },
-        { id: categories.find((c) => c.name === 'Health')!.id },
+        connect: [{ id: getCategoryId('Sports') },
+        { id: getCategoryId('Health')!.id },
 
         ],
       },
@@ -129,10 +133,10 @@ async function main() {
 
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: categories.find((c) => c.name === 'Board Games')!.id },
-        { id: categories.find((c) => c.name === 'Gaming')!.id },
-        { id: categories.find((c) => c.name === 'Education')!.id },
-        { id: categories.find((c) => c.name === 'Networking')!.id },
+        connect: [{ id: getCategoryId('Board Games') },
+        { id: getCategoryId('Gaming') },
+        { id: getCategoryId('Education') },
+        { id: getCategoryId('Networking') },
         ],
       },
     },
