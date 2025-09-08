@@ -35,13 +35,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use('/api/auth', authRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/rsvps', rsvpRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api', otherRoutes);
+app.use('/auth', authRoutes);
+app.use('/events', eventRoutes);
+app.use('/rsvps', rsvpRoutes);
+app.use('/categories', categoryRoutes);
+app.use('/users', userRoutes);
+app.use('/admin', adminRoutes);
+app.use('/', otherRoutes);
 
 
 // Global error handler
