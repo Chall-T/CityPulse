@@ -1,6 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import rateLimit, { RateLimitRequestHandler, RateLimitExceededEventHandler } from 'express-rate-limit';
 import { AppError, ErrorCodes } from '../utils/errorHandler';
+import { getUserById } from '../services/userService';
+
+
 
 const handleRateLimit: RateLimitExceededEventHandler = (
   req: Request,
@@ -33,4 +36,24 @@ export const authLimiter = rateLimit({
   handler: handleRateLimit,
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false,  // Disable the `X-RateLimit-*` headers
+});
+
+
+
+
+
+export const eventCreationLimiter: RateLimitRequestHandler = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 5,
+  message: 'Too many event creation attempts, please try again later.',
+  handler: handleRateLimit,
+  standardHeaders: true,
+  legacyHeaders: false,
+
+  // limits BOTH IP and user/account ID
+  keyGenerator: (req: Request) => {
+    const userId = (req as any).userId;
+    const ip = req.ip;
+    return `${userId}-${ip}`;
+  },
 });

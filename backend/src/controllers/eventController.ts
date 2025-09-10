@@ -73,6 +73,7 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
             event: { connect: { id: event.id } },
         });
     }
+    (res as any).incrementEventCount?.();
     res.status(201).json(event);
 });
 
