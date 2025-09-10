@@ -1,7 +1,7 @@
 import express from 'express';
 import * as authController from '../controllers/authController';
 import passport from 'passport';
-
+import { authLimiter } from '../middleware/rateLimiter';
 const router = express.Router();
 
 /**
@@ -33,7 +33,7 @@ const router = express.Router();
  *       500:
  *         description: Registration failed
  */
-router.post('/register', authController.register);
+router.post('/register', authLimiter, authController.register);
 
 /**
  * @swagger
@@ -68,7 +68,7 @@ router.post('/register', authController.register);
  *       401:
  *         description: Authentication failed
  */
-router.post('/login', authController.login);
+router.post('/login', authLimiter, authController.login);
 
 /**
  * @swagger
@@ -121,13 +121,14 @@ router.post('/login', authController.login);
  *                   type: string
  *                   example: "Internal server error"
  */
-router.post('/refresh', authController.refresh);
+router.post('/refresh', authLimiter, authController.refresh);
 
-router.post('/logout', authController.logout)
+router.post('/logout', authLimiter, authController.logout);
 
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/google', authLimiter, passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-router.get('/google/callback',
+router.get('/google/callback', 
+  authLimiter,
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   authController.googleCallback
 );

@@ -16,6 +16,7 @@ import { DB_URI, PORT } from "./utils/secrets";
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 
+import { generalLimiter } from './middleware/rateLimiter';
 
 const app = express();
 app.use(passport.initialize());
@@ -33,6 +34,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   logger.info(`${req.method} ${req.url}`);
   next();
 });
+
+app.use(generalLimiter);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/auth', authRoutes);

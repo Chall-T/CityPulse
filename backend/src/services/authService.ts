@@ -87,8 +87,8 @@ export const login = async (email: string, password: string) => {
   // if (!user) throw (new AppError("No password set", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid) {
-    logger.warn(`Login failed: Invalid login method for user - ${email}`);
-    throw new AppError('Invalid login method', 400, ErrorCodes.AUTH_WRONG_LOGIN_METHOD);
+    logger.warn(`Login failed: Invalid credentials for user - ${email}`);
+    throw new AppError('Invalid credentials', 400, ErrorCodes.AUTH_INVALID_PASSWORD);
   }
   const { accessToken, refreshToken } = generateAccessTokens(user.id, user.role);
 
