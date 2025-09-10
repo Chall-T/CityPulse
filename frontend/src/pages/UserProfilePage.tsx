@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Avatar, Button, Input } from 'rsuite';
+import { Button, Input } from 'rsuite';
 import { apiClient } from '../lib/ApiClient';
-import { useAuthStore } from '../store/authStore';
 import type { User, UpdateUser } from '../types/user';
 import type { Event } from '../types/event';
 import { EventCard } from '../components/EventCard';
 import Swal from 'sweetalert2'
+import UserProfileIcon from '../components/UserProfileIcon';
 
 const UserProfilePage: React.FC = () => {
     const navigate = useNavigate();
@@ -145,12 +145,7 @@ const UserProfilePage: React.FC = () => {
         <div className="max-w-3xl mx-auto px-4 py-10">
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex flex-col items-center mb-6">
-                    <Avatar
-                        circle
-                        size="lg"
-                        src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}&background=random`}
-                        className="mb-4"
-                    />
+                    <UserProfileIcon avatarUrl={user.avatarUrl} username={user.username} size={64} />
 
                     {editMode ? (
                         <>
