@@ -154,7 +154,7 @@ export const handleGoogleLogin = async (googleProfile: any) => {
       // Link Google account
       user = await prisma.user.update({
         where: { email },
-        data: { googleId, avatarUrl, name },
+        data: { googleId, avatarUrl, name, emailVerified: true },
       });
     } else {
       // Create new user
@@ -162,6 +162,7 @@ export const handleGoogleLogin = async (googleProfile: any) => {
         data: {
           id: `usr_${ulid()}`,
           email,
+          emailVerified: true,
           googleId,
           name,
           avatarUrl,
