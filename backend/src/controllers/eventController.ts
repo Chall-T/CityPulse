@@ -184,7 +184,7 @@ export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Resp
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
     const { cursor, limit, categoryIds, search, sort, fromDate, toDate } = req.query;
     let userLimit = 20;
-    let sortOrder: 'asc' | 'desc' = 'desc';
+    let sortOrder: 'asc' | 'desc' = 'asc';
     if (limit) {
         userLimit = parseInt(limit as string);
     }

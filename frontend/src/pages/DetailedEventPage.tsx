@@ -448,7 +448,7 @@ const EventDetailPage: React.FC = () => {
       )}
 
       {showAttendeesPopup && event.rsvps && (
-        <div className="fixed inset-0 z-1000 bg-black bg-opacity-10 flex items-center justify-center">
+        <div className="fixed inset-0 z-[1000] bg-black bg-opacity-10 flex items-center justify-center">
           <div
             ref={popupRef}
             className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto"

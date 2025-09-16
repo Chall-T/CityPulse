@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { Event } from '../types';
 import { CalendarDays, MapPin } from 'lucide-react';
-
+import { formatEventDate } from '../utils/date'
 export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
   return (
     <Link
@@ -37,7 +37,7 @@ export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
       <div className="text-sm text-gray-600 flex items-center gap-2 mb-1 truncate">
         <CalendarDays className="w-4 h-4 flex-shrink-0" />
         <span className="truncate">
-          {new Date(event.dateTime).toLocaleString()}
+          {formatEventDate(new Date(event.dateTime))}
         </span>
       </div>
 
