@@ -68,7 +68,7 @@ const EventFilters: React.FC = () => {
   // Local UI state
   const [localSearch, setLocalSearch] = useState<string>("");
   const [localSelectedCategories, setLocalSelectedCategories] = useState<string[]>([]);
-  const [localSort, setLocalSort] = useState<"desc" | "asc" | "score">("desc");
+  const [localSort, setLocalSort] = useState<"desc" | "asc" | "score">("asc");
   const [dateRange, setDateRange] = useState<[Date, Date] | null>(null);
   const [paramsLoaded, setParamsLoaded] = useState<string>("");
 
@@ -140,7 +140,7 @@ const EventFilters: React.FC = () => {
     if (localSelectedCategories.length)
       params.categoryIds = localSelectedCategories.join(",");
     if (localSearch.trim()) params.search = localSearch.trim();
-    if (localSort && localSort !== "desc") params.sort = localSort;
+    if (localSort && localSort !== "asc") params.sort = localSort;
     if (fromDate) params.fromDate = fromDate;
     if (toDate) params.toDate = toDate;
 
@@ -158,7 +158,7 @@ const EventFilters: React.FC = () => {
   const handleClear = () => {
     setLocalSearch("");
     setLocalSelectedCategories([]);
-    setLocalSort("desc");
+    setLocalSort("asc");
     setDateRange(null);
 
     reset();
@@ -168,7 +168,7 @@ const EventFilters: React.FC = () => {
     fetchEvents(true, {
       categoryIds: [],
       search: "",
-      sort: "desc",
+      sort: "asc",
       fromDate: "",
       toDate: "",
     });

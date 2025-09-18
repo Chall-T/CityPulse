@@ -35,7 +35,10 @@ const ReportButton: React.FC<{ id: string }> = ({ id }) => {
                 </button>
 
                 {showReportMenu && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-lg z-50 p-3 space-y-2">
+                    <div className="
+      absolute mt-2 w-64 bg-white border rounded-lg shadow-lg z-50 p-3 space-y-2
+      right-0 sm:right-0 sm:left-auto
+      left-1/2 -translate-x-1/2 sm:translate-x-0">
                         {!reportReason ? (
                             <>
                                 <p className="text-sm font-medium text-gray-700">Report this event:</p>
