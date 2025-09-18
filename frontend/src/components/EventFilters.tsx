@@ -68,7 +68,7 @@ const EventFilters: React.FC = () => {
   // Local UI state
   const [localSearch, setLocalSearch] = useState<string>("");
   const [localSelectedCategories, setLocalSelectedCategories] = useState<string[]>([]);
-  const [localSort, setLocalSort] = useState<"desc" | "asc">("desc");
+  const [localSort, setLocalSort] = useState<"desc" | "asc" | "score">("desc");
   const [dateRange, setDateRange] = useState<[Date, Date] | null>(null);
   const [paramsLoaded, setParamsLoaded] = useState<string>("");
 
@@ -77,7 +77,7 @@ const EventFilters: React.FC = () => {
 
     const urlCats = searchParams.get("categoryIds");
     const urlSearch = searchParams.get("search") || "";
-    const urlSort = (searchParams.get("sort") as "desc" | "asc") || "desc";
+    const urlSort = (searchParams.get("sort") as "desc" | "asc" | "score") || "desc";
     const urlFrom = searchParams.get("fromDate") || "";
     const urlTo = searchParams.get("toDate") || "";
 
@@ -216,11 +216,12 @@ const EventFilters: React.FC = () => {
           className="custom-picker-colour"
           data={[
             { label: "Newest First", value: "desc" },
-            { label: "Oldest First", value: "asc" }
+            { label: "Oldest First", value: "asc" },
+            { label: "Highest Score", value: "score" }
           ]}
           style={{ width: '100%', maxWidth: "100%", minWidth: 180 }}
           value={localSort}
-          onChange={(value) => setLocalSort(value as "desc" | "asc")}
+          onChange={(value) => setLocalSort(value as "desc" | "asc" | "score")}
           cleanable={false}
         />
         </div>
