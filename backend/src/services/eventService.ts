@@ -187,7 +187,7 @@ export const getEventsPaginatedWithFilters = async (
 
   return prisma.event.findMany({
 
-    orderBy: { createdAt: sortOrder },
+    orderBy: { dateTime: sortOrder },
     take: limit,
     ...(cursor && {
       skip: 1,
