@@ -134,7 +134,7 @@ export const getEventsPaginatedWithFilters = async (
   fetchCategories: boolean = true,
   categoryFilter: string[] = [],
   search: string = '',
-  sortOrder: 'desc' | 'asc' = 'desc',
+  sort: 'asc' | 'desc' | 'score' = 'desc',
   fromDate?: Date,
   toDate?: Date
 ) => {
@@ -168,26 +168,19 @@ export const getEventsPaginatedWithFilters = async (
   if (fromDate && toDate) {
     andFilters.push({
       dateTime: {
-        ...(fromDate && { gte: fromDate }),
-        ...(toDate && { lte: toDate }),
+        gte: fromDate,
+        lte: toDate,
       },
     });
   } else if (fromDate) {
     andFilters.push({
-      dateTime: {
-        ...(fromDate && { gte: fromDate }),
-      },
+      dateTime: { gte: fromDate },
     });
   }
 
-  const where: Prisma.EventWhereInput = {
-    AND: andFilters,
-  };
-
+  const where: Prisma.EventWhereInput = { AND: andFilters };
 
   return prisma.event.findMany({
-
-    orderBy: { dateTime: sortOrder },
     take: limit,
     ...(cursor && {
       skip: 1,
@@ -204,9 +197,17 @@ export const getEventsPaginatedWithFilters = async (
           avatarUrl: true,
         },
       },
+      _count: {
+        select: { votes: true },
+      },
     },
+    orderBy:
+      sort === 'score'
+        ? { votes: { _count: 'desc' } } // sort by total votes count
+        : { dateTime: sort },
   });
 };
+
 
 export const updateEvent = async (id: string, userUpdateData: Prisma.EventUpdateInput) => {
   return prisma.event.update({ where: { id }, data: userUpdateData });
