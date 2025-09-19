@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import type { Event } from '../types';
 import { CalendarDays, MapPin } from 'lucide-react';
 import { formatEventDate } from '../utils/date'
+import { apiClient } from '../lib/ApiClient';
+
+
 export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
   return (
     <Link
@@ -13,7 +16,7 @@ export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
       {/* Image wrapper with aspect ratio */}
       <div className="relative w-full aspect-[16/10] mb-4 rounded-xl overflow-hidden">
         <img
-          src={event.imageUrl || '/missingEvent.png'}
+          src={`${apiClient.baseURL}${event.imageUrl}` || '/missingEvent.png'}
           alt={event.title}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
           draggable={false}

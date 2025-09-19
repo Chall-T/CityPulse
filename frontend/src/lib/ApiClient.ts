@@ -19,6 +19,7 @@ type CachedResponse = {
 const CACHE_TTL = 5000; // 5 seconds
 
 class ApiClient {
+  public baseURL = config.apiUrl
   private api = axios.create({
     baseURL: config.apiUrl,
     withCredentials: false,

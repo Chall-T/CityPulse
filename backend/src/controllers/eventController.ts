@@ -9,6 +9,7 @@ import { isWithinBerlin } from "../utils/validators";
 import { isSafeURL } from '../utils/validators';
 import { EVENT_LIMITS } from '../config/limits';
 import { containsProfanity } from '../utils/profanityFilter';
+import { cacheImage } from '../utils/ImageCache';
 
 interface AuthRequest extends Request {
     userId: string;
@@ -58,7 +59,10 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
         categories: { connect: categoryIds.map((id: string) => ({ id })), },
         creator: { connect: { id: req.userId } },
     };
-    if (imageUrl && isSafeURL(imageUrl)) newEvent.imageUrl = imageUrl;
+    if (imageUrl && isSafeURL(imageUrl)) {
+        newEvent.imageUrl = await cacheImage(imageUrl);
+      }
+      
     if (capacity) newEvent.capacity = capacity;
 
 

@@ -7,6 +7,9 @@ import logger from '../utils/logger';
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { ulid } from 'ulid';
+
+import { cacheImage } from '../utils/ImageCache';
+
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -144,20 +147,20 @@ export const handleGoogleLogin = async (googleProfile: any) => {
   const name = googleProfile.displayName;
   const avatarUrl = googleProfile.photos[0].value;
 
-  // Find user by googleId
+  // Cache Google avatar
+  const cachedAvatarPath = await cacheImage(avatarUrl);
+
   let user = await prisma.user.findUnique({ where: { googleId } });
 
   if (!user) {
     user = await prisma.user.findUnique({ where: { email } });
 
     if (user) {
-      // Link Google account
       user = await prisma.user.update({
         where: { email },
-        data: { googleId, avatarUrl, name, emailVerified: true },
+        data: { googleId, avatarUrl: cachedAvatarPath, name, emailVerified: true },
       });
     } else {
-      // Create new user
       user = await prisma.user.create({
         data: {
           id: `usr_${ulid()}`,
@@ -165,7 +168,7 @@ export const handleGoogleLogin = async (googleProfile: any) => {
           emailVerified: true,
           googleId,
           name,
-          avatarUrl,
+          avatarUrl: cachedAvatarPath,
           username: await generateUsername(email, name),
         },
       });

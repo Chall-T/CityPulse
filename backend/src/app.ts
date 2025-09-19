@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import dotenv from 'dotenv';
+import path from "path";
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/authRoutes';
@@ -44,6 +44,8 @@ app.use('/rsvps', rsvpRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/users', userRoutes);
 app.use('/admin', adminRoutes);
+app.use("/cache", express.static(path.join(process.cwd(), "images", "cache")));
+app.use("/stock", express.static(path.join(process.cwd(), "images", "stock")));
 app.use('/', otherRoutes);
 
 

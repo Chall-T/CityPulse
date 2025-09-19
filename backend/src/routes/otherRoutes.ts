@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import { authenticate } from '../middleware/authMiddleware';
 import * as cheerio from 'cheerio';
 import { Readable } from 'stream';
+import { cacheImage } from '../utils/ImageCache';
+
 const SERVER_URL = process.env.SERVER_URL || 'http://localhost';
 const PORT = process.env.PORT || '1000';
 
@@ -16,31 +18,17 @@ router.get('/wikidata', authenticate, async (req, res) => {
 
 router.get('/image', async (req, res) => {
   const imageUrl = req.query.url as string;
-
-  if (!imageUrl) {
-    return res.status(400).send('Missing image URL');
-  }
+  if (!imageUrl) return res.status(400).send('Missing image URL');
 
   try {
-    const response = await fetch(imageUrl);
-
-    if (!response.ok || !response.body) {
-      return res.status(500).send('Failed to fetch image');
-    }
-
-    // Get content type
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    res.setHeader('Content-Type', contentType);
-
-    // 👉 Convert Web ReadableStream to Node Readable with `fromWeb()`
-    const nodeStream = Readable.fromWeb(response.body as any); // 👈 force it past the TS check
-
-    nodeStream.pipe(res);
-  } catch (error) {
-    console.error('Fetch failed:', error);
-    res.status(500).send('Server error');
+    const cachedPath = await cacheImage(imageUrl);
+    return res.redirect(cachedPath); // Let static middleware serve it
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send("Error caching image");
   }
 });
+
 
 
 router.get('/images', authenticate, async (req: Request, res: Response) => {
