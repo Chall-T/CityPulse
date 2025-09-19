@@ -121,9 +121,9 @@ router.post('/login', authLimiter, authController.login);
  *                   type: string
  *                   example: "Internal server error"
  */
-router.post('/refresh', authLimiter, authController.refresh);
+router.post('/refresh', authController.refresh);
 
-router.post('/logout', authLimiter, authController.logout);
+router.post('/logout', authController.logout);
 
 router.get('/google', authLimiter, passport.authenticate('google', { scope: ['profile', 'email'] }));
 
