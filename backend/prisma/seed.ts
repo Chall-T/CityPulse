@@ -6,53 +6,44 @@ const prisma = new PrismaClient();
 
 async function main() {
   const categoriesData = [
-    { name: 'Street Food', emoji: '🍜' },
-    { name: 'Café Crawl', emoji: '☕' },
-    { name: 'Beer Garden', emoji: '🍻' },
-    { name: 'Wine Bar', emoji: '🍷' },
-    { name: 'Cocktail Evening', emoji: '🍸' },
+    { name: 'Food', emoji: '🍜' },
+    { name: 'Café', emoji: '☕' },
+    { name: 'Pub / Bar', emoji: '🍻' },
 
     { name: 'Music', emoji: '🎵' },
-    { name: 'Jazz', emoji: '🎷' },
     { name: 'Karaoke', emoji: '🎤' },
     { name: 'Stand-up Comedy', emoji: '😂' },
 
-    { name: 'Gallery', emoji: '🖼️' },
-    { name: 'Street Art', emoji: '🎨' },
-    { name: 'Exhibition', emoji: '🖌️' },
+    { name: 'Gallery / Art', emoji: '🖼️' },
     { name: 'DIY Workshop', emoji: '🛠️' },
 
     { name: 'Movie', emoji: '🎬' },
-    { name: 'Cinema', emoji: '📽️' },
 
-    { name: 'Tempelhofer Feld Hangout', emoji: '🛩️' },
-    { name: 'Park Picnic & Grill', emoji: '🌭' },
+    { name: 'Park Hangout', emoji: '🛩️' },
+    { name: 'BBQ / Grill', emoji: '🌭' },
     { name: 'Bike Ride', emoji: '🚴' },
-    { name: 'Yoga in the Park', emoji: '🧘' },
+    { name: 'Sport', emoji: '🏊‍♀️' },
 
     { name: 'Flea Market', emoji: '🛍️' },
 
-    { name: 'Small Club Night', emoji: '🎶' },
-    { name: 'Underground Party', emoji: '🎛️' },
-    { name: 'Techno Party', emoji: '🔊' },
-    { name: 'Themed Party & Rave', emoji: '🕺' },
+    { name: 'Club Night', emoji: '🎶' },
+    { name: 'House Party', emoji: '🎛️' },
+    { name: 'Techno', emoji: '🔊' },
     { name: 'LGBTQ+ Night & Queer Space', emoji: '🏳️‍🌈' },
     { name: 'Dance Social', emoji: '💃' },
-    { name: 'Chill-Out Space', emoji: '🌙' },
+    { name: 'Chill-Out', emoji: '😌' },
 
-    { name: 'Walking Tour', emoji: '🚶' },
-    { name: 'Underground Berlin', emoji: '🚇' },
+    { name: 'Tour', emoji: '🚶' },
 
     { name: 'Festival', emoji: '🎉' },
-    { name: 'Community Meetup', emoji: '🤝' },
+    { name: 'Community', emoji: '🤝' },
 
     { name: 'Board Game', emoji: '🎲' },
-    { name: 'Trivia', emoji: '❓' },
     { name: 'Video Game', emoji: '🎮' },
     { name: 'Tabletop', emoji: '🐉' },
     { name: 'Puzzles', emoji: '🗝️' },
 
-    { name: 'Boat Party', emoji: '🚤' },
+    { name: 'Boat', emoji: '🚤' },
     { name: 'Rooftop Bar', emoji: '🌇' },
     { name: 'Experimental Performances', emoji: '🎭' },
   ]
@@ -93,7 +84,7 @@ async function main() {
       title: 'Summer Music Fest',
       description: 'A fun outdoor festival with live bands and food trucks.',
       location: 'Berlin',
-      dateTime: new Date('2025-08-15T18:00:00Z'),
+      dateTime: new Date('2025-10-15T18:00:00Z'),
       imageUrl: 'https://www.icmp.ac.uk/sites/default/files/styles/page_background/public/slider-image/festival_1.jpg?itok=znbQfiko',
       creator: { connect: { id: user.id } },
       categories: {
@@ -104,23 +95,23 @@ async function main() {
       title: 'Modern Art Exhibition',
       description: 'Explore stunning modern art by upcoming local artists.',
       location: 'Berlin',
-      dateTime: new Date('2025-06-10T10:00:00Z'),
+      dateTime: new Date('2025-10-10T10:00:00Z'),
       imageUrl: 'https://www.laartshow.com/wp-content/uploads/20190127-la-artshow-19-1179.jpg',
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: getCategoryId('Art')}],
+        connect: [{ id: getCategoryId('Gallery / Art')}],
       },
     },
     {
       title: 'City Marathon 2025',
       description: 'Join thousands running through the city streets.',
       location: 'Berlin',
-      dateTime: new Date('2025-09-05T07:00:00Z'),
+      dateTime: new Date('2025-10-05T07:00:00Z'),
       imageUrl: 'https://wmimg.azureedge.net/public/img/marathons/bmw-berlin-marathon/bDMIHP_bmw-berlin-marathon.jpg?c=1504021533',
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: getCategoryId('Sports') },
-        { id: getCategoryId('Health')!.id },
+        connect: [{ id: getCategoryId('Sport') },
+        { id: getCategoryId('Bike Ride') },
 
         ],
       },
@@ -133,10 +124,8 @@ async function main() {
 
       creator: { connect: { id: user.id } },
       categories: {
-        connect: [{ id: getCategoryId('Board Games') },
-        { id: getCategoryId('Gaming') },
-        { id: getCategoryId('Education') },
-        { id: getCategoryId('Networking') },
+        connect: [{ id: getCategoryId('Board Game') },
+        { id: getCategoryId('Video Game') },
         ],
       },
     },
