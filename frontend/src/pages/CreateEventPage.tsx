@@ -860,7 +860,9 @@ const CreateEventPage: React.FC = () => {
                     alt={`Event image ${index}`}
                     className="w-full h-32 object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'fallback-image-url.jpg';
+                      // (e.target as HTMLImageElement).src = 'fallback-image-url.jpg';
+                      console.log(image)
+                      console.log(e)
                     }}
                   />
                 </div>

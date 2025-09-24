@@ -281,7 +281,7 @@ const EditEventPage: React.FC = () => {
                   }`}
                 >
                   <img
-                    src={image}
+                    src={`${apiClient.baseURL}${image}`}
                     alt={`Event image ${index}`}
                     className="w-full h-32 object-cover"
                     onError={(e) => {
