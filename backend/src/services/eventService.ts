@@ -374,12 +374,42 @@ export async function cancelEventById(eventId: string) {
 }
 
 
-export const upsertEventVote = async (eventId: string, userId: string, value: number) => {
-    return prisma.eventVote.upsert({
-        where: { eventId_userId: { eventId, userId } },
-        update: { value },
-        create: { eventId, userId, value },
-    });
-};
+export const upsertEventVote = async (
+  eventId: string,
+  userId: string,
+  value: number
+) => {
+  // check if the user already has a vote
+  const existingVote = await prisma.eventVote.findUnique({
+    where: { eventId_userId: { eventId, userId } },
+  });
 
+  let scoreDelta = value;
+
+  if (existingVote) {
+    // if same value → no change
+    if (existingVote.value === value) {
+      return existingVote;
+    }
+    // user changed their vote → adjust by difference
+    scoreDelta = value - existingVote.value;
+  }
+
+  // upsert the vote
+  const vote = await prisma.eventVote.upsert({
+    where: { eventId_userId: { eventId, userId } },
+    update: { value },
+    create: { eventId, userId, value },
+  });
+
+  // update event score incrementally
+  await prisma.event.update({
+    where: { id: eventId },
+    data: {
+      score: { increment: scoreDelta },
+    },
+  });
+
+  return vote;
+};
 

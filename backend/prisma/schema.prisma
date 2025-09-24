@@ -15,37 +15,35 @@ enum Role {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  emailVerified Boolean @default(false)
-  password  String? // Password is nullable for OAuth users
-  googleId  String?  @unique
-  name      String?
-  username  String   @unique
-  avatarUrl String?
-  bio       String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  role      Role     @default(USER)
+  id            String   @id @default(cuid())
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  password      String? // Password is nullable for OAuth users
+  googleId      String?  @unique
+  name          String?
+  username      String   @unique
+  avatarUrl     String?
+  bio           String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  role          Role     @default(USER)
 
-  reportsMade  Report[]   @relation("ReporterUser")
-  reportsUser  Report[]   @relation("ReportedUser")
-  events   Event[]   @relation("CreatorEvents")
-  rsvps    RSVP[]
-  messages Message[]
-  votes    EventVote[]
-  moderator Moderator?
+  reportsMade Report[]    @relation("ReporterUser")
+  reportsUser Report[]    @relation("ReportedUser")
+  events      Event[]     @relation("CreatorEvents")
+  rsvps       RSVP[]
+  messages    Message[]
+  votes       EventVote[]
+  moderator   Moderator?
 }
 
-
-model Moderator{
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @unique
-  assignedAt DateTime @default(now())
+model Moderator {
+  id              String   @id @default(cuid())
+  user            User     @relation(fields: [userId], references: [id])
+  userId          String   @unique
+  assignedAt      DateTime @default(now())
   reviewedReports Report[] @relation("ReviewedReports")
 }
-
 
 enum EventStatus {
   ACTIVE
@@ -70,12 +68,13 @@ model Event {
 
   categories Category[]
 
-  reports  Report[]
-  votes    EventVote[]
+  reports Report[]
+
+  score Int         @default(0)
+  votes EventVote[]
 
   rsvps    RSVP[]
   messages Message[]
-  
 
   status EventStatus @default(ACTIVE)
 
@@ -115,7 +114,6 @@ model Message {
   eventId String
 }
 
-
 enum ReportReason {
   SPAM
   INAPPROPRIATE
@@ -124,40 +122,39 @@ enum ReportReason {
   OTHER
 }
 
-
 model Report {
-  id           String    @id @default(cuid())
-  reason       ReportReason
-  details      String?
-  createdAt    DateTime  @default(now())
+  id        String       @id @default(cuid())
+  reason    ReportReason
+  details   String?
+  createdAt DateTime     @default(now())
 
   // Reporter
-  reporter     User      @relation("ReporterUser", fields: [reporterId], references: [id])
-  reporterId   String
+  reporter   User   @relation("ReporterUser", fields: [reporterId], references: [id])
+  reporterId String
 
   // Target: exactly one of these should be set, enforce at app/DB level
-  reportedUser   User?    @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  reportedUser   User?   @relation("ReportedUser", fields: [reportedUserId], references: [id])
   reportedUserId String?
 
-  reportedEvent   Event?   @relation(fields: [reportedEventId], references: [id])
+  reportedEvent   Event?  @relation(fields: [reportedEventId], references: [id])
   reportedEventId String?
 
   // Moderation follow-up
-  reviewedBy    Moderator? @relation("ReviewedReports", fields: [reviewedById], references: [id])
-  reviewedById  String?
-  reviewedAt    DateTime?
-  actionTaken   String?   // e.g., "warned", "suspended", etc.
+  reviewedBy   Moderator? @relation("ReviewedReports", fields: [reviewedById], references: [id])
+  reviewedById String?
+  reviewedAt   DateTime?
+  actionTaken  String? // e.g., "warned", "suspended", etc.
 }
 
 model EventVote {
   id        String   @id @default(cuid())
   eventId   String
   userId    String
-  value     Int      // +1 upvote, -1 downvote
+  value     Int // +1 upvote, -1 downvote
   createdAt DateTime @default(now())
 
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, userId]) // no double voting
   @@index([eventId])
