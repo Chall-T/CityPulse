@@ -21,7 +21,7 @@ export interface StockImage {
 }
 
 
-const stockImageUrlPrefix = "/src/assets/images/stock"
+const stockImageUrlPrefix = "http://localhost:1000/stock"
 
 export const stockImages = (urlPrefix: string): StockImage[] => {
     return [
@@ -1064,12 +1064,15 @@ export const searchStockImages = (
             seenUrls.add(img.url);
         }
     }
-
-    return [
+    let allImages = [
         ...shuffle(matches.direct, seed),
         ...shuffle(matches.match4, seed),
         ...shuffle(matches.match3, seed),
         ...shuffle(matches.match2, seed),
         ...shuffle(matches.match1, seed),
     ];
+    if (allImages.length >= 12){
+        allImages = allImages.splice(0, 12)
+    }
+    return allImages
 };

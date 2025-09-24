@@ -127,13 +127,14 @@ const EditEventPage: React.FC = () => {
     }
 
     try {
+      const trimmedUrl = selectedImage.startsWith(apiClient.baseURL) ? selectedImage.slice(apiClient.baseURL.length) : selectedImage;
       const eventData = {
         title,
         description,
         dateTime: dateTime?.toISOString() ?? '',
         capacity: capacity || null,
         categoryIds: selectedCats,
-        imageUrl: selectedImage || null
+        imageUrl: trimmedUrl || null
       };
       
       const result = await apiClient.updateEvent(eventId!, eventData);
@@ -284,7 +285,9 @@ const EditEventPage: React.FC = () => {
                     alt={`Event image ${index}`}
                     className="w-full h-32 object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'fallback-image-url.jpg';
+                      // (e.target as HTMLImageElement).src = 'fallback-image-url.jpg';
+                      console.log(image)
+                      console.log(e)
                     }}
                   />
                 </div>
