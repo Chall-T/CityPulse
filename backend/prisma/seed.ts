@@ -1,7 +1,7 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import { createCategory } from '../src/services/categoryService';
 import { register } from '../src/services/authService';
-import { createEvent } from '../src/services/eventService';
+import { createEvent, getEvents } from '../src/services/eventService';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -86,10 +86,10 @@ async function main() {
       location: 'RAW-Gelände, Berlin',
       lat: 52.5120,
       lng: 13.4540,
-      dateTime: new Date('2025-06-21T12:00:00Z'),
+      dateTime: new Date('2025-09-30T12:00:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0',
       creator: { connect: { id: user.id } },
-      categories: { connect: [{ id: getCategoryId('Street Food') }, { id: getCategoryId('Festival') }] },
+      categories: { connect: [{ id: getCategoryId('Food') }, { id: getCategoryId('Festival') }] },
     },
     {
       title: 'Open-Air Techno Night',
@@ -97,10 +97,10 @@ async function main() {
       location: 'Sisyphos, Berlin',
       lat: 52.5015,
       lng: 13.4542,
-      dateTime: new Date('2025-07-12T22:00:00Z'),
+      dateTime: new Date('2025-11-12T22:00:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1506157786151-b8491531f063',
       creator: { connect: { id: user.id } },
-      categories: { connect: [{ id: getCategoryId('Techno Party') }, { id: getCategoryId('Underground Party') }] },
+      categories: { connect: [{ id: getCategoryId('Techno') }, { id: getCategoryId('Club Night') }] },
     },
     {
       title: 'Comedy Night at the Club',
@@ -108,7 +108,7 @@ async function main() {
       location: 'Prenzlauer Berg, Berlin',
       lat: 52.5418,
       lng: 13.4241,
-      dateTime: new Date('2025-05-28T20:00:00Z'),
+      dateTime: new Date('2025-12-28T20:00:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1548142813-c348350df52b',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Stand-up Comedy') }] },
@@ -119,10 +119,10 @@ async function main() {
       location: 'Kreuzberg, Berlin',
       lat: 52.4996,
       lng: 13.4332,
-      dateTime: new Date('2025-06-05T18:30:00Z'),
+      dateTime: new Date('2025-10-05T18:30:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1549887534-7f7bc6d0f6b3',
       creator: { connect: { id: user.id } },
-      categories: { connect: [{ id: getCategoryId('Street Art') }, { id: getCategoryId('Gallery') }] },
+      categories: { connect: [{ id: getCategoryId('Gallery / Art') }] },
     },
     {
       title: 'Park Picnic & Games',
@@ -130,10 +130,10 @@ async function main() {
       location: 'Tempelhofer Feld, Berlin',
       lat: 52.4731,
       lng: 13.4039,
-      dateTime: new Date('2025-06-30T14:00:00Z'),
+      dateTime: new Date('2025-09-30T14:00:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe',
       creator: { connect: { id: user.id } },
-      categories: { connect: [{ id: getCategoryId('Park Picnic & Grill') }, { id: getCategoryId('Board Game') }] },
+      categories: { connect: [{ id: getCategoryId('BBQ / Grill') }, { id: getCategoryId('Board Game') }] },
     },
     {
       title: 'Rooftop Cocktail Evening',
@@ -141,10 +141,10 @@ async function main() {
       location: 'Hotel Amano Rooftop, Berlin',
       lat: 52.5234,
       lng: 13.3986,
-      dateTime: new Date('2025-07-15T19:00:00Z'),
+      dateTime: new Date('2025-10-15T19:00:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
       creator: { connect: { id: user.id } },
-      categories: { connect: [{ id: getCategoryId('Cocktail Evening') }, { id: getCategoryId('Rooftop Bar') }] },
+      categories: { connect: [{ id: getCategoryId('Pub / Bar') }, { id: getCategoryId('Rooftop Bar') }] },
     },
     {
       title: 'Jazz Night in the Park',
@@ -152,10 +152,10 @@ async function main() {
       location: 'Volkspark Friedrichshain, Berlin',
       lat: 52.5306,
       lng: 13.4240,
-      dateTime: new Date('2025-08-01T18:00:00Z'),
+      dateTime: new Date('2025-11-01T18:00:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1508780709619-79562169bc64',
       creator: { connect: { id: user.id } },
-      categories: { connect: [{ id: getCategoryId('Jazz') }, { id: getCategoryId('Music') }] },
+      categories: { connect: [{ id: getCategoryId('Music') }] },
     },
     {
       title: 'Underground Berlin Walking Tour',
@@ -163,10 +163,10 @@ async function main() {
       location: 'Start: Alexanderplatz, Berlin',
       lat: 52.5219,
       lng: 13.4132,
-      dateTime: new Date('2025-07-20T11:00:00Z'),
+      dateTime: new Date('2025-11-20T11:00:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1582719478186-9a7b93aa8d45',
       creator: { connect: { id: user.id } },
-      categories: { connect: [{ id: getCategoryId('Walking Tour') }, { id: getCategoryId('Underground Berlin') }] },
+      categories: { connect: [{ id: getCategoryId('Tour') }] },
     },
     {
       title: 'Café Crawl: Best Coffees in Berlin',
@@ -174,10 +174,10 @@ async function main() {
       location: 'Start: Hackescher Markt, Berlin',
       lat: 52.5212,
       lng: 13.4016,
-      dateTime: new Date('2025-07-10T10:00:00Z'),
+      dateTime: new Date('2025-10-10T10:00:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1510626176961-4b1ecf3f1f5b',
       creator: { connect: { id: user.id } },
-      categories: { connect: [{ id: getCategoryId('Café Crawl') }] },
+      categories: { connect: [{ id: getCategoryId('Café') }] },
     },
     {
       title: 'Boat Party on the Spree',
@@ -185,10 +185,10 @@ async function main() {
       location: 'Spree River, Berlin',
       lat: 52.5206,
       lng: 13.4098,
-      dateTime: new Date('2025-08-10T20:00:00Z'),
+      dateTime: new Date('2025-12-10T20:00:00Z'),
       imageUrl: 'https://images.unsplash.com/photo-1546484959-03a1e50229b1',
       creator: { connect: { id: user.id } },
-      categories: { connect: [{ id: getCategoryId('Boat Party') }, { id: getCategoryId('Dance Social') }] },
+      categories: { connect: [{ id: getCategoryId('Boat') }] },
     },
   ];
 
@@ -196,8 +196,8 @@ async function main() {
   for (const eventData of eventsData) {
     await createEvent(eventData);
   }
-
-  console.log('Events seeded successfully!');
+  const events = await getEvents(false)
+  console.log(`Events (${eventsData.length}/${events.length}) seeded successfully!`);
 }
 
 main()
