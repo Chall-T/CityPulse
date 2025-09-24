@@ -141,7 +141,7 @@ const EditEventPage: React.FC = () => {
       if (result.status === 200 || result.status === 204) {
         navigate(`/events/${eventId}`);
       }
-    } catch (error) {
+    } catch (error) { 
       console.error("Error updating event:", error);
       setErrors({ submit: 'Failed to update event. Please try again.' });
     }

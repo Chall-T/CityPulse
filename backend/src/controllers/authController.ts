@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import * as authService from '../services/authService';
 import { catchAsync, AppError, ErrorCodes } from '../utils/errorHandler';
 import logger from '../utils/logger';
-import { isProd } from '../utils/secrets';
+import { isProd, API_PATH } from '../utils/secrets';
 import { USER_LIMITS } from '../config/limits';
 import { containsProfanity } from '../utils/profanityFilter';
 
@@ -38,7 +38,7 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
     secure: isProd,
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/api/auth',
+    path: `${API_PATH}/auth`,
   });
 
   res.json({ user, token: accessToken, refreshToken });
@@ -63,7 +63,7 @@ export const logout = catchAsync(async (req: Request, res: Response, next: NextF
     httpOnly: true,
     secure: isProd,
     sameSite: 'strict',
-    path: '/api/auth',
+    path: `${API_PATH}/auth`,
   });
 
   res.status(200).json({ message: 'Logged out successfully' });
@@ -90,7 +90,7 @@ export const googleCallback = catchAsync(async (req: Request, res: Response, nex
       secure: isProd,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: '/api/auth',
+      path: `${API_PATH}/auth`,
     });
 
     res.redirect(`${process.env.FRONTEND_URL ||`http://localhost:3000`}`);
