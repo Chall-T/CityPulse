@@ -4,4 +4,4 @@ dist
 
 *.log
 .env
-images/cache
+images/cache/
