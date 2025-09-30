@@ -14,11 +14,24 @@ enum Role {
   MODERATOR
 }
 
+model Token {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  token      String
+  browser    String
+  ipAddress  String
+
+  createdAt  DateTime @default(now())
+  expiresAt DateTime @default(dbgenerated("(now() + interval '30 days')"))
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
   emailVerified Boolean  @default(false)
   password      String? // Password is nullable for OAuth users
+  tokens        Token[]
   googleId      String?  @unique
   name          String?
   username      String   @unique
