@@ -15,14 +15,14 @@ enum Role {
 }
 
 model Token {
-  id         String   @id @default(cuid())
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String
-  token      String
-  browser    String
-  ipAddress  String
+  id        String @id @default(cuid())
+  user      User   @relation(fields: [userId], references: [id])
+  userId    String
+  token     String @unique
+  browser   String
+  ipAddress String
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
   expiresAt DateTime @default(dbgenerated("(now() + interval '30 days')"))
 }
 

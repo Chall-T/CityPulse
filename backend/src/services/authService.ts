@@ -9,6 +9,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { ulid } from 'ulid';
 
 import { cacheImage } from '../utils/ImageCache';
+import { AUTH_ACCESS_TOKEN_EXPIRES_IN, AUTH_REFRESH_TOKEN_EXPIRES_IN } from '../config/general';
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID!,
@@ -88,28 +89,30 @@ export const login = async (email: string, password: string, browser: string, ip
   const accessToken = jwt.sign(
     { userId: user.id, role: user.role },
     process.env.JWT_SECRET!,
-    { expiresIn: '15m' }
+    { expiresIn: AUTH_ACCESS_TOKEN_EXPIRES_IN }
   );
-  const refreshAccessToken = ulid()
-
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 30);
-
-  await prisma.token.create({
-    data: {
-      id: `tok_${ulid()}`,
-      token: refreshAccessToken,
-      userId: user.id,
-      browser,
-      ipAddress,
-      expiresAt,
-    },
-  });
+  const refreshAccessToken = await createToken(user.id, browser, ipAddress);
 
   logger.info(`User logged in successfully: ${user.id} on ${browser} from ${ipAddress}`);
   return { user, accessToken, refreshToken: refreshAccessToken };
 };
 
+export const createToken = async (userId: string, browser: string, ipAddress: string) => {
+  const refreshAccessToken = ulid()
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+  await prisma.token.create({
+    data: {
+      id: `tok_${ulid()}`,
+      token: refreshAccessToken,
+      userId,
+      browser,
+      ipAddress,
+      expiresAt,
+    },
+  });
+  return refreshAccessToken;
+}
 
 export const refreshAccessToken = async (refreshToken: string, browser: string, ipAddress: string) => {
   try {
@@ -129,7 +132,7 @@ export const refreshAccessToken = async (refreshToken: string, browser: string, 
     const accessToken = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: '15m' }
+      { expiresIn: AUTH_ACCESS_TOKEN_EXPIRES_IN }
     );
 
     logger.info(`New access token issued for user ${user.id}`);
@@ -146,22 +149,13 @@ export const generateAccessTokens = (userId: string, role: string) => {
   const accessToken = jwt.sign(
     { userId: userId, role },
     process.env.JWT_SECRET!,
-    { expiresIn: '1m' }
+    { expiresIn: AUTH_ACCESS_TOKEN_EXPIRES_IN }
   );
 
-  // Generate refresh token (longer-lived)
-  const refreshToken = jwt.sign(
-    { userId: userId, role },
-    process.env.REFRESH_TOKEN_SECRET!,
-    { expiresIn: '7d' }
-  );
-  return { accessToken, refreshToken };
-}
+  return accessToken;
+};
 
-
-
-
-export const handleGoogleLogin = async (googleProfile: any) => {
+export const handleGoogleLogin = async (googleProfile: any, browser: string, ipAddress: string) => {
   const email = googleProfile.emails[0].value;
   const googleId = googleProfile.id;
   const name = googleProfile.displayName;
@@ -194,7 +188,8 @@ export const handleGoogleLogin = async (googleProfile: any) => {
       });
     }
   }
-  const { accessToken, refreshToken } = generateAccessTokens(user.id, user.role);
+  const accessToken = generateAccessTokens(user.id, user.role);
+  const refreshToken = await createToken(user.id, browser, ipAddress);
 
   return { user, accessToken, refreshToken };
 };

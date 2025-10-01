@@ -38,13 +38,13 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
   const { user, accessToken, refreshToken } = await authService.login(email, password, browser, ipAddress);
   logger.info(`User logged in successfully: ${email} on ${browser} from ${ipAddress}`);
 
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: 'strict',
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    path: `${API_PATH}/auth`,
-  });
+  res.cookie("refreshToken", refreshToken, {
+  httpOnly: true,
+  sameSite: "none",  // allow cross-site
+  secure: false,     // must be false on http://localhost
+  path: "/auth",
+  maxAge: 2592000 * 1000
+});
 
   res.json({ user, token: accessToken });
 });
@@ -55,8 +55,10 @@ export const refresh = catchAsync(async (req: Request, res: Response, next: Next
   if (!refreshToken) {
     return next(new AppError("Refresh token missing", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
   }
+  const browser = req.get('User-Agent') || 'Unknown';
+  const ipAddress = req.ip || req.headers['x-forwarded-for']?.toString() || 'Unknown';
 
-  const newAccessToken = await authService.refreshAccessToken(refreshToken);
+  const newAccessToken = await authService.refreshAccessToken(refreshToken, browser, ipAddress);
   res.json({ token: newAccessToken });
 });
 
@@ -68,7 +70,7 @@ export const logout = catchAsync(async (req: Request, res: Response, next: NextF
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: isProd,
-    sameSite: 'strict',
+    sameSite: isProd ? 'none' : 'lax',
     path: `${API_PATH}/auth`,
   });
 
@@ -96,7 +98,7 @@ export const googleCallback = catchAsync(async (req: Request, res: Response, nex
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'strict',
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: `${API_PATH}/auth`,
     });
