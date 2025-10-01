@@ -75,44 +75,64 @@ export const register = async (email: string, password: string, baseUsername: st
   return user;
 };
 
-export const login = async (email: string, password: string) => {
+export const login = async (email: string, password: string, browser: string, ipAddress: string) => {
   logger.info(`Login attempt for user: ${email}`);
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    logger.warn(`Login failed: User not found - ${email}`);
-    throw new AppError('User not found', 404, ErrorCodes.RESOURCE_NOT_FOUND);
-  }
-  if (!user.password) {
-    logger.warn(`Login failed: User has no password set - ${email}`);
-    throw new AppError('User has no password set', 401, ErrorCodes.AUTH_NO_PASSWORD_SET);
-  }
-  // if (!user) throw (new AppError("No password set", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+  if (!user) throw new AppError('User not found', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+  if (!user.password) throw new AppError('User has no password set', 401, ErrorCodes.AUTH_NO_PASSWORD_SET);
+
   const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    logger.warn(`Login failed: Invalid credentials for user - ${email}`);
-    throw new AppError('Invalid credentials', 400, ErrorCodes.AUTH_INVALID_PASSWORD);
-  }
-  const { accessToken, refreshToken } = generateAccessTokens(user.id, user.role);
+  if (!isPasswordValid) throw new AppError('Invalid credentials', 400, ErrorCodes.AUTH_INVALID_PASSWORD);
 
-  logger.info(`User logged in successfully: ${user.id}`);
+  const accessToken = jwt.sign(
+    { userId: user.id, role: user.role },
+    process.env.JWT_SECRET!,
+    { expiresIn: '15m' }
+  );
+  const refreshAccessToken = ulid()
 
-  return { user, accessToken, refreshToken };
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 30);
+
+  await prisma.token.create({
+    data: {
+      id: `tok_${ulid()}`,
+      token: refreshAccessToken,
+      userId: user.id,
+      browser,
+      ipAddress,
+      expiresAt,
+    },
+  });
+
+  logger.info(`User logged in successfully: ${user.id} on ${browser} from ${ipAddress}`);
+  return { user, accessToken, refreshToken: refreshAccessToken };
 };
 
 
-export const refreshAccessToken = async (refreshToken: string): Promise<string> => {
+export const refreshAccessToken = async (refreshToken: string, browser: string, ipAddress: string) => {
   try {
-    const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as { userId: string };
+    const tokenRecord = await prisma.token.findUnique({ where: { token: refreshToken } });
+    if (!tokenRecord) throw new AppError('Invalid refresh token', 400, ErrorCodes.AUTH_INVALID_REFRESH_TOKEN);
 
+    const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as { userId: string };
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) {
-      throw new AppError('User no longer exists', 404, ErrorCodes.RESOURCE_NOT_FOUND);
-    }
-    const { accessToken } = generateAccessTokens(user.id, user.role);
+    if (!user) throw new AppError('User no longer exists', 404, ErrorCodes.RESOURCE_NOT_FOUND);
+
+    // Optionally update token usage info
+    await prisma.token.update({
+      where: { token: refreshToken },
+      data: { browser, ipAddress },
+    });
+
+    const accessToken = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: '15m' }
+    );
 
     logger.info(`New access token issued for user ${user.id}`);
-
     return accessToken;
 
   } catch (err) {

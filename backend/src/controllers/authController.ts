@@ -27,22 +27,28 @@ export const register = catchAsync(async (req: Request, res: Response, next: Nex
 export const login = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   logger.info('Login endpoint called');
   const { email, password } = req.body;
+
   if (!email) return next(new AppError("Email is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
   authService.isValidEmail(email) || next(new AppError("Invalid email format", 400, ErrorCodes.VALIDATION_INVALID_FORMAT));
   if (!password) return next(new AppError("Password is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
-  const { user, accessToken, refreshToken } = await authService.login(email, password);
-  logger.info(`User logged in successfully: ${email}`);
+
+  const browser = req.get('User-Agent') || 'Unknown';
+  const ipAddress = req.ip || req.headers['x-forwarded-for']?.toString() || 'Unknown';
+
+  const { user, accessToken, refreshToken } = await authService.login(email, password, browser, ipAddress);
+  logger.info(`User logged in successfully: ${email} on ${browser} from ${ipAddress}`);
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: isProd,
     sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     path: `${API_PATH}/auth`,
   });
 
-  res.json({ user, token: accessToken, refreshToken });
+  res.json({ user, token: accessToken });
 });
+
 
 export const refresh = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const { refreshToken } = req.cookies;
@@ -83,20 +89,21 @@ export const googleCallback = catchAsync(async (req: Request, res: Response, nex
       return next(new AppError("Google authentication failed", 401, ErrorCodes.AUTH_GOOGLE_LOGIN_FAILED));
     }
 
-    const { user, accessToken, refreshToken } = await authService.handleGoogleLogin(googleProfile);
+    const browser = req.get('User-Agent') || 'Unknown';
+    const ipAddress = req.ip || req.headers['x-forwarded-for']?.toString() || 'Unknown';
+    const { user, accessToken, refreshToken } = await authService.handleGoogleLogin(googleProfile, browser, ipAddress);
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: `${API_PATH}/auth`,
     });
 
-    res.redirect(`${process.env.FRONTEND_URL ||`http://localhost:3000`}`);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
   } catch (error) {
-    console.log(error)
-    logger.error(error)
-    res.redirect(`${process.env.FRONTEND_URL ||`http://localhost:3000`}/login?error=oauth_failed`);
+    logger.error(error);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/login?error=oauth_failed`);
   }
 });
