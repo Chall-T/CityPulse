@@ -40,8 +40,8 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
 
   res.cookie("refreshToken", refreshToken, {
   httpOnly: true,
-  sameSite: "none",  // allow cross-site
-  secure: false,     // must be false on http://localhost
+  sameSite: isProd ? 'none' : 'lax',
+  secure: isProd,
   path: "/auth",
   maxAge: 2592000 * 1000
 });

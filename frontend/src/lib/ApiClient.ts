@@ -200,8 +200,10 @@ class ApiClient {
     return this.requestWithCache('post', '/auth/login', {
       data: { email, password },
       cacheable: false,
+      config: { withCredentials: true },
     });
   }
+
 
   async register(email: string, password: string) {
     return this.requestWithCache('post', '/auth/register', {
@@ -221,7 +223,7 @@ class ApiClient {
     });
   }
   async updateUserProfile(userId: string, data: UpdateUser) {
-    return this.requestWithCache('patch', `/users/${userId}`, {  
+    return this.requestWithCache('patch', `/users/${userId}`, {
       data,
       config: { meta: { authRequired: true } },
       cacheable: false,
@@ -273,9 +275,9 @@ class ApiClient {
       cacheable: false,
     });
   }
-  async updateAttendance(eventId: string, status: boolean){
+  async updateAttendance(eventId: string, status: boolean) {
     return this.requestWithCache('post', `/events/${eventId}/rsvps`, {
-      data: {attending: status},
+      data: { attending: status },
       config: { meta: { authRequired: true } },
       cacheable: false,
     });
