@@ -28,7 +28,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: url('/src/assets/textures/paper.jpg') no-repeat center center;
+    background: url('/src/assets/textures/paper.webp') no-repeat center center;
     background-size: cover;
     opacity: 0.5;
     z-index: -1;
@@ -45,7 +45,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: url('/src/assets/textures/paper.jpg') repeat; /* pattern */
+  background: url('/src/assets/textures/paper.webp') repeat; /* pattern */
   opacity: 0.2; /* adjust grit strength */
   pointer-events: none;
   z-index: 1; /* sits on top of background but behind text */
@@ -54,7 +54,7 @@
 .gritty-text {
   position: relative;
   color: #16a34a;
-  background: url('/src/assets/textures/paper.jpg') repeat;
+  background: url('/src/assets/textures/paper.webp') repeat;
   background-size: cover;
   -webkit-background-clip: text;
   -webkit-text-fill-color: currentColor; /* not transparent */
