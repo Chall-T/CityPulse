@@ -101,20 +101,6 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/cafe-2.webp`,
-            tags: [
-                "cafe",
-                "café",
-                "coffee",
-                "drink",
-                "morning",
-                "breakfast",
-                "latte",
-                "espresso",
-                "barista",
-            ],
-        },
-        {
             url: `${urlPrefix}/cafe-3.webp`,
             tags: [
                 "cafe",
@@ -614,34 +600,6 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/bbq-1.webp`,
-            tags: [
-                "bbq",
-                "grill",
-                "outdoor",
-                "food",
-                "summer",
-                "party",
-                "friends",
-                "relaxation"
-            ]
-        },
-        {
-            url: `${urlPrefix}/bbq-vegan-1.webp`,
-            tags: [
-                "bbq",
-                "grill",
-                "outdoor",
-                "food",
-                "summer",
-                "party",
-                "friends",
-                "relaxation",
-                "vegan",
-                "plant-based"
-            ]
-        },
-        {
             url: `${urlPrefix}/biking-relax-1.webp`,
             tags: [
                 "biking",
@@ -1017,7 +975,10 @@ export const searchStockImages = (
     categories: Category[],
     seed?: string,
 ): string[] => {
-    const searchTerms = categories.map((c) => c.name.toLowerCase())
+    // Split category names into individual words
+    const searchTerms = categories
+        .flatMap(c => c.name.toLowerCase().split(/\s+/));
+
     const seenUrls = new Set<string>();
 
     const matches: {
@@ -1037,13 +998,16 @@ export const searchStockImages = (
     for (const img of stockImages(stockImageUrlPrefix)) {
         if (seenUrls.has(img.url)) continue;
 
+        let matchedDirectly = false;
         for (const searchWord of searchQuery.toLowerCase().split(/\s+/)) {
             if (img.tags.includes(searchWord)) {
                 matches.direct.push(img.url);
                 seenUrls.add(img.url);
-                continue;
+                matchedDirectly = true;
+                break;
             }
         }
+        if (matchedDirectly) continue;
 
         const matchCount = searchTerms.reduce(
             (count, term) => count + (img.tags.includes(term) ? 1 : 0),
@@ -1052,18 +1016,15 @@ export const searchStockImages = (
 
         if (matchCount >= 4) {
             matches.match4.push(img.url);
-            seenUrls.add(img.url);
         } else if (matchCount === 3) {
             matches.match3.push(img.url);
-            seenUrls.add(img.url);
         } else if (matchCount === 2) {
             matches.match2.push(img.url);
-            seenUrls.add(img.url);
         } else if (matchCount === 1) {
             matches.match1.push(img.url);
-            seenUrls.add(img.url);
         }
     }
+    
     let allImages = [
         ...shuffle(matches.direct, seed),
         ...shuffle(matches.match4, seed),
