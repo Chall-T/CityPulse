@@ -30,6 +30,8 @@ interface LocationItem {
   value: string;
   coords: [number, number];
   type: string;
+  osm_type: string;
+  osm_id: number;
   osm_key: string;
   osm_value: string;
 }
@@ -38,67 +40,82 @@ const contactEmail = import.meta.env.VITE_APP_CONTACT_EMAIL;
 const appVersion = import.meta.env.VITE_APP_VERSION;
 
 
-
 const useLocations = (defaultLocations: LocationItem[] = []) => {
   const [locations, setLocations] = React.useState<LocationItem[]>(defaultLocations);
   const [loading, setLoading] = React.useState(false);
 
   const fetchLocations = (query: string | number | boolean) => {
-    if (!query || typeof query !== 'string') return setLocations([]);
+    if (!query || typeof query !== "string") return setLocations([]);
+
+    const normalizedQuery = query.toLowerCase().trim();
+
+    // 🟡 Normal fetch fallback
     setLoading(true);
 
-    fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query + ', Berlin')}&limit=5&lang=en`, {
-      headers: {
-        'User-Agent': `CityPulse/${appVersion} (${contactEmail})`
+    fetch(
+      `https://photon.komoot.io/api/?q=${encodeURIComponent(query + ", Berlin")}&limit=5&lang=en`,
+      {
+        headers: {
+          "User-Agent": `CityPulse/${appVersion} (${contactEmail})`,
+        },
       }
-    })
+    )
       .then((res) => res.json())
       .then((data) => {
-        const transformedLocations = data.features.map((feature: any) => {
-          const props = feature.properties;
+        let transformedLocations = data.features
+          .map((feature: any) => {
+            console.log(feature)
+            const props = feature.properties;
 
-          const type = props.type || '';
-          const osm_id = props.osm_id || 0;
-          const osm_type = props.osm_type || '';
-          const osm_key = props.osm_key || '';
-          const osm_value = props.osm_value || '';
+            const type = props.type || "";
+            const osm_id = props.osm_id || 0;
+            const osm_type = props.osm_type || "";
+            const osm_key = props.osm_key || "";
+            const osm_value = props.osm_value || "";
 
-          const street = props.street || '';
-          const housenumber = props.housenumber || '';
-          const postcode = props.postcode || '';
-          const city = props.city || '';
-          const country = props.country || '';
-          const name = props.name || '';
+            const street = props.street || "";
+            const housenumber = props.housenumber || "";
+            const postcode = props.postcode || "";
+            const city = props.city || "";
+            const country = props.country || "";
+            const name = props.name || "";
 
+            if (city && city.toLowerCase() !== "berlin") return null;
+            if (["railway"].includes(osm_key)) return null;
 
-          if (city && city.toLowerCase() !== "berlin") return null;
+            const labelParts: string[] = [];
+            if (name) labelParts.push(name);
+            if (street) labelParts.push(street + (housenumber ? ` ${housenumber}` : ""));
+            if (postcode) labelParts.push(postcode);
+            if (city) labelParts.push(city);
+            if (country) labelParts.push(country);
 
-          if (["railway"].includes(osm_key)) return null
+            return {
+              label: labelParts.join(", "),
+              value: `${feature.geometry.coordinates[1].toFixed(6)},${feature.geometry.coordinates[0].toFixed(6)}`,
+              coords: [feature.geometry.coordinates[1], feature.geometry.coordinates[0]] as [number, number],
+              type,
+              osm_type,
+              osm_id,
+              osm_key,
+              osm_value,
+            };
+          })
+          .filter((loc: any) => loc !== null);
 
-          const labelParts: string[] = [];
-          if (name) labelParts.push(name);
-          if (street) labelParts.push(street + (housenumber ? ` ${housenumber}` : ''));
-          if (postcode) labelParts.push(postcode);
-          if (city) labelParts.push(city);
-          if (country) labelParts.push(country);
-
-
-
-          return {
-            label: labelParts.join(', '),  //  address or place
-            value: `${feature.geometry.coordinates[1].toFixed(6)},${feature.geometry.coordinates[0].toFixed(6)}`,
-            coords: [
-              feature.geometry.coordinates[1],
-              feature.geometry.coordinates[0],
-            ] as [number, number],
-            type,
-            osm_type,
-            osm_id,
-            osm_key,
-            osm_value
+        if (["tempelhof", "tempelhofler"].includes(normalizedQuery)) {
+          const customLocation: LocationItem = {
+            label: "Tempelhofer Feld, Berlin, Germany",
+            value: "52.473000,13.403000", // your chosen lat,lng
+            coords: [52.473, 13.403],
+            type: "other",
+            osm_type: "N",
+            osm_id: -1,
+            osm_key: "leisure",
+            osm_value: "park",
           };
-        }).filter((loc: any) => loc !== null);
-
+          transformedLocations = [customLocation, ...transformedLocations];
+        }
         setLocations(transformedLocations);
         setLoading(false);
       })
@@ -107,6 +124,7 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
 
   return [locations, loading, fetchLocations] as const;
 };
+
 
 function fetchOverpassData(osm_type: string, osm_id: number): Promise<any> {
   let osm_type_name = ''
@@ -309,71 +327,6 @@ const CreateEventPage: React.FC = () => {
   const [wayCoords, setWayCoords] = useState([]);
   const [wikiDataImages, setWikiDataImages] = useState<string[]>([]);
 
-  // images with fetchOverpassData
-  // useEffect(() => {
-  //   if (locationDetailed.osm_type && locationDetailed.osm_id && isLoadingImages == false) {
-  //     setIsLoadingImages(true);
-  //     console.log("Fetching Overpass data for:", locationDetailed.osm_type, locationDetailed.osm_id);
-  //     fetchOSMData(locationDetailed.osm_type, locationDetailed.osm_id).then(data => {
-  //       console.log("OSM Data:", data);
-  //     });
-  //     const overpassData = fetchOverpassData(locationDetailed.osm_type, locationDetailed.osm_id);
-  //     overpassData.then(data => {
-  //       if (data && data.elements && data.elements.length > 0) {
-  //         for (const element of data.elements) {
-  //           if (element.tags) {
-  //             if (element.tags['wikidata']) {
-  //               fetchWikiData(element.tags['wikidata']).then(wikiData => {
-  //                 if (wikiData && wikiData.entities) {
-  //                   const entity = wikiData.entities[element.tags['wikidata']];
-  //                   const allImages: string[] = [];
-
-  //                   for (const key in entity.claims) {
-  //                     const claims = entity.claims[key];
-
-  //                     if (!Array.isArray(claims)) continue;
-
-  //                     const mediaClaims = claims
-  //                       .filter((claim: any) =>
-  //                         claim.mainsnak?.datatype === 'commonsMedia' &&
-  //                         typeof claim.mainsnak.datavalue?.value === 'string'
-  //                       )
-  //                       .map((claim: any) => claim.mainsnak.datavalue.value as string)
-  //                       .filter((img: string) => {
-  //                         if (!img) return false;
-  //                         const lower = img.toLowerCase();
-  //                         return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png');
-  //                       })
-  //                       .map((img: string) => {
-  //                         const cleanName = img.replace(/\s+/g, '_');
-  //                         const hash = MD5(cleanName).toString();
-  //                         return `https://upload.wikimedia.org/wikipedia/commons/${hash.substring(0, 1)}/${hash.substring(0, 2)}/${cleanName}`;
-  //                       });
-
-  //                     allImages.push(...mediaClaims);
-  //                   }
-
-  //                   console.log("WikiData images:", allImages);
-  //                   setWikiDataImages(allImages);
-  //                   setIsLoadingImages(false);
-  //                 }
-  //               });
-
-
-  //             }
-
-  //           }
-  //         }
-  //         const element = data.elements[0];
-  //         if (element.type === 'way' && element.geometry) {
-
-  //         }
-  //       }
-  //     });
-  //     setIsLoadingImages(false);
-  //   }
-  // }, [locationDetailed]);
-
   useEffect(() => {
     if (locationDetailed.osm_type && locationDetailed.osm_id && !isLoadingImages) {
       setWikiDataImages([]);
@@ -508,31 +461,36 @@ const CreateEventPage: React.FC = () => {
 
 
   const handleMarkerDrag = (event: any) => {
-
     const marker = event.target;
     const position = marker.getLatLng();
 
     if (!originalCoords) {
-      // fallback if somehow originalCoords not set
+      // fallback if originalCoords not set
       setCoords([position.lat, position.lng]);
       return;
     }
 
-    const dist = getDistanceMeters(
-      originalCoords[0],
-      originalCoords[1],
-      position.lat,
-      position.lng
-    );
+    const lat1 = originalCoords[0];
+    const lng1 = originalCoords[1];
+    const lat2 = position.lat;
+    const lng2 = position.lng;
+
+    const dist = getDistanceMeters(lat1, lng1, lat2, lng2);
 
     if (dist > maxPinMovable) {
-      // Reset marker position to original
-      marker.setLatLng(originalCoords);
-      alert(`You can only move the pin within ${maxPinMovable} meters of the original location.`);
+      // 🔹 calculate the point on the circle closest to user's drag
+      const angle = Math.atan2(lat2 - lat1, lng2 - lng1);
+
+      const newLat = lat1 + (maxPinMovable / 111320) * Math.sin(angle); // approx meters to lat
+      const newLng = lng1 + (maxPinMovable / (40075000 * Math.cos((lat1 * Math.PI) / 180) / 360)) * Math.cos(angle); // approx meters to lng
+
+      marker.setLatLng([newLat, newLng]);
+      setCoords([newLat, newLng]);
     } else {
-      setCoords([position.lat, position.lng]);
+      setCoords([lat2, lng2]);
     }
   };
+
 
   // Toggle category selection (max 4)
   const handleCategoryChange = (catIds: string[]) => {
@@ -902,7 +860,9 @@ const CreateEventPage: React.FC = () => {
                     alt={`Event image ${index}`}
                     className="w-full h-32 object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'fallback-image-url.jpg';
+                      // (e.target as HTMLImageElement).src = 'fallback-image-url.jpg';
+                      console.log(image)
+                      console.log(e)
                     }}
                   />
                 </div>

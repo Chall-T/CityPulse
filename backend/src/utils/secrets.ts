@@ -11,7 +11,11 @@ if (fs.existsSync(".env")) {
 export const ENVIRONMENT = process.env.NODE_ENV;
 export const isProd = ENVIRONMENT === "production";
 
-export const PORT = (process.env.PORT || 1000) as number;
+const backendUrl = new URL(process.env.BACKEND_URL || '');
+export const API_PATH = `${backendUrl.pathname.replace(/\/$/, '')}`;
+
+
+export const PORT = (backendUrl.port || 1000) as number;
 
 // selecting the database URI as per the environment
 export const DB_URI = isProd
@@ -30,6 +34,7 @@ if (!DB_URI) {
   }
   process.exit(1);
 }
+
 
 export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET as string;

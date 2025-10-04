@@ -14,6 +14,7 @@ interface UserProfileIconProps {
   username: string;
   onClick?: () => void;
   refProp?: React.Ref<HTMLDivElement>;
+  size?: number;
 }
 
 const UserProfileIcon: React.FC<UserProfileIconProps> = ({
@@ -21,22 +22,21 @@ const UserProfileIcon: React.FC<UserProfileIconProps> = ({
   username,
   onClick,
   refProp,
+  size = 36, // default to 36px if not provided
 }) => {
   const [imageFailed, setImageFailed] = useState(false);
-
-  const handleError = () => {
-    setImageFailed(true);
-  };
-
   const shouldShowImage = avatarUrl && !imageFailed;
 
   return (
     <div
       ref={refProp}
       onClick={onClick}
-      className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center text-sm font-semibold text-white select-none cursor-pointer"
+      className="rounded-full overflow-hidden flex items-center justify-center text-sm font-semibold text-white select-none cursor-pointer"
       style={{
+        width: size,
+        height: size,
         backgroundColor: stringToColor(username),
+        fontSize: size / 2.5, // scale text size with avatar
       }}
     >
       {shouldShowImage ? (
@@ -44,7 +44,7 @@ const UserProfileIcon: React.FC<UserProfileIconProps> = ({
           src={avatarUrl}
           alt="Profile"
           className="w-full h-full object-cover"
-          onError={handleError}
+          onError={() => setImageFailed(true)}
         />
       ) : (
         username[0].toUpperCase()

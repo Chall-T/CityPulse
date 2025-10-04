@@ -2,6 +2,7 @@ import express from 'express';
 import * as eventController from '../controllers/eventController';
 import * as rsvpController from '../controllers/rsvpController';
 import { authenticate, authorizeEventOwner } from '../middleware/authMiddleware';
+import { eventCreationLimiter } from '../middleware/rateLimiter';
 const router = express.Router();
 
 /**
@@ -30,7 +31,7 @@ const router = express.Router();
  *         content:
  *           application/json:
  */
-router.post('/', authenticate, eventController.createEvent);
+router.post('/', authenticate, eventCreationLimiter, eventController.createEvent);
 
 
 router.get('/clusters', eventController.getClusterEventPinsWithFilters);

@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import dotenv from 'dotenv';
+import path from "path";
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/authRoutes';
@@ -16,6 +16,7 @@ import { DB_URI, PORT } from "./utils/secrets";
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 
+import { generalLimiter } from './middleware/rateLimiter';
 
 const app = express();
 app.use(passport.initialize());
@@ -23,7 +24,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors(
   {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: 'http://localhost:3000',
     credentials: true,
   }
 ));
@@ -34,14 +35,18 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+app.use(generalLimiter);
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use('/api/auth', authRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/rsvps', rsvpRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api', otherRoutes);
+app.use('/auth', authRoutes);
+app.use('/events', eventRoutes);
+app.use('/rsvps', rsvpRoutes);
+app.use('/categories', categoryRoutes);
+app.use('/users', userRoutes);
+app.use('/admin', adminRoutes);
+app.use("/cache", express.static(path.join(process.cwd(), "images", "cache")));
+app.use("/stock", express.static(path.join(process.cwd(), "images", "stock")));
+app.use('/', otherRoutes);
 
 
 // Global error handler

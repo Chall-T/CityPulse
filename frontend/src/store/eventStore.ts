@@ -26,7 +26,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
     fetchEvents: async (
         reset = false,
-        filters?: { categoryIds?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string }
+        filters?: { categoryIds?: string[]; search?: string; sort?: 'desc' | 'asc' | 'score', fromDate?: string, toDate?: string }
     ) => {
         // inside fetchEvents
         const { nextCursor, events } = get();
@@ -91,7 +91,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
 
 
 
-type SortOption = 'desc' | 'asc';
+type SortOption = 'desc' | 'asc' | 'score';
 
 type FilterParams =
     'categoryIds' |

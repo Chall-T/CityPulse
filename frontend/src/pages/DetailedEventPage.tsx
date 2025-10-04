@@ -326,7 +326,7 @@ const EventDetailPage: React.FC = () => {
       {/* Event Image */}
       <div className="w-full max-w-4xl mx-auto mb-6">
         <img
-          src={event?.imageUrl || '/missingEventBig.png'}
+          src={`${apiClient.baseURL}${event?.imageUrl}` || '/missingEventBig.png'}
           alt={event?.title || 'Event image'}
           className="w-full h-64 object-cover rounded-xl shadow-lg border border-gray-200"
         />
@@ -448,7 +448,7 @@ const EventDetailPage: React.FC = () => {
       )}
 
       {showAttendeesPopup && event.rsvps && (
-        <div className="fixed inset-0 z-1000 bg-black bg-opacity-10 flex items-center justify-center">
+        <div className="fixed inset-0 z-[1000] bg-black bg-opacity-10 flex items-center justify-center">
           <div
             ref={popupRef}
             className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto"

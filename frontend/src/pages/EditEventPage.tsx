@@ -127,20 +127,21 @@ const EditEventPage: React.FC = () => {
     }
 
     try {
+      const trimmedUrl = selectedImage.startsWith(apiClient.baseURL) ? selectedImage.slice(apiClient.baseURL.length) : selectedImage;
       const eventData = {
         title,
         description,
         dateTime: dateTime?.toISOString() ?? '',
         capacity: capacity || null,
         categoryIds: selectedCats,
-        imageUrl: selectedImage || null
+        imageUrl: trimmedUrl || null
       };
       
       const result = await apiClient.updateEvent(eventId!, eventData);
       if (result.status === 200 || result.status === 204) {
         navigate(`/events/${eventId}`);
       }
-    } catch (error) {
+    } catch (error) { 
       console.error("Error updating event:", error);
       setErrors({ submit: 'Failed to update event. Please try again.' });
     }
@@ -280,11 +281,13 @@ const EditEventPage: React.FC = () => {
                   }`}
                 >
                   <img
-                    src={image}
+                    src={`${apiClient.baseURL}${image}`}
                     alt={`Event image ${index}`}
                     className="w-full h-32 object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'fallback-image-url.jpg';
+                      // (e.target as HTMLImageElement).src = 'fallback-image-url.jpg';
+                      console.log(image)
+                      console.log(e)
                     }}
                   />
                 </div>

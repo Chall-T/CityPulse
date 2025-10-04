@@ -14,6 +14,7 @@ import EditEventPage from './pages/EditEventPage';
 
 import LoginPage from './pages/LoginPage';
 import RegistrationPage from './pages/RegisterPage';
+import EmailVerificationPage from './pages/EmailVerivicationPage';
 import UserProfilePage from './pages/UserProfilePage';
 
 import AdminPanelPage from './pages/admin/AdminPanelPage';
@@ -37,6 +38,7 @@ const App = () => {
             <PublicOnlyRoute>
               <RegistrationPage />
             </PublicOnlyRoute>} />
+          <Route path="/verify-email" element={<EmailVerificationPage />} />
           <Route path="/profile/me" element={
             <PrivateOnlyRoute>
               <UserProfilePage />

@@ -9,6 +9,7 @@ import { isWithinBerlin } from "../utils/validators";
 import { isSafeURL } from '../utils/validators';
 import { EVENT_LIMITS } from '../config/limits';
 import { containsProfanity } from '../utils/profanityFilter';
+import { cacheImage } from '../utils/ImageCache';
 
 interface AuthRequest extends Request {
     userId: string;
@@ -58,7 +59,10 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
         categories: { connect: categoryIds.map((id: string) => ({ id })), },
         creator: { connect: { id: req.userId } },
     };
-    if (imageUrl && isSafeURL(imageUrl)) newEvent.imageUrl = imageUrl;
+    if (imageUrl && isSafeURL(imageUrl)) {
+        newEvent.imageUrl = await cacheImage(imageUrl);
+      }
+      
     if (capacity) newEvent.capacity = capacity;
 
 
@@ -73,6 +77,7 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
             event: { connect: { id: event.id } },
         });
     }
+    (res as any).incrementEventCount?.();
     res.status(201).json(event);
 });
 
@@ -181,52 +186,52 @@ export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Resp
 })
 
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
-    const { cursor, limit, categoryIds, search, sort, fromDate, toDate } = req.query;
-    let userLimit = 20;
-    let sortOrder: 'asc' | 'desc' = 'desc';
-    if (limit) {
-        userLimit = parseInt(limit as string);
-    }
-    if (sort && typeof sort === 'string' && ['asc', 'desc'].includes(sort)) {
-        sortOrder = sort as 'asc' | 'desc';
-    }
+  const { cursor, limit, categoryIds, search, sort, fromDate, toDate } = req.query;
 
-    const categoryArray: string[] = categoryIds
-        ? Array.isArray(categoryIds)
-            ? (categoryIds as string[]).map((c) => c.trim())
-            : String(categoryIds).split(',').map((c) => c.trim())
-        : [];
+  let userLimit = 20;
+  if (limit) userLimit = parseInt(limit as string);
 
+  let sortMode: 'asc' | 'desc' | 'score' = 'desc';
+  if (sort && typeof sort === 'string' && ['asc', 'desc', 'score'].includes(sort)) {
+    sortMode = sort as 'asc' | 'desc' | 'score';
+  }
 
-    const searchTerm = typeof search === 'string' ? search.trim() : '';
+  const categoryArray: string[] = categoryIds
+    ? Array.isArray(categoryIds)
+      ? (categoryIds as string[]).map((c) => c.trim())
+      : String(categoryIds).split(',').map((c) => c.trim())
+    : [];
 
-    let parsedFromDate = fromDate ? new Date(fromDate as string) : undefined;
-    let parsedToDate = toDate ? new Date(toDate as string) : undefined;
+  const searchTerm = typeof search === 'string' ? search.trim() : '';
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (parsedFromDate !== undefined && parsedFromDate < today) {
-        parsedFromDate = today
-    } else if (parsedFromDate === undefined) {
-        parsedFromDate = today
-    }
+  let parsedFromDate = fromDate ? new Date(fromDate as string) : undefined;
+  let parsedToDate = toDate ? new Date(toDate as string) : undefined;
 
-    const events = await eventService.getEventsPaginatedWithFilters(
-        cursor ? String(cursor) : undefined,
-        userLimit,
-        true,
-        categoryArray,
-        searchTerm,
-        sortOrder,
-        parsedFromDate,
-        parsedToDate
-    );
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (parsedFromDate !== undefined && parsedFromDate < today) {
+    parsedFromDate = today;
+  } else if (parsedFromDate === undefined) {
+    parsedFromDate = today;
+  }
 
-    res.json({
-        data: events,
-        nextCursor: events.length === userLimit ? events[events.length - 1].id : null,
-    });
+  const events = await eventService.getEventsPaginatedWithFilters(
+    cursor ? String(cursor) : undefined,
+    userLimit,
+    true,
+    categoryArray,
+    searchTerm,
+    sortMode,
+    parsedFromDate,
+    parsedToDate
+  );
+
+  res.json({
+    data: events,
+    nextCursor: events.length === userLimit ? events[events.length - 1].id : null,
+  });
 });
+
 
 
 
