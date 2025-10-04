@@ -54,7 +54,7 @@ const useLocations = (defaultLocations: LocationItem[] = []) => {
       `https://photon.komoot.io/api/?q=${encodeURIComponent(query + ", Berlin")}&limit=5&lang=en`,
       {
         headers: {
-          "User-Agent": `CityPulse/${appVersion} (${contactEmail})`,
+          "User-Agent": `Clubkiez/${appVersion} (${contactEmail})`,
         },
       }
     )

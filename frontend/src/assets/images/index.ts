@@ -764,7 +764,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/lgbt+-4.webp`,
+            url: `${urlPrefix}/lgbtq+-4.webp`,
             tags: [
                 "lgbtq+",
                 "pride",
@@ -975,6 +975,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             url: `${urlPrefix}/hangout-park-2.webp`,
             tags: [
                 "hangout",
+                "chill-out",
                 "park",
                 "outdoor",
                 "nature",
@@ -987,6 +988,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             url: `${urlPrefix}/hangout-park-1.webp`,
             tags: [
                 "hangout",
+                "chill-out",
                 "park",
                 "outdoor",
                 "nature",
@@ -1078,6 +1080,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             url: `${urlPrefix}/chill-out-1.webp`,
             tags: [
                 "chill",
+                "chill-out",
                 "outdoor",
                 "nature",
                 "friends",

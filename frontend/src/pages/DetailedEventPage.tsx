@@ -121,7 +121,7 @@ const EventDetailPage: React.FC = () => {
 
       fetch(`${baseUrl}?format=json&q=${encodeURIComponent(event.location)}`, {
         headers: {
-          'User-Agent': `CityPulse/${appVersion} (${contactEmail})`,
+          'User-Agent': `Clubkiez/${appVersion} (${contactEmail})`,
         },
       })
         .then(async (res) => {
