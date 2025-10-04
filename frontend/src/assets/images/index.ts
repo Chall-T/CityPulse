@@ -1,6 +1,6 @@
 
 import type { Category } from '../../types/category';
-
+import config from '../../lib/config'
 
 export enum ImageTag {
     Music = 'music',
@@ -21,12 +21,12 @@ export interface StockImage {
 }
 
 
-const stockImageUrlPrefix = "http://localhost:1000/stock"
+const stockImageUrlPrefix = `${config.apiUrl}/stock`
 
 export const stockImages = (urlPrefix: string): StockImage[] => {
     return [
         {
-            url: `${urlPrefix}/food-currywurst-1.jpg`,
+            url: `${urlPrefix}/food-currywurst-1.webp`,
             tags: [
                 "street food",
                 "food",
@@ -39,7 +39,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/food-bbq-1.jpg`,
+            url: `${urlPrefix}/food-bbq-1.webp`,
             tags: [
                 "street food",
                 "food",
@@ -54,7 +54,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/food-burger-1.jpg`,
+            url: `${urlPrefix}/food-burger-1.webp`,
             tags: [
                 "street food",
                 "food",
@@ -69,7 +69,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/food-doner-1.jpg`,
+            url: `${urlPrefix}/food-doner-1.webp`,
             tags: [
                 "street food",
                 "food",
@@ -86,7 +86,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
 
         },
         {
-            url: `${urlPrefix}/cafe-1.jpg`,
+            url: `${urlPrefix}/cafe-1.webp`,
             tags: [
                 "cafe",
                 "café",
@@ -101,7 +101,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/cafe-2.jpg`,
+            url: `${urlPrefix}/cafe-2.webp`,
             tags: [
                 "cafe",
                 "café",
@@ -115,7 +115,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/cafe-3.jpg`,
+            url: `${urlPrefix}/cafe-3.webp`,
             tags: [
                 "cafe",
                 "café",
@@ -130,7 +130,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/cafe-4.jpg`,
+            url: `${urlPrefix}/cafe-4.webp`,
             tags: [
                 "cafe",
                 "café",
@@ -148,7 +148,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/beer-garden-1.jpg`,
+            url: `${urlPrefix}/beer-garden-1.webp`,
             tags: [
                 "beer",
                 "garden",
@@ -167,7 +167,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/beer-garden-2.jpg`,
+            url: `${urlPrefix}/beer-garden-2.webp`,
             tags: [
                 "beer",
                 "garden",
@@ -184,7 +184,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/beer-garden-3.jpg`,
+            url: `${urlPrefix}/beer-garden-3.webp`,
             tags: [
                 "beer",
                 "garden",
@@ -197,7 +197,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/beer-smoking-1.jpg`,
+            url: `${urlPrefix}/beer-smoking-1.webp`,
             tags: [
                 "beer",
                 "outdoor",
@@ -210,7 +210,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/beer-fire-1.jpg`,
+            url: `${urlPrefix}/beer-fire-1.webp`,
             tags: [
                 "beer",
                 "fire",
@@ -229,7 +229,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/wine-bar-1.jpg`,
+            url: `${urlPrefix}/wine-bar-1.webp`,
             tags: [
                 "wine",
                 "bar",
@@ -246,7 +246,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/wine-bar-2.jpg`,
+            url: `${urlPrefix}/wine-bar-2.webp`,
             tags: [
                 "bar",
                 "pub",
@@ -268,7 +268,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ],
         },
         {
-            url: `${urlPrefix}/coctail-bar-1.jpg`,
+            url: `${urlPrefix}/coctail-bar-1.webp`,
             tags: [
                 "bar",
                 "pub",
@@ -280,7 +280,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/coctail-bar-2.jpg`,
+            url: `${urlPrefix}/coctail-bar-2.webp`,
             tags: [
                 "bar",
                 "pub",
@@ -295,7 +295,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/music-party-1.jpg`,
+            url: `${urlPrefix}/music-party-1.webp`,
             tags: [
                 "music",
                 "party",
@@ -313,7 +313,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/music-party-2.jpg`,
+            url: `${urlPrefix}/music-party-2.webp`,
             tags: [
                 "music",
                 "party",
@@ -331,7 +331,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/music-retro-1.jpg`,
+            url: `${urlPrefix}/music-retro-1.webp`,
             tags: [
                 "music",
                 "cassette",
@@ -346,7 +346,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/music-guitar-1.jpg`,
+            url: `${urlPrefix}/music-guitar-1.webp`,
             tags: [
                 "music",
                 "guitar",
@@ -364,7 +364,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/music-classical-1.jpg`,
+            url: `${urlPrefix}/music-classical-1.webp`,
             tags: [
                 "music",
                 "classical",
@@ -378,7 +378,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/music-jazz-1.jpg`,
+            url: `${urlPrefix}/music-jazz-1.webp`,
             tags: [
                 "music",
                 "jazz",
@@ -396,7 +396,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/music-karaoke-1.jpg`,
+            url: `${urlPrefix}/music-karaoke-1.webp`,
             tags: [
                 "music",
                 "karaoke",
@@ -411,7 +411,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/comedy-standup-1.jpg`,
+            url: `${urlPrefix}/comedy-standup-1.webp`,
             tags: [
                 "comedy",
                 "stand-up",
@@ -423,7 +423,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/comedy-standup-1.jpg`,
+            url: `${urlPrefix}/comedy-standup-1.webp`,
             tags: [
                 "comedy",
                 "stand-up",
@@ -435,7 +435,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/gallery-paintings-1.jpg`,
+            url: `${urlPrefix}/gallery-paintings-1.webp`,
             tags: [
                 "art",
                 "paintings",
@@ -451,7 +451,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/gallery-paintings-2.jpg`,
+            url: `${urlPrefix}/gallery-paintings-2.webp`,
             tags: [
                 "art",
                 "paintings",
@@ -468,7 +468,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/street-art-1.jpg`,
+            url: `${urlPrefix}/street-art-1.webp`,
             tags: [
                 "art",
                 "street art",
@@ -481,7 +481,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/street-art-2.jpg`,
+            url: `${urlPrefix}/street-art-2.webp`,
             tags: [
                 "art",
                 "street art",
@@ -496,7 +496,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/street-art-3.jpg`,
+            url: `${urlPrefix}/street-art-3.webp`,
             tags: [
                 "art",
                 "street art",
@@ -514,7 +514,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/diy-workshop-1.jpg`,
+            url: `${urlPrefix}/diy-workshop-1.webp`,
             tags: [
                 "diy",
                 "workshop",
@@ -532,7 +532,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/diy-workshop-2.jpg`,
+            url: `${urlPrefix}/diy-workshop-2.webp`,
             tags: [
                 "diy",
                 "workshop",
@@ -553,7 +553,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/diy-workshop-3.jpg`,
+            url: `${urlPrefix}/diy-workshop-3.webp`,
             tags: [
                 "diy",
                 "workshop",
@@ -572,7 +572,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/movie-cinema-1.jpg`,
+            url: `${urlPrefix}/movie-cinema-1.webp`,
             tags: [
                 "movie",
                 "cinema",
@@ -587,7 +587,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/movie-friends-1.jpg`,
+            url: `${urlPrefix}/movie-friends-1.webp`,
             tags: [
                 "movie",
                 "film",
@@ -598,7 +598,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/tempelhof-1.jpg`,
+            url: `${urlPrefix}/tempelhof-1.webp`,
             tags: [
                 "tempelhof",
                 "tempelhof field",
@@ -606,7 +606,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/tempelhof-2.jpg`,
+            url: `${urlPrefix}/tempelhof-2.webp`,
             tags: [
                 "tempelhof",
                 "tempelhof field",
@@ -614,7 +614,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/bbq-1.jpg`,
+            url: `${urlPrefix}/bbq-1.webp`,
             tags: [
                 "bbq",
                 "grill",
@@ -627,7 +627,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/bbq-vegan-1.jpg`,
+            url: `${urlPrefix}/bbq-vegan-1.webp`,
             tags: [
                 "bbq",
                 "grill",
@@ -642,7 +642,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/biking-relax-1.jpg`,
+            url: `${urlPrefix}/biking-relax-1.webp`,
             tags: [
                 "biking",
                 "relaxation",
@@ -653,7 +653,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/biking-fast-1.jpg`,
+            url: `${urlPrefix}/biking-fast-1.webp`,
             tags: [
                 "biking",
                 "fast",
@@ -664,7 +664,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/park-yoga-1.jpg`,
+            url: `${urlPrefix}/park-yoga-1.webp`,
             tags: [
                 "yoga",
                 "park",
@@ -676,7 +676,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/flea-market-1.jpg`,
+            url: `${urlPrefix}/flea-market-1.webp`,
             tags: [
                 "flea market",
                 "shopping",
@@ -690,7 +690,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/flea-market-2.jpg`,
+            url: `${urlPrefix}/flea-market-2.webp`,
             tags: [
                 "flea market",
                 "shopping",
@@ -704,7 +704,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/club-1.jpg`,
+            url: `${urlPrefix}/club-1.webp`,
             tags: [
                 "club",
                 "nightlife",
@@ -718,7 +718,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/club-small-1.jpg`,
+            url: `${urlPrefix}/club-small-1.webp`,
             tags: [
                 "club",
                 "nightlife",
@@ -733,7 +733,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/club-festival-1.jpg`,
+            url: `${urlPrefix}/club-festival-1.webp`,
             tags: [
                 "club",
                 "nightlife",
@@ -748,7 +748,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/club-techno-1.jpg`,
+            url: `${urlPrefix}/club-techno-1.webp`,
             tags: [
                 "club",
                 "nightlife",
@@ -763,7 +763,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/club-tresor-1.jpg`,
+            url: `${urlPrefix}/club-tresor-1.webp`,
             tags: [
                 "club",
                 "nightlife",
@@ -774,13 +774,13 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/club-sisyphos-1.jpg`,
+            url: `${urlPrefix}/club-sisyphos-1.webp`,
             tags: [
                 "sisyphos"
             ]
         },
         {
-            url: `${urlPrefix}/club-underground-1.jpg`,
+            url: `${urlPrefix}/club-underground-1.webp`,
             tags: [
                 "underground",
                 "club",
@@ -793,7 +793,7 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/club-underground-2.jpg`,
+            url: `${urlPrefix}/club-underground-2.webp`,
             tags: [
                 "underground",
                 "club",
@@ -806,177 +806,177 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
         {
-            url: `${urlPrefix}/-1.jpg`,
+            url: `${urlPrefix}/-1.webp`,
             tags: [
             ]
         },
