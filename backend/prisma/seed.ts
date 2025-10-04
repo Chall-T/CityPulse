@@ -2,6 +2,8 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import { createCategory } from '../src/services/categoryService';
 import { register } from '../src/services/authService';
 import { createEvent, getEvents } from '../src/services/eventService';
+import { searchStockImages } from '../../frontend/src/assets/images';
+import type { Category } from '../../frontend/src/types';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -79,6 +81,11 @@ async function main() {
     if (!cat) throw new Error(`Category "${name}" not found`);
     return cat.id;
   };
+  function getMocapkCategory(name: string): Category {
+    const cat = categories.find(c => c.name === name);
+    if (!cat) throw new Error(`Category "${name}" not found`);
+    return cat;
+  }
   const eventsData: Prisma.EventCreateInput[] = [
     {
       title: 'Berlin Street Food Festival',
@@ -87,7 +94,7 @@ async function main() {
       lat: 52.5120,
       lng: 13.4540,
       dateTime: new Date('2025-09-30T12:00:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0',
+      imageUrl: searchStockImages('food festival', [getMocapkCategory('Food'), getMocapkCategory('Festival')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Food') }, { id: getCategoryId('Festival') }] },
     },
@@ -98,7 +105,7 @@ async function main() {
       lat: 52.5015,
       lng: 13.4542,
       dateTime: new Date('2025-11-12T22:00:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1506157786151-b8491531f063',
+      imageUrl: searchStockImages('techno night', [getMocapkCategory('Techno'), getMocapkCategory('Club Night')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Techno') }, { id: getCategoryId('Club Night') }] },
     },
@@ -109,7 +116,7 @@ async function main() {
       lat: 52.5418,
       lng: 13.4241,
       dateTime: new Date('2025-12-28T20:00:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1548142813-c348350df52b',
+      imageUrl: searchStockImages('comedy night', [getMocapkCategory('Stand-up Comedy')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Stand-up Comedy') }] },
     },
@@ -120,7 +127,7 @@ async function main() {
       lat: 52.4996,
       lng: 13.4332,
       dateTime: new Date('2025-10-05T18:30:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1549887534-7f7bc6d0f6b3',
+      imageUrl: searchStockImages('urban street art', [getMocapkCategory('Gallery / Art')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Gallery / Art') }] },
     },
@@ -131,7 +138,7 @@ async function main() {
       lat: 52.4731,
       lng: 13.4039,
       dateTime: new Date('2025-09-30T14:00:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe',
+      imageUrl: searchStockImages('park picnic', [getMocapkCategory('BBQ / Grill'), getMocapkCategory('Board Game')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('BBQ / Grill') }, { id: getCategoryId('Board Game') }] },
     },
@@ -142,7 +149,7 @@ async function main() {
       lat: 52.5234,
       lng: 13.3986,
       dateTime: new Date('2025-10-15T19:00:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
+      imageUrl: searchStockImages('rooftop cocktail', [getMocapkCategory('Pub / Bar'), getMocapkCategory('Rooftop Bar')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Pub / Bar') }, { id: getCategoryId('Rooftop Bar') }] },
     },
@@ -153,7 +160,7 @@ async function main() {
       lat: 52.5306,
       lng: 13.4240,
       dateTime: new Date('2025-11-01T18:00:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1508780709619-79562169bc64',
+      imageUrl: searchStockImages('jazz night', [getMocapkCategory('Music')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Music') }] },
     },
@@ -164,7 +171,7 @@ async function main() {
       lat: 52.5219,
       lng: 13.4132,
       dateTime: new Date('2025-11-20T11:00:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1582719478186-9a7b93aa8d45',
+      imageUrl: searchStockImages('underground tour', [getMocapkCategory('Tour')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Tour') }] },
     },
@@ -175,7 +182,7 @@ async function main() {
       lat: 52.5212,
       lng: 13.4016,
       dateTime: new Date('2025-10-10T10:00:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1510626176961-4b1ecf3f1f5b',
+      imageUrl: searchStockImages('café crawl', [getMocapkCategory('Café')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Café') }] },
     },
@@ -186,7 +193,7 @@ async function main() {
       lat: 52.5206,
       lng: 13.4098,
       dateTime: new Date('2025-12-10T20:00:00Z'),
-      imageUrl: 'https://images.unsplash.com/photo-1546484959-03a1e50229b1',
+      imageUrl: searchStockImages('boat party', [getMocapkCategory('Boat')])[0] || '',
       creator: { connect: { id: user.id } },
       categories: { connect: [{ id: getCategoryId('Boat') }] },
     },
