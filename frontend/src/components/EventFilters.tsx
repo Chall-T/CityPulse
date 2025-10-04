@@ -7,7 +7,6 @@ import { Input, InputGroup, InputPicker, CheckPicker } from 'rsuite';
 import 'rsuite/dist/rsuite.min.css';
 import { addMonths, startOfMonth, endOfMonth, endOfWeek } from 'date-fns';
 import useIsMobile from "../hooks/useMobile";
-import { get } from "lodash";
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -51,7 +50,7 @@ const EventFilters: React.FC = () => {
 
   const {
     categories,
-    selectedCategories,
+    // selectedCategories,
     // search,
     // sort,
     setSearchFilter, 
@@ -70,14 +69,13 @@ const EventFilters: React.FC = () => {
   const [localSelectedCategories, setLocalSelectedCategories] = useState<string[]>([]);
   const [localSort, setLocalSort] = useState<"desc" | "asc" | "score">("asc");
   const [dateRange, setDateRange] = useState<[Date, Date] | null>(null);
-  const [paramsLoaded, setParamsLoaded] = useState<string>("");
 
   useEffect(() => {
     fetchCategories();
 
     const urlCats = searchParams.get("categoryIds");
     const urlSearch = searchParams.get("search") || "";
-    const urlSort = (searchParams.get("sort") as "desc" | "asc" | "score") || "desc";
+    const urlSort = (searchParams.get("sort") as "desc" | "asc" | "score" | undefined) || "desc";
     const urlFrom = searchParams.get("fromDate") || "";
     const urlTo = searchParams.get("toDate") || "";
 
@@ -98,6 +96,7 @@ const EventFilters: React.FC = () => {
     setSelectedCategories(parsedCats);
     setSearch(urlSearch);
     setSort(urlSort);
+    
     setDateRangeFilter({ from: urlFrom, to: urlTo });
     setSearchFilter(urlSearch);
 

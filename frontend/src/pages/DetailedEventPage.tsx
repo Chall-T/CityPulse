@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactDOM from 'react-dom/client';
 import { useParams } from 'react-router-dom';
 import { apiClient } from '../lib/ApiClient';
 import { useAuthStore } from '../store/authStore';
@@ -8,7 +7,6 @@ import type { Event, Message } from '../types';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import UserProfileIcon from '../components/UserProfileIcon';
 import ReportButton from '../components/ReportButton';
-import Swal from 'sweetalert2';
 import 'leaflet/dist/leaflet.css';
 
 
@@ -34,7 +32,6 @@ const EventDetailPage: React.FC = () => {
 
   const [showReportMenu, setShowReportMenu] = useState(false);
   const reportMenuRef = useRef<HTMLDivElement | null>(null);
-  const [reportDetails, setReportDetails] = useState("");
 
   const popupRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -212,11 +209,13 @@ const EventDetailPage: React.FC = () => {
     try {
       const res = await apiClient.createMessage(id, newMessage);
       setMessages((prev) => [...prev, res.data.message]);
+      messages;
       setNewMessage('');
     } catch (err) {
       console.error('Failed to send message:', err);
     }
   };
+  handleSendMessage();
 
 
   const handleVote = async (value: number) => {

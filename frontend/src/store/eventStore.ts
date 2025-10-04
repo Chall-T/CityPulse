@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type { Category } from '../types/category';
 import type { Event, ClusterPin, MapPin } from '../types';
 import { apiClient } from '../lib/ApiClient';
-import { includes } from 'lodash';
 
 
 type DateRange = {
@@ -14,7 +13,7 @@ type EventStore = {
     events: Event[];
     loading: boolean;
     nextCursor: string | null;
-    fetchEvents: (reset?: boolean, filters?: { categoryIds?: string[]; search?: string; sort?: 'desc' | 'asc', fromDate?: string, toDate?: string }) => Promise<void>;
+    fetchEvents: (reset?: boolean, filters?: { categoryIds?: string[]; search?: string; sort?: 'desc' | 'asc' | 'score', fromDate?: string, toDate?: string }) => Promise<void>;
     fetchEventById: (id: string) => Promise<Event | null>;
     reset: () => void;
 };

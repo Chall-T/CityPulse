@@ -1,5 +1,5 @@
 
-export function formatEventDate(dateString) {
+export function formatEventDate(dateString: Date) {
   const date = new Date(dateString);
   const now = new Date();
 

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { DatePicker, InputPicker, InputNumber, TagPicker } from 'rsuite';
+import { DatePicker, InputNumber, TagPicker } from 'rsuite';
 import type { Event } from '../types';
 import { searchStockImages } from '../assets/images/';
 import { useFilterStore } from '../store/eventStore';

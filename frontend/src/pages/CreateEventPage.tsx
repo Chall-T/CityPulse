@@ -10,8 +10,6 @@ import { apiClient } from '../lib/ApiClient';
 import OneLineLoader from '../components/Loader/OneLine';
 import Swal from 'sweetalert2'
 import MD5 from 'crypto-js/md5';
-import { all } from 'axios';
-import { set } from 'lodash';
 
 
 function MapUpdater({ coords, zoom }: { coords: [number, number] | null, zoom: number }) {
@@ -324,7 +322,7 @@ const CreateEventPage: React.FC = () => {
   const [typingLocation, setTypingLocation] = useState<boolean>(false);
 
 
-  const [wayCoords, setWayCoords] = useState([]);
+  const [wayCoords] = useState([]);
   const [wikiDataImages, setWikiDataImages] = useState<string[]>([]);
 
   useEffect(() => {

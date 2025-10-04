@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import type { User } from "../../types";
 import { apiClient } from '../../lib/ApiClient';
 
 export default function UserManagement() {

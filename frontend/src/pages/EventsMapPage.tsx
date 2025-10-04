@@ -20,12 +20,13 @@ const EventPage: React.FC = () => {
 
     const { selectedCategories, dateRange } = useFilterStore();
 
-    const [coords, setCoords] = useState<LatLngExpression>([52.510885, 13.3989367]); // Berlin
+    const [coords] = useState<LatLngExpression>([52.510885, 13.3989367]); // Berlin
     const [zoom, setZoom] = useState(12);
     const mapRef = useRef<LeafletMap | null>(null);
     // console.log(pins)
 
     const handleBoundsFetch = (bounds: any, newZoom: number) => {
+        newZoom;
         const southWest = bounds.getSouthWest();
         const northEast = bounds.getNorthEast();
         fetchPins({
