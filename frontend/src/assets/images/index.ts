@@ -764,133 +764,353 @@ export const stockImages = (urlPrefix: string): StockImage[] => {
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/lgbt+-4.webp`,
             tags: [
+                "lgbtq+",
+                "pride",
+                "parade",
+                "lgbtq",
+                "brandenburg gate",
+                "brandenburger tor",
+                "rainbow",
+                "celebration",
+                "love is love",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/park-chill-out-1.webp`,
             tags: [
+                "chill",
+                "relaxation",
+                "outdoor",
+                "nature",
+                "friends",
+                "park",
+                "chill-out",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/running-community-1.webp`,
             tags: [
+                "running",
+                "community",
+                "outdoor",
+                "exercise",
+                "friends",
+                "jogging",
+                "marathon",
+                "sport",
+                "training",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/sport-gym-1.webp`,
             tags: [
+                "sport",
+                "gym",
+                "fitness",
+                "exercise",
+                "training",
+                "workout",
+                "health",
+                "wellness",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/sport-1.webp`,
             tags: [
+                "sport",
+                "jud jitsu",
+                "martial arts",
+                "self-defense",
+                "training",
+                "exercise",
+                "fitness",
+                "karate",
+                "taekwondo",
+                "kung fu",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/tour-bvg-1.webp`,
             tags: [
+                "tour",
+                "bvg",
+                "public transport",
+                "bus",
+                "sightseeing",
+                "city tour",
+                "berlin",
+                "guide",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/tour-car-1.webp`,
             tags: [
+                "tour",
+                "car",
+                "sightseeing",
+                "city tour",
+                "berlin",
+                "guide",
+                "travel",
+                "road trip",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/berlin-1.webp`,
             tags: [
+                "berlin",
+                "city",
+                "skyline",
+                "tour",
+                "sightseeing",
+                "travel"
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/berlin-2.webp`,
             tags: [
+                "berlin",
+                "city",
+                "architecture",
+                "landmarks",
+                "sightseeing",
+                "travel",
+                "night",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/berlin-3.webp`,
             tags: [
+                "berlin",
+                "city",
+                "architecture",
+                "landmarks",
+                "sightseeing",
+                "travel",
+                "night",
+                "tour"
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/berlin-4.webp`,
             tags: [
+                "berlin",
+                "city",
+                "architecture",
+                "landmarks",
+                "sightseeing",
+                "travel",
+                "tour",
+                "oberbaum bridge",
+                "oberbaumbrücke",
+                "spree",
+                "river",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/lgbtq+-3.webp`,
             tags: [
+                "berlin",
+                "city",
+                "architecture",
+                "landmarks",
+                "sightseeing",
+                "travel",
+                "night",
+                "tour",
+                "lgbtq+",
+                "pride",
+                "parade",
+                "lgbtq",
+                "brandenburg gate",
+                "brandenburger tor",
+                "rainbow",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/lgbtq+-2.webp`,
             tags: [
+                "alexanderplatz",
+                "tv tower",
+                "sightseeing",
+                "travel",
+                "night",
+                "tour",
+                "lgbtq+",
+                "pride",
+                "lgbtq",
+                "rainbow",
+                "bvg",
+                "public transport",
+                "metro",
+                "u-bahn",
+                "underground",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/lgbtq+-1.webp`,
             tags: [
+                "lgbtq+",
+                "pride",
+                "parade",
+                "lgbtq",
+                "csd"
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/karaoke-1.webp`,
             tags: [
+                "karaoke",
+                "singing",
+                "music",
+                "nightlife",
+                "entertainment",
+                "monster ronson's",
+                "monster ronsons",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/hangout-park-2.webp`,
             tags: [
+                "hangout",
+                "park",
+                "outdoor",
+                "nature",
+                "friends",
+                "chill",
+                "relaxation",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/hangout-park-1.webp`,
             tags: [
+                "hangout",
+                "park",
+                "outdoor",
+                "nature",
+                "friends",
+                "chill",
+                "relaxation",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/flea-market-1.webp`,
             tags: [
+                "flea market",
+                "shopping",
+                "outdoor",
+                "vintage",
+                "antiques",
+                "shopping",
+                "community",
+                "local",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/flea-market-2.webp`,
             tags: [
+                "flea market",
+                "shopping",
+                "outdoor",
+                "vintage",
+                "antiques",
+                "shopping",
+                "community",
+                "local",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/-3.webp`,
             tags: [
+                "flea market",
+                "shopping",
+                "outdoor",
+                "vintage",
+                "antiques",
+                "shopping",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/community-music-1.webp`,
             tags: [
+                "community",
+                "music",
+                "swing",
+                "dance",
+                "live music",
+                "dancing",
+                "classical",
+                "performance",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/community-1.webp`,
             tags: [
+                "community",
+                "garden",
+                "outdoor",
+                "nature",
+                "plants",
+                "flowers",
+                "urban",
+                "green",
+                "environment",
+                "sustainability",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/community-chess-1.webp`,
             tags: [
+                "community",
+                "chess",
+                "game",
+                "outdoor",
+                "nature",
+                "friends",
+                "strategy",
+                "board game",
+                "bar"
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/chill-out-1.webp`,
             tags: [
+                "chill",
+                "outdoor",
+                "nature",
+                "friends",
+                "relaxation",
+                "water",
+                "river",
+                "pub",
+                "bar",
+                "socializing",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/bike-ride-1.webp`,
             tags: [
+                "bike",
+                "ride",
+                "outdoor",
+                "nature",
+                "friends",
+                "exercise",
+                "adventure",
             ]
         },
         {
-            url: `${urlPrefix}/-1.webp`,
+            url: `${urlPrefix}/bike-ride-2.webp`,
             tags: [
+                "bike",
+                "ride",
+                "outdoor",
+                "nature",
+                "friends",
+                "exercise",
+                "adventure",
             ]
         },
         {
