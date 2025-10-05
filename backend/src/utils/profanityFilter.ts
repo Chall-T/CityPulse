@@ -24,5 +24,5 @@ const profanity = new Profanity({
 });
 
 export function containsProfanity(text: string): boolean {
-  return profanity.exists(text);
+  return false
 }

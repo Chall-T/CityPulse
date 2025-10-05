@@ -3,9 +3,7 @@ import { authenticate } from '../middleware/authMiddleware';
 import * as cheerio from 'cheerio';
 import { Readable } from 'stream';
 import { cacheImage } from '../utils/ImageCache';
-
-const SERVER_URL = process.env.SERVER_URL || 'http://localhost';
-const PORT = process.env.PORT || '1000';
+import { backendUrl } from '../utils/secrets';
 
 const router = express.Router();
 
@@ -58,7 +56,7 @@ router.get('/images', authenticate, async (req: Request, res: Response) => {
     }).map((url) => {
       // Rebuild with proxy
       const encoded = encodeURIComponent(url);
-      return `${SERVER_URL}:${PORT}/api/image?url=${encoded}`;
+      return `${backendUrl}/image?url=${encoded}`;
     });
   }
   try {
