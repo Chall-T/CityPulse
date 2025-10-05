@@ -121,8 +121,7 @@ export const refreshAccessToken = async (refreshToken: string, browser: string, 
     const tokenRecord = await prisma.token.findUnique({ where: { token: refreshToken } });
     if (!tokenRecord) throw new AppError('Invalid refresh token', 400, ErrorCodes.AUTH_INVALID_REFRESH_TOKEN);
 
-    const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!) as { userId: string };
-    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    const user = await prisma.user.findUnique({ where: { id: tokenRecord.userId } });
     if (!user) throw new AppError('User no longer exists', 404, ErrorCodes.RESOURCE_NOT_FOUND);
 
     // Optionally update token usage info
