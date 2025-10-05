@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { useEventStore } from '../store/eventStore';
 import { EventCard } from '../components/EventCard';
 import EventFilters from '../components/EventFilters';
@@ -7,7 +7,6 @@ const EventPage: React.FC = () => {
   const { events, loading, nextCursor, fetchEvents } = useEventStore();
 
   const observerRef = useRef<IntersectionObserver | null>(null);
-  const lastEventRef = useRef<HTMLDivElement | null>(null);
 
   // infinite scroll using IntersectionObserver
   const lastEventElementRef = useCallback(
