@@ -8,6 +8,21 @@ import 'rsuite/dist/rsuite.min.css';
 import { addMonths, startOfMonth, endOfMonth, endOfWeek } from 'date-fns';
 import useIsMobile from "../hooks/useMobile";
 
+
+function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  return (...args: Parameters<T>): void => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+}
+
+
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
@@ -53,7 +68,7 @@ const EventFilters: React.FC = () => {
     // selectedCategories,
     // search,
     // sort,
-    setSearchFilter, 
+    setSearchFilter,
     setDateRangeFilter,
     setSearch,
     setSort,
@@ -61,7 +76,7 @@ const EventFilters: React.FC = () => {
     reset,
     fetchCategories,
   } = useFilterStore();
-  const { fetchEvents } = useEventStore();
+  const { fetchEvents, events } = useEventStore();
 
   const [searchParams, setSearchParams] = useSearchParams();
   // Local UI state
@@ -96,18 +111,19 @@ const EventFilters: React.FC = () => {
     setSelectedCategories(parsedCats);
     setSearch(urlSearch);
     setSort(urlSort);
-    
+
     setDateRangeFilter({ from: urlFrom, to: urlTo });
     setSearchFilter(urlSearch);
 
-
-    fetchEvents(true, {
-      categoryIds: parsedCats,
-      search: urlSearch,
-      sort: urlSort,
-      fromDate: urlFrom,
-      toDate: urlTo,
-    });
+    if (events.length === 0) {
+      fetchEvents(true, {
+        categoryIds: parsedCats,
+        search: urlSearch,
+        sort: urlSort,
+        fromDate: urlFrom,
+        toDate: urlTo,
+      });
+    }
   }, []);
 
   // // Toggle a category on/off in local state
@@ -211,21 +227,21 @@ const EventFilters: React.FC = () => {
       {/* Sort & Date Filter Row */}
       <div className="flex flex-col md:flex-row items-center gap-4 w-full">
         <div className="w-full md:w-auto">
-        <InputPicker
-          className="custom-picker-colour"
-          data={[
-            { label: "Newest First", value: "desc" },
-            { label: "Oldest First", value: "asc" },
-            { label: "Highest Score", value: "score" }
-          ]}
-          style={{ width: '100%', maxWidth: "100%", minWidth: 180 }}
-          value={localSort}
-          onChange={(value) => setLocalSort(value as "desc" | "asc" | "score")}
-          cleanable={false}
-        />
+          <InputPicker
+            className="custom-picker-colour"
+            data={[
+              { label: "Newest First", value: "desc" },
+              { label: "Oldest First", value: "asc" },
+              { label: "Highest Score", value: "score" }
+            ]}
+            style={{ width: '100%', maxWidth: "100%", minWidth: 180 }}
+            value={localSort}
+            onChange={(value) => setLocalSort(value as "desc" | "asc" | "score")}
+            cleanable={false}
+          />
         </div>
         <div className="w-full md:w-auto" style={{ flexShrink: 0, flexGrow: 0, minWidth: 200, maxWidth: "100%" }}>
-          <DateRangePicker 
+          <DateRangePicker
             {...isMobile ? { showOneCalendar: true } : {}}
             value={dateRange}
             onChange={(range) => {
@@ -242,7 +258,7 @@ const EventFilters: React.FC = () => {
               return date < today;
             }}
             ranges={customRanges}
-            style={{ 
+            style={{
               flexShrink: 0,
               flexGrow: 0,
               width: "100%",

@@ -22,7 +22,7 @@ export const USER_LIMITS = {
 
 export const RATE_LIMITS = {
   GENERAL_WINDOW_MS: 5 * 60 * 1000, // 5 minutes
-  GENERAL_MAX_REQUESTS: 500,
+  GENERAL_MAX_REQUESTS: 5500,
 
   AUTH_WINDOW_MS: 10 * 60 * 1000, // 10 minutes
   AUTH_MAX_REQUESTS: 10,
