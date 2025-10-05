@@ -10,11 +10,13 @@ import { ulid } from 'ulid';
 
 import { cacheImage } from '../utils/ImageCache';
 import { AUTH_ACCESS_TOKEN_EXPIRES_IN, AUTH_REFRESH_TOKEN_EXPIRES_IN } from '../config/general';
+import { backendUrl } from '../utils/secrets';
+
 
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  callbackURL: '/api/auth/google/callback'
+  callbackURL: `${backendUrl}/auth/google/callback`
 },
 (accessToken, refreshToken, profile, done) => {
   return done(null, profile);

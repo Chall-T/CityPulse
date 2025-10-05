@@ -12,19 +12,20 @@ import adminRoutes from './routes/adminRoutes';
 import swaggerSpec from './config/swagger';
 import logger from './utils/logger';
 import { globalErrorHandler } from './utils/errorHandler';
-import { DB_URI, PORT } from "./utils/secrets";
+import { allowedOrigins, PORT } from "./utils/secrets";
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
 
 import { generalLimiter } from './middleware/rateLimiter';
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(passport.initialize());
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors(
   {
-    origin: 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   }
 ));

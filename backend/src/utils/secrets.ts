@@ -11,7 +11,18 @@ if (fs.existsSync(".env")) {
 export const ENVIRONMENT = process.env.NODE_ENV;
 export const isProd = ENVIRONMENT === "production";
 
-const backendUrl = new URL(process.env.BACKEND_URL || '');
+export const backendUrl = new URL(process.env.BACKEND_URL || '');
+export const frontendUrl = new URL(process.env.FRONTEND_URL || '');
+
+export const allowedOrigins = [
+  frontendUrl.origin,
+  `https://www.${frontendUrl.hostname}`,
+];
+
+if (!isProd) {
+  allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:3000');
+}
+
 export const API_PATH = `${backendUrl.pathname.replace(/\/$/, '')}`;
 
 
