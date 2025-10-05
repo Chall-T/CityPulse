@@ -24,6 +24,7 @@ import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { usePageTracking } from './hooks/usePageTracking';
 
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -33,6 +34,7 @@ L.Icon.Default.mergeOptions({
 
 
 const App = () => {
+  usePageTracking();
   const user = useAuthStore(state => state.user);
   useEffect(() => {
     cleanAllExpiredCaches();
@@ -69,7 +71,7 @@ const App = () => {
               <CreateEventPage />
             </PrivateOnlyRoute>}
           />
-          <Route path='/' element={<Navigate to="/events" replace />} />
+          
 
           <Route path="/admin" element={
             <PrivateOnlyRoute>
@@ -86,6 +88,7 @@ const App = () => {
               </RoleRoute>
             </PrivateOnlyRoute>
           } />
+          <Route path='/' element={<Navigate to="/events" replace />} />
 
         </Routes>
       </Layout>
