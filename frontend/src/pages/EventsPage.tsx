@@ -2,6 +2,7 @@ import React, { useRef, useCallback } from 'react';
 import { useEventStore } from '../store/eventStore';
 import { EventCard } from '../components/EventCard';
 import EventFilters from '../components/EventFilters';
+import ScrollToTopButton from '../components/ScrollToTopButton';
 
 const EventPage: React.FC = () => {
   const { events, loading, nextCursor, fetchEvents } = useEventStore();
@@ -60,6 +61,7 @@ const EventPage: React.FC = () => {
       {loading && events.length > 0 && (
         <p className="text-center mt-4">Loading more events...</p>
       )}
+      <ScrollToTopButton />
     </main>
   );
 };
