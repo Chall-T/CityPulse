@@ -20,7 +20,7 @@ export async function cacheImage(url: string): Promise<string> {
 
   // Already cached
   if (fs.existsSync(filename)) {
-    return `${API_PATH}/cache/${hash.substring(0, 2)}/${hash}.webp`;
+    return `/cache/${hash.substring(0, 2)}/${hash}.webp`;
   }
 
   const response = await fetch(url);
@@ -36,5 +36,5 @@ export async function cacheImage(url: string): Promise<string> {
     .webp({ quality: 80 })
     .toFile(filename);
 
-  return `${API_PATH}/cache/${hash.substring(0, 2)}/${hash}.webp`;
+  return `/cache/${hash.substring(0, 2)}/${hash}.webp`;
 }
