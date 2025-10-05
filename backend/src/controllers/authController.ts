@@ -12,7 +12,7 @@ export const register = catchAsync(async (req: Request, res: Response, next: Nex
 
   if (!email) return next(new AppError("Email is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
   authService.isValidEmail(email) || next(new AppError("Invalid email format", 400, ErrorCodes.VALIDATION_INVALID_FORMAT));
-  
+
   if (!password) return next(new AppError("Password is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
   if (password.length < USER_LIMITS.PASSWORD_MIN_LENGTH) return next(new AppError(`Password must be at least ${USER_LIMITS.PASSWORD_MIN_LENGTH} characters long`, 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
   if (name && name > USER_LIMITS.NAME_MAX_LENGTH) return next(new AppError("Name is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
@@ -38,13 +38,13 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
   const { user, accessToken, refreshToken } = await authService.login(email, password, browser, ipAddress);
   logger.info(`User logged in successfully: ${email} on ${browser} from ${ipAddress}`);
 
-  res.cookie("refreshToken", refreshToken, {
-  httpOnly: true,
-  sameSite: isProd ? 'none' : 'lax',
-  secure: isProd,
-  path: "/auth",
-  maxAge: 2592000 * 1000
-});
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    path: `${API_PATH}/auth`,
+  });
 
   res.json({ user, token: accessToken });
 });
