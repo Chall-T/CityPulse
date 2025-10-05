@@ -203,7 +203,7 @@ export const getEventsPaginatedWithFilters = async (
     },
     orderBy:
       sort === 'score'
-        ? { votes: { _count: 'desc' } } // sort by total votes count
+        ? { score: 'desc' } // sort by total votes count
         : { dateTime: sort },
   });
 };

@@ -92,6 +92,7 @@ model Event {
   status EventStatus @default(ACTIVE)
 
   @@index([lat, lng])
+  @@unique([score, id])
 }
 
 model RSVP {

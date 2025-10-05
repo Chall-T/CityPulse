@@ -21,8 +21,8 @@ const handleRateLimit: RateLimitExceededEventHandler = (
 };
 
 export const generalLimiter: RateLimitRequestHandler = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  windowMs: RATE_LIMITS.GENERAL_WINDOW_MS,
+  max: RATE_LIMITS.GENERAL_MAX_REQUESTS,
   message: 'Too many requests from this IP, please try again later.',
   handler: handleRateLimit,
   standardHeaders: true,
