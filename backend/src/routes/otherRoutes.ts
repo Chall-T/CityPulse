@@ -3,7 +3,7 @@ import { authenticate } from '../middleware/authMiddleware';
 import * as cheerio from 'cheerio';
 import { Readable } from 'stream';
 import { cacheImage } from '../utils/ImageCache';
-import { backendUrl } from '../utils/secrets';
+import { backendUrl, API_PATH } from '../utils/secrets';
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.get('/image', async (req, res) => {
 
   try {
     const cachedPath = await cacheImage(imageUrl);
-    return res.redirect(cachedPath); // Let static middleware serve it
+    return res.redirect(`${API_PATH}${cachedPath}`); // Let static middleware serve it
   } catch (err) {
     console.error(err);
     return res.status(500).send("Error caching image");
