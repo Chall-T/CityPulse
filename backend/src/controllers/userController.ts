@@ -65,4 +65,17 @@ export const deleteUser = catchAsync(async (req: Request, res: Response, next: N
     res.status(204).send();
 });
 
+export const updateUserRole = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { role } = req.body;
+    if (!role || !['USER', 'MODERATOR', 'ADMIN'].includes(role)) {
+        return next(new AppError('Invalid role provided', 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
+    }
 
+    const updatedUser = await userService.updateUser(req.params.userId, { role });
+
+    if (!updatedUser) {
+        return next(new AppError('User not found', 404, ErrorCodes.RESOURCE_NOT_FOUND));
+    }
+
+    res.json(updatedUser);
+});

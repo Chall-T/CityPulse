@@ -119,7 +119,7 @@ class ApiClient {
   }
 
   private async requestWithCache<T = any>(
-    method: 'get' | 'post' | 'patch',
+    method: 'get' | 'post' | 'patch' | 'delete',
     url: string,
     options: {
       params?: any;
@@ -155,6 +155,7 @@ class ApiClient {
           get: () => this.api.get(url, { params, ...config }),
           post: () => this.api.post(url, data, config),
           patch: () => this.api.patch(url, data, config),
+          delete: () => this.api.delete(url, { ...config }),
         };
         if (!methodMap[method]) {
           throw new Error(`Unsupported method: ${method}`);
@@ -342,6 +343,12 @@ class ApiClient {
       cacheable: false,
     });
   }
+  async adminDeleteUser(userId: string) {
+    return this.requestWithCache('delete', `/admin/users/${userId}`, {
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
   async adminReportedContent() {
     return this.requestWithCache('get', `/mod/reports`, {
       config: { meta: { authRequired: true } },
@@ -351,6 +358,71 @@ class ApiClient {
   async adminTakeActionOnReport(reportId: string, moderatorId: string, actionTaken: string) {
     return this.requestWithCache('patch', `/mod/reports`, {
       data: { reportId, moderatorId, actionTaken },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminGetAllEvents() {
+    return this.requestWithCache('get', `/admin/events`, {
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminUpdateEventStatus(eventId: string, status: string) {
+    return this.requestWithCache('patch', `/admin/events/${eventId}`, {
+      data: { status },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminDeleteEvent(eventId: string) {
+    return this.requestWithCache('delete', `/admin/events/${eventId}`, {
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminGetAllReports() {
+    return this.requestWithCache('get', `/admin/reports`, {
+      params: { toReview: 'true' },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminDeleteReport(reportId: string) {
+    return this.requestWithCache('delete', `/admin/reports/${reportId}`, {
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminReviewReport(reportId: string, actionTaken: string) {
+    return this.requestWithCache('post', `/admin/reports/${reportId}/review`, {
+      data: { actionTaken },
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminCreateCategory(category: { name: string; emoji?: string }) {
+    return this.requestWithCache('post', `/admin/categories`, {
+      data: category,
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminUpdateCategory(categoryId: string, category: { name: string; emoji?: string }) {
+    return this.requestWithCache('patch', `/admin/categories/${categoryId}`, {
+      data: category,
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminDeleteCategory(categoryId: string) {
+    return this.requestWithCache('delete', `/admin/categories/${categoryId}`, {
+      config: { meta: { authRequired: true } },
+      cacheable: false,
+    });
+  }
+  async adminGetCategories() {
+    return this.requestWithCache('get', `/admin/categories`, {
       config: { meta: { authRequired: true } },
       cacheable: false,
     });

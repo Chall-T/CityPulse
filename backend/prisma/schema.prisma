@@ -16,7 +16,7 @@ enum Role {
 
 model Token {
   id        String @id @default(cuid())
-  user      User   @relation(fields: [userId], references: [id])
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   token     String @unique
   browser   String

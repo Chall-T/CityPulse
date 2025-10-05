@@ -236,7 +236,6 @@ export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res
 
 
 
-
 export const updateEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryIds } = req.body;
 

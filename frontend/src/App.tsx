@@ -18,7 +18,11 @@ import EmailVerificationPage from './pages/EmailVerivicationPage';
 import UserProfilePage from './pages/UserProfilePage';
 
 import AdminPanelPage from './pages/admin/AdminPanelPage';
+import UserManagementPage from './pages/admin/UserManagmentPage';
+import EventManagementPage from './pages/admin/EventManagementPage';
 import ModeratorPanelPage from './pages/admin/ModeratorPanelPage';
+import ReportReviewPage from './pages/admin/ReportReviewPage';
+import CategoryManagementPage from './pages/admin/CategoryManagementPage';
 
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -77,6 +81,34 @@ const App = () => {
             <PrivateOnlyRoute>
               <RoleRoute allowedRoles={['ADMIN']}>
                 <AdminPanelPage />
+              </RoleRoute>
+            </PrivateOnlyRoute>
+          } />
+          <Route path="/admin/users" element={
+            <PrivateOnlyRoute>
+              <RoleRoute allowedRoles={['ADMIN']}>
+                <UserManagementPage />
+              </RoleRoute>
+            </PrivateOnlyRoute>
+          } />
+          <Route path="/admin/events" element={
+            <PrivateOnlyRoute>
+              <RoleRoute allowedRoles={['ADMIN']}>
+                <EventManagementPage />
+              </RoleRoute>
+            </PrivateOnlyRoute>
+          } />
+          <Route path="/admin/reports" element={
+            <PrivateOnlyRoute>
+              <RoleRoute allowedRoles={['MODERATOR','ADMIN']}>
+                <ReportReviewPage />
+              </RoleRoute>
+            </PrivateOnlyRoute>
+          } />
+          <Route path="/admin/categories" element={
+            <PrivateOnlyRoute>
+              <RoleRoute allowedRoles={['MODERATOR','ADMIN']}>
+                <CategoryManagementPage />
               </RoleRoute>
             </PrivateOnlyRoute>
           } />
