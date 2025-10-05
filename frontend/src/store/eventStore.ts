@@ -38,7 +38,7 @@ export const useEventStore = create<EventStore>((set, get) => ({
         }
 
         try {
-            const params: any = { limit: 20 };
+            const params: any = { limit: 50 };
 
             if (!reset && nextCursor) params.cursor = nextCursor;
             if (filters?.categoryIds && filters.categoryIds.length > 0) params.categoryIds = filters.categoryIds.join(',');
