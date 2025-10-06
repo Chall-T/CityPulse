@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, use } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { apiClient } from '../lib/ApiClient';
@@ -16,6 +16,10 @@ const appVersion = import.meta.env.VITE_APP_VERSION;
 const baseUrl = import.meta.env.VITE_GEOCODING_API;
 
 const EventDetailPage: React.FC = () => {
+  // Page Config
+  const showAttendeesOnlyForCreator = true;
+
+
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<Event | null>(null);
   const [coords, setCoords] = useState<[number, number] | null>(null);
@@ -293,25 +297,25 @@ const EventDetailPage: React.FC = () => {
         {/* Voting */}
         <div className="flex items-center justify-center gap-3 mt-6 ">
 
-              <button
-                onClick={() => handleVote(1)}
-                className="p-2 rounded-full bg-gray-100 hover:bg-green-100 transition"
-                title="Upvote"
-              >
-                <span className="text-green-600 text-xl">👍</span>
-              </button>
+          <button
+            onClick={() => handleVote(1)}
+            className="p-2 rounded-full bg-gray-100 hover:bg-green-100 transition"
+            title="Upvote"
+          >
+            <span className="text-green-600 text-xl">👍</span>
+          </button>
 
-              <span className="text-lg font-bold text-gray-800">
-                {event.votes?.reduce((sum, v) => sum + v.value, 0) || 0}
-              </span>
+          <span className="text-lg font-bold text-gray-800">
+            {event.votes?.reduce((sum, v) => sum + v.value, 0) || 0}
+          </span>
 
-              <button
-                onClick={() => handleVote(-1)}
-                className="p-2 rounded-full bg-gray-100 hover:bg-red-100 transition"
-                title="Downvote"
-              >
-                <span className="text-red-600 text-xl">👎</span>
-              </button>
+          <button
+            onClick={() => handleVote(-1)}
+            className="p-2 rounded-full bg-gray-100 hover:bg-red-100 transition"
+            title="Downvote"
+          >
+            <span className="text-red-600 text-xl">👎</span>
+          </button>
 
 
         </div>
@@ -320,7 +324,7 @@ const EventDetailPage: React.FC = () => {
         )}
 
       </div>
-    
+
 
       {/* Event Image */}
       <div className="w-full max-w-4xl mx-auto mb-6">
@@ -349,15 +353,17 @@ const EventDetailPage: React.FC = () => {
       <p className="text-gray-600">
         <span className="font-semibold">Location:</span> {event.location}
       </p>
-
-      {/* <p
-        onClick={() => setShowAttendeesPopup(true)}
-        className="text-gray-600 cursor-pointer hover:underline select-none"
-        title="Click to see attendees"
-      >
-        <span className="font-semibold">Attendees:</span>{' '}
-        {event.rsvps?.length || 0} {event.capacity ? `/ ${event.capacity}` : ''}
-      </p> */}
+      {/* Attendees */}
+      {showAttendeesOnlyForCreator && (user?.id === event.creator?.id) && event.rsvps && event.rsvps.length > 0 && (
+        <p
+          onClick={() => setShowAttendeesPopup(true)}
+          className="text-gray-600 cursor-pointer hover:underline select-none"
+          title="Click to see attendees"
+        >
+          <span className="font-semibold">Attendees:</span>{' '}
+          {event.rsvps?.length || 0} {event.capacity ? `/ ${event.capacity}` : ''}
+        </p>
+      )}
 
 
       {/* Categories */}
@@ -429,7 +435,8 @@ const EventDetailPage: React.FC = () => {
           </button>
         </div>
       )}
-      {/* {event.rsvps && event.rsvps.length > 0 && (
+
+      {(showAttendeesOnlyForCreator && (user?.id === event.creator?.id)) && event.rsvps && event.rsvps.length > 0 && (
         <div className="flex justify-center">
           <button
             onClick={() => {
@@ -444,7 +451,7 @@ const EventDetailPage: React.FC = () => {
             See who's coming ({event.rsvps.length})
           </button>
         </div>
-      )} */}
+      )}
 
       {showAttendeesPopup && event.rsvps && (
         <div className="fixed inset-0 z-[1000] bg-black bg-opacity-10 flex items-center justify-center">
