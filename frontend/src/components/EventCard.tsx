@@ -16,7 +16,7 @@ export const EventCard: React.FC<{ event: Event }> = ({ event }) => {
       {/* Image wrapper with aspect ratio */}
       <div className="relative w-full aspect-[16/10] mb-4 rounded-xl overflow-hidden">
         <img
-          src={`${apiClient.baseURL}${event.imageUrl}` || '/missingEvent.png'}
+          src={event?.imageUrl ? `${apiClient.baseURL}${event.imageUrl}` : '/missingEvent.png'}
           alt={event.title}
           className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
           draggable={false}

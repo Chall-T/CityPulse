@@ -325,7 +325,7 @@ const EventDetailPage: React.FC = () => {
       {/* Event Image */}
       <div className="w-full max-w-4xl mx-auto mb-6">
         <img
-          src={`${apiClient.baseURL}${event?.imageUrl}` || '/missingEventBig.png'}
+          src={event?.imageUrl ? `${apiClient.baseURL}${event.imageUrl}` : '/missingEventBig.png'}
           alt={event?.title || 'Event image'}
           className="w-full h-64 object-cover rounded-xl shadow-lg border border-gray-200"
         />
