@@ -131,6 +131,12 @@ const NavBar = () => {
             <header ref={navbarRef} className="flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full bg-white border-b border-gray-200 dark:bg-neutral-800 dark:border-neutral-700">
                 <nav className="relative max-w-[85rem] w-full mx-auto md:flex md:items-center md:justify-between md:gap-3 py-2 px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center gap-x-1">
+                        <img
+                            src="/logo/ClubKiez_250x250.png"
+                            alt="Club Kiez Logo"
+                            className='w-10 h-10 object-cover rounded-full cursor-pointer'
+                             onClick={() => navigate(`/${getParamString(["categoryIds", "fromDate", "search", "sort", "toDate"])}`)}
+                        />
                         <a className="flex-none font-semibold text-xl text-black focus:outline-hidden focus:opacity-80 dark:text-white cursor-pointer" onClick={() => navigate(`/${getParamString(["categoryIds", "fromDate", "search", "sort", "toDate"])}`)} aria-label="Brand">Club Kiez</a>
 
                         {/* Collapse Button */}
