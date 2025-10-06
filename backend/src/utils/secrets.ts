@@ -25,6 +25,7 @@ if (!isProd) {
 
 export const API_PATH = `${backendUrl.pathname.replace(/\/$/, '')}`;
 
+export const cFSecretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY as string;
 
 export const PORT = (backendUrl.port || 1000) as number;
 

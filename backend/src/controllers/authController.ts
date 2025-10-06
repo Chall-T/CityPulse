@@ -2,13 +2,21 @@ import { Request, Response, NextFunction } from 'express';
 import * as authService from '../services/authService';
 import { catchAsync, AppError, ErrorCodes } from '../utils/errorHandler';
 import logger from '../utils/logger';
-import { isProd, API_PATH } from '../utils/secrets';
+import { isProd, API_PATH, cFSecretKey } from '../utils/secrets';
 import { USER_LIMITS } from '../config/limits';
 import { containsProfanity } from '../utils/profanityFilter';
+import { verifyTurnstile } from '../middleware/authMiddleware';
 
 export const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   logger.info('Register endpoint called');
-  const { email, password, name } = req.body;
+  const { email, password, name, token } = req.body;
+  
+  if (isProd && cFSecretKey) {
+    const data = await verifyTurnstile(token, cFSecretKey);
+    if (!data.success) {
+      return next(new AppError("Failed human verification", 400, ErrorCodes.AUTH_INVALID_CF_TOKEN));
+    }
+  }
 
   if (!email) return next(new AppError("Email is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
   authService.isValidEmail(email) || next(new AppError("Invalid email format", 400, ErrorCodes.VALIDATION_INVALID_FORMAT));

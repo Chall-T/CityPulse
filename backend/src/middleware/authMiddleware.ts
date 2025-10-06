@@ -70,3 +70,51 @@ export const authorizeEventOwner = async (req: AuthRequest, res: Response, next:
 
   next();
 };
+
+
+
+// CF Turnstile verification
+
+import https from "https";
+import querystring from "querystring";
+
+interface TurnstileResult {
+  success: boolean;
+  challenge_ts?: string;
+  hostname?: string;
+  "error-codes"?: string[];
+}
+
+export function verifyTurnstile(token: string, secret: string): Promise<TurnstileResult> {
+  return new Promise((resolve, reject) => {
+    const postData = querystring.stringify({ secret, response: token });
+
+    const options = {
+      hostname: "challenges.cloudflare.com",
+      path: "/turnstile/v0/siteverify",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Length": Buffer.byteLength(postData),
+      },
+    };
+
+    const request = https.request(options, (response) => {
+      let data = "";
+      response.on("data", (chunk) => (data += chunk));
+      response.on("end", () => {
+        try {
+          const result: TurnstileResult = JSON.parse(data);
+          resolve(result);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+
+    request.on("error", (err) => reject(err));
+
+    request.write(postData);
+    request.end();
+  });
+}

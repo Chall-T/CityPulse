@@ -206,9 +206,9 @@ class ApiClient {
   }
 
 
-  async register(email: string, password: string) {
+  async register(email: string, password: string, token?: string) {
     return this.requestWithCache('post', '/auth/register', {
-      data: { email, password },
+      data: { email, password, token },
       cacheable: false,
     });
   }

@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../lib/ApiClient';
 import { useAuthStore } from '../store/authStore';
+import Turnstile from "react-turnstile";
+
 import config from '../lib/config';
 
 export const RegistrationPage = () => {
+  const [token, setToken] = useState("");
+
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
-  
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -57,8 +61,13 @@ export const RegistrationPage = () => {
 
     if (!validate()) return;
 
+    if (!token && config.turnstileSiteKey) {
+      setSubmitError("Please complete the verification");
+      return;
+    }
+
     try {
-      const res = await apiClient.register(formData.email, formData.password);
+      const res = await apiClient.register(formData.email, formData.password, token);
 
       login(res.data.user, res.data.token);
       navigate('/');
@@ -156,7 +165,12 @@ export const RegistrationPage = () => {
               {errors.acceptTerms && <p className="text-xs text-red-600 mt-2">{errors.acceptTerms}</p>}
 
               {submitError && <p className="text-xs text-red-600 text-center">{submitError}</p>}
-
+              {config.turnstileSiteKey && (
+                <Turnstile
+                  sitekey={config.turnstileSiteKey}
+                  onVerify={(token) => setToken(token)}
+                />
+              )}
               <button type="submit" className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
                 Sign up
               </button>
