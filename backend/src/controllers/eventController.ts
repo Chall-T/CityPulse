@@ -10,13 +10,23 @@ import { isSafeURL } from '../utils/validators';
 import { EVENT_LIMITS } from '../config/limits';
 import { containsProfanity } from '../utils/profanityFilter';
 import { cacheImage } from '../utils/ImageCache';
+import { isProd, cFSecretKey } from '../utils/secrets';
+import { verifyTurnstile } from '../middleware/authMiddleware';
 
 interface AuthRequest extends Request {
     userId: string;
 }
 
+
 export const createEvent = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryIds } = req.body;
+    const { title, description, imageUrl, dateTime, location, lat, lng, capacity, categoryIds, token } = req.body;
+
+    if (isProd && cFSecretKey) {
+        const data = await verifyTurnstile(token, cFSecretKey);
+        if (!data.success) {
+            return next(new AppError("Failed human verification", 400, ErrorCodes.VALIDATION_INVALID_CF_TOKEN));
+        }
+    }
 
     if (!title) return next(new AppError("Title is required", 400, ErrorCodes.VALIDATION_REQUIRED_FIELD));
     if (title.trim().length < EVENT_LIMITS.TITLE_MIN_LENGTH || title.trim().length > EVENT_LIMITS.TITLE_MAX_LENGTH) return next(new AppError("Title is too short or long", 400, ErrorCodes.VALIDATION_OUT_OF_BOUNDS));
@@ -61,8 +71,8 @@ export const createEvent = catchAsync(async (req: AuthRequest, res: Response, ne
     };
     if (imageUrl && isSafeURL(imageUrl)) {
         newEvent.imageUrl = await cacheImage(imageUrl);
-      }
-      
+    }
+
     if (capacity) newEvent.capacity = capacity;
 
 
@@ -186,50 +196,50 @@ export const getEventPinsWithFilters = catchAsync(async (req: Request, res: Resp
 })
 
 export const getPaginatedEventsWithFilters = catchAsync(async (req: Request, res: Response) => {
-  const { cursor, limit, categoryIds, search, sort, fromDate, toDate } = req.query;
+    const { cursor, limit, categoryIds, search, sort, fromDate, toDate } = req.query;
 
-  let userLimit = 20;
-  if (limit) userLimit = parseInt(limit as string);
+    let userLimit = 20;
+    if (limit) userLimit = parseInt(limit as string);
 
-  let sortMode: 'asc' | 'desc' | 'score' = 'desc';
-  if (sort && typeof sort === 'string' && ['asc', 'desc', 'score'].includes(sort)) {
-    sortMode = sort as 'asc' | 'desc' | 'score';
-  }
+    let sortMode: 'asc' | 'desc' | 'score' = 'desc';
+    if (sort && typeof sort === 'string' && ['asc', 'desc', 'score'].includes(sort)) {
+        sortMode = sort as 'asc' | 'desc' | 'score';
+    }
 
-  const categoryArray: string[] = categoryIds
-    ? Array.isArray(categoryIds)
-      ? (categoryIds as string[]).map((c) => c.trim())
-      : String(categoryIds).split(',').map((c) => c.trim())
-    : [];
+    const categoryArray: string[] = categoryIds
+        ? Array.isArray(categoryIds)
+            ? (categoryIds as string[]).map((c) => c.trim())
+            : String(categoryIds).split(',').map((c) => c.trim())
+        : [];
 
-  const searchTerm = typeof search === 'string' ? search.trim() : '';
+    const searchTerm = typeof search === 'string' ? search.trim() : '';
 
-  let parsedFromDate = fromDate ? new Date(fromDate as string) : undefined;
-  let parsedToDate = toDate ? new Date(toDate as string) : undefined;
+    let parsedFromDate = fromDate ? new Date(fromDate as string) : undefined;
+    let parsedToDate = toDate ? new Date(toDate as string) : undefined;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (parsedFromDate !== undefined && parsedFromDate < today) {
-    parsedFromDate = today;
-  } else if (parsedFromDate === undefined) {
-    parsedFromDate = today;
-  }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (parsedFromDate !== undefined && parsedFromDate < today) {
+        parsedFromDate = today;
+    } else if (parsedFromDate === undefined) {
+        parsedFromDate = today;
+    }
 
-  const events = await eventService.getEventsPaginatedWithFilters(
-    cursor ? String(cursor) : undefined,
-    userLimit,
-    true,
-    categoryArray,
-    searchTerm,
-    sortMode,
-    parsedFromDate,
-    parsedToDate
-  );
+    const events = await eventService.getEventsPaginatedWithFilters(
+        cursor ? String(cursor) : undefined,
+        userLimit,
+        true,
+        categoryArray,
+        searchTerm,
+        sortMode,
+        parsedFromDate,
+        parsedToDate
+    );
 
-  res.json({
-    data: events,
-    nextCursor: events.length === userLimit ? events[events.length - 1].id : null,
-  });
+    res.json({
+        data: events,
+        nextCursor: events.length === userLimit ? events[events.length - 1].id : null,
+    });
 });
 
 
@@ -366,11 +376,11 @@ export const voteOnEvent = catchAsync(async (req: AuthRequest, res: Response, ne
 
 
 const validReasons = [
-  "SPAM",
-  "INAPPROPRIATE",
-  "HARASSMENT",
-  "MISINFORMATION",
-  "OTHER",
+    "SPAM",
+    "INAPPROPRIATE",
+    "HARASSMENT",
+    "MISINFORMATION",
+    "OTHER",
 ] as const;
 
 type ReportReason = (typeof validReasons)[number];
@@ -378,42 +388,42 @@ type ReportReason = (typeof validReasons)[number];
 import prisma from '../config/database';
 
 export const reportEvent = catchAsync(
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const eventId = req.params.eventId;
-    const userId = req.userId;
-    const { reason: rawReason, details } = req.body;
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const eventId = req.params.eventId;
+        const userId = req.userId;
+        const { reason: rawReason, details } = req.body;
 
 
-    // Validate reason
-    if (!rawReason || !validReasons.includes(rawReason)) {
-      return next(
-        new AppError("Invalid report reason", 400, ErrorCodes.VALIDATION_INVALID_TYPE)
-      );
+        // Validate reason
+        if (!rawReason || !validReasons.includes(rawReason)) {
+            return next(
+                new AppError("Invalid report reason", 400, ErrorCodes.VALIDATION_INVALID_TYPE)
+            );
+        }
+
+        const reason = rawReason as ReportReason;
+
+        // Check event exists
+        const event = await prisma.event.findUnique({
+            where: { id: eventId },
+        });
+
+        if (!event) {
+            return next(
+                new AppError("Event not found", 404, ErrorCodes.RESOURCE_NOT_FOUND)
+            );
+        }
+
+        // Create the report
+        const report = await prisma.report.create({
+            data: {
+                reporterId: userId,
+                reportedEventId: eventId,
+                reason,
+                details: details?.slice(0, 100), // max 100 chars
+            },
+        });
+
+        res.json({ success: true, report });
     }
-
-    const reason = rawReason as ReportReason;
-
-    // Check event exists
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-    });
-
-    if (!event) {
-      return next(
-        new AppError("Event not found", 404, ErrorCodes.RESOURCE_NOT_FOUND)
-      );
-    }
-
-    // Create the report
-    const report = await prisma.report.create({
-      data: {
-        reporterId: userId,
-        reportedEventId: eventId,
-        reason,
-        details: details?.slice(0, 100), // max 100 chars
-      },
-    });
-
-    res.json({ success: true, report });
-  }
 );

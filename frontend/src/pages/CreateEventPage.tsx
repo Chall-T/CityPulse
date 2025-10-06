@@ -10,7 +10,9 @@ import { apiClient } from '../lib/ApiClient';
 import OneLineLoader from '../components/Loader/OneLine';
 import Swal from 'sweetalert2'
 import MD5 from 'crypto-js/md5';
+import Turnstile from "react-turnstile";
 
+import config from '../lib/config';
 
 function MapUpdater({ coords, zoom }: { coords: [number, number] | null, zoom: number }) {
   const map = useMap();
@@ -294,6 +296,7 @@ function getDistanceMeters(
 
 
 const CreateEventPage: React.FC = () => {
+  const [token, setToken] = useState("");
   const now = new Date()
   const navigate = useNavigate()
   const [title, setTitle] = useState('');
@@ -534,6 +537,10 @@ const CreateEventPage: React.FC = () => {
       newErrors.categories = 'Select at least one category';
       valid = false;
     }
+    if (!token && config.turnstileSiteKey) {
+      newErrors.token = "Please complete the verification";
+      valid = false;
+    }
     if (!valid) {
       setErrors(newErrors);
       return;
@@ -549,7 +556,8 @@ const CreateEventPage: React.FC = () => {
       lng: coords![1],
       capacity: capacity || null,
       categoryIds: selectedCats,
-      imageUrl: null
+      imageUrl: null,
+      token
     };
     if (selectedImage && selectedImage !== defaultImage) eventData.imageUrl = selectedImage
     try {
@@ -873,7 +881,12 @@ const CreateEventPage: React.FC = () => {
           )}
         </div>
       )}
-
+      {config.turnstileSiteKey && (
+        <Turnstile
+          sitekey={config.turnstileSiteKey}
+          onVerify={(token) => setToken(token)}
+        />
+      )}
       {/* Submit Button */}
       <div className="pt-4">
         <button
