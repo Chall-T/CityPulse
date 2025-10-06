@@ -350,14 +350,14 @@ const EventDetailPage: React.FC = () => {
         <span className="font-semibold">Location:</span> {event.location}
       </p>
 
-      <p
+      {/* <p
         onClick={() => setShowAttendeesPopup(true)}
         className="text-gray-600 cursor-pointer hover:underline select-none"
         title="Click to see attendees"
       >
         <span className="font-semibold">Attendees:</span>{' '}
         {event.rsvps?.length || 0} {event.capacity ? `/ ${event.capacity}` : ''}
-      </p>
+      </p> */}
 
 
       {/* Categories */}
@@ -429,7 +429,7 @@ const EventDetailPage: React.FC = () => {
           </button>
         </div>
       )}
-      {event.rsvps && event.rsvps.length > 0 && (
+      {/* {event.rsvps && event.rsvps.length > 0 && (
         <div className="flex justify-center">
           <button
             onClick={() => {
@@ -444,7 +444,7 @@ const EventDetailPage: React.FC = () => {
             See who's coming ({event.rsvps.length})
           </button>
         </div>
-      )}
+      )} */}
 
       {showAttendeesPopup && event.rsvps && (
         <div className="fixed inset-0 z-[1000] bg-black bg-opacity-10 flex items-center justify-center">
