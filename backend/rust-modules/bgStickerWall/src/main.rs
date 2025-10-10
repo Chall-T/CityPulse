@@ -1,16 +1,16 @@
 mod model; 
+mod helper;
 mod processor; 
 use actix_web::{post, web, App, HttpResponse, HttpServer, Responder}; 
 use log::info; 
 use std::env; 
 use model::ComposeRequest; 
-use anyhow::Result; 
 
 #[post("/compose")] 
 async fn compose(req: web::Json<ComposeRequest>) -> impl Responder { 
     // Resolve runtime paths from environment 
-    let asset_root = env::var("ASSET_PATH").unwrap_or_else(|_| "./assets".into()); 
-    let output_dir = env::var("OUTPUT_DIR").unwrap_or_else(|_| "./output".into()); 
+    let asset_root = env::var("ASSET_PATH").unwrap_or_else(|_| "../../images".into()); 
+    let output_dir = env::var("OUTPUT_DIR").unwrap_or_else(|_| "../../images".into()); 
     match processor::compose(&asset_root, &output_dir, &req.into_inner()) { 
         Ok((image_path, meta_path)) => { 
             let body = serde_json::json!({ "image": image_path, "metadata": meta_path }); 
