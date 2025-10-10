@@ -1,31 +1,29 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize};
+use image::RgbaImage;
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Sticker {
     pub id: String,
-    pub file: String, // relative path under ASSET_PATH
+    pub file: String,
     pub x: f32,
     pub y: f32,
+    pub rotation: f32,
     pub width: u32,
     pub height: u32,
-    pub rotation: f32, // degrees, positive = CCW
 }
 
-#[derive(Deserialize, Debug)]
-pub struct ComposeRequest {
-    pub background: String, // relative path under ASSET_PATH
+#[derive(Debug, Clone, Deserialize)]
+pub struct InputData {
+    pub background: String,
     pub stickers: Vec<Sticker>,
     pub output_name: Option<String>,
 }
 
-#[derive(Serialize, Debug, Clone, Copy)]
-pub struct Corner {
-    pub x: f32,
-    pub y: f32,
-}
 
-#[derive(Serialize, Debug)]
-pub struct ClickZone {
-    pub id: String,
-    pub corners: [Corner; 4],
+pub struct Layer {
+    pub sticker: Sticker,
+    pub rotated: RgbaImage,
+    pub draw_x: f32,
+    pub draw_y: f32,
+    pub opaque_indices: Vec<usize>
 }
