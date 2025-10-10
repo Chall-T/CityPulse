@@ -8,6 +8,7 @@ use lazy_static::lazy_static;
 use std::sync::Arc;
 use std::path::Path;
 use image::RgbaImage;
+use std::time::Duration;
 
 lazy_static! {
     pub static ref BG_IMAGE: RgbaImage = {
@@ -40,14 +41,34 @@ async fn compose(req: web::Json<InputData>) -> impl Responder {
     } 
 }
 
+#[post("/remove_old")]
+async fn remove_old() -> impl Responder {
+    let dir = "../../images/sticker_bg/";
+    let max_age = Duration::from_secs(24 * 60 * 60);
+
+    let _ = processor::cleanup_old_files_by_name(dir, max_age);
+
+    HttpResponse::Ok().json(serde_json::json!({
+        "status": "cleanup attempted",
+        "dir": dir,
+        "max_age_secs": max_age.as_secs()
+    }))
+}
+
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> { 
     env_logger::init(); 
     let bind = std::env::var("BIND").unwrap_or_else(|_| "0.0.0.0:8080".into()); 
     info!("Starting rust-image-service on http://{}", bind); 
     println!("Listening on http://{}", bind);
-    HttpServer::new(|| App::new().service(compose))
-        .bind(bind)?
-        .run()
-        .await
+
+    HttpServer::new(|| {
+        App::new()
+            .service(compose)
+            .service(remove_old)  
+    })
+    .bind(bind)?
+    .run()
+    .await
 }

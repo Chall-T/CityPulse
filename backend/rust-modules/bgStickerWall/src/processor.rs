@@ -10,7 +10,11 @@ use imageproc::geometric_transformations::{rotate_about_center, Interpolation};
 use std::fs::{create_dir_all, File};
 use std::io::BufWriter;
 use std::path::Path;
+use std::time::Duration;
+use std::time::UNIX_EPOCH;
+use std::time::SystemTime;
 use std::time::Instant;
+use std::fs;
 
 pub fn compose_bgs(
     asset_root: &str,
@@ -126,7 +130,7 @@ pub fn compose_bgs(
 
     // --- Draw horizontal ---
     let visible_stickers_h = draw_layers(&mut bg_horiz, &layers_h, bg_w_h, bg_h_h)?;
-    let img_name_h = req.output_name.clone().unwrap_or_else(|| format!("composed_horiz_{}.webp", Utc::now().timestamp()));
+    let img_name_h = req.output_name.clone().unwrap_or_else(|| format!("{}_composed_horiz.webp", Utc::now().timestamp()));
     let img_path_h = Path::new(output_dir).join(&img_name_h);
     let mut out_file = BufWriter::new(File::create(&img_path_h)?);
     WebPEncoder::new_lossless(&mut out_file).encode(&bg_horiz, bg_w_h, bg_h_h, image::ColorType::Rgba8.into())?;
@@ -135,7 +139,7 @@ pub fn compose_bgs(
 
     // --- Draw vertical ---
     let visible_stickers_v = draw_layers(&mut bg_vert, &layers_v, bg_w_v, bg_h_v)?;
-    let img_name_v = req.output_name.clone().unwrap_or_else(|| format!("composed_vert_{}.webp", Utc::now().timestamp()));
+    let img_name_v = req.output_name.clone().unwrap_or_else(|| format!("{}_composed_vert.webp", Utc::now().timestamp()));
     let img_path_v = Path::new(output_dir).join(&img_name_v);
     let mut out_file = BufWriter::new(File::create(&img_path_v)?);
     WebPEncoder::new_lossless(&mut out_file).encode(&bg_vert, bg_w_v, bg_h_v, image::ColorType::Rgba8.into())?;
@@ -144,4 +148,36 @@ pub fn compose_bgs(
 
     Ok(((img_path_h.to_string_lossy().to_string(), meta_path_h.to_string_lossy().to_string()),
         (img_path_v.to_string_lossy().to_string(), meta_path_v.to_string_lossy().to_string())))
+}
+
+
+pub fn cleanup_old_files_by_name(dir: &str, max_age: Duration) -> std::io::Result<usize> {
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards")
+        .as_secs();
+
+    let mut deleted_count = 0;
+
+    for entry_result in fs::read_dir(dir)? {
+        let entry = entry_result?;
+        let path = entry.path();
+
+        if !path.is_file() {
+            continue;
+        }
+
+        if let Some(fname) = path.file_name().and_then(|n| n.to_str()) {
+            if let Some(pos) = fname.find('_') {
+                if let Ok(ts) = fname[..pos].parse::<u64>() {
+                    if now.saturating_sub(ts) > max_age.as_secs() {
+                        let _ = fs::remove_file(&path);
+                        deleted_count += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(deleted_count)
 }
